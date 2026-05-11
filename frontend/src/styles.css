@@ -1,0 +1,89 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  height: 100vh;
+}
+
+.sidebar {
+  padding: 16px;
+  overflow: auto;
+  border-right: 1px solid #ddd;
+}
+
+.field {
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+button {
+  cursor: pointer;
+}
+
+.status {
+  font-size: 14px;
+}
+
+.status.small {
+  font-size: 12px;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tabs button {
+  flex: 1;
+  padding: 6px 4px;
+  border: 1px solid #ccc;
+  background: #f5f5f5;
+}
+
+.tabs button.active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #1d4ed8;
+}
+
+.auth-box {
+  border: 1px solid #e5e5e5;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+}
+
+.auth-form .buttons {
+  margin-top: 8px;
+}
+
+.chart-box {
+  margin-top: 16px;
+}
+
+.stats-note {
+  font-size: 12px;
+  color: #444;
+}
+
+.ethics-panel p {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.ethics-panel code {
+  font-size: 12px;
+}

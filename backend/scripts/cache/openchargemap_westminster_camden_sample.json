@@ -1,0 +1,22 @@
+[
+  {
+    "ID": 1,
+    "AddressInfo": {
+      "Title": "Westminster Test Station",
+      "AddressLine1": "Victoria Street",
+      "Latitude": 51.4975,
+      "Longitude": -0.1357
+    },
+    "NumberOfPoints": 4
+  },
+  {
+    "ID": 2,
+    "AddressInfo": {
+      "Title": "Camden Test Station",
+      "AddressLine1": "Camden High Street",
+      "Latitude": 51.5416,
+      "Longitude": -0.1420
+    },
+    "NumberOfPoints": 3
+  }
+]

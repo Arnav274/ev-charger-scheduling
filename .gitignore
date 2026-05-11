@@ -1,0 +1,19 @@
+.env
+*.env.local
+**/__pycache__/
+**/.pytest_cache/
+frontend/node_modules/
+
+# Local / submission-only materials (do not publish)
+presentation/
+useful content/
+
+# Build artifacts
+frontend/dist/
+
+# Experiment outputs (reproducible; avoid committing generated data)
+backend/experiments/outputs/
+
+# Coverage artifacts
+**/.coverage
+**/coverage.xml

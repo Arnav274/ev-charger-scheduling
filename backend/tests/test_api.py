@@ -394,6 +394,38 @@ def test_suggest_slot_returns_empty_when_fully_booked() -> None:
     assert response.json() == []
 
 
+def test_get_my_reservations_returns_200_when_authenticated() -> None:
+    uid = uuid4()
+    charger_id = uuid4()
+    now = datetime.now(timezone.utc)
+    reservation_rows = [
+        SimpleNamespace(
+            id=uuid4(),
+            charger_id=charger_id,
+            user_id=uid,
+            start_time=now + timedelta(hours=1),
+            end_time=now + timedelta(hours=2),
+            charger_name="C1",
+            station_name="Test Station",
+        )
+    ]
+    fake_db = FakeDb(reservation_rows=reservation_rows)
+    client = with_override(fake_db)
+    app.dependency_overrides[get_current_user_id] = lambda: uid
+    response = client.get("/reservations/mine")
+    assert response.status_code == 200
+    payload = response.json()
+    assert len(payload) == 1
+    assert payload[0]["station_name"] == "Test Station"
+    assert payload[0]["charger_name"] == "C1"
+
+
+def test_get_my_reservations_returns_401_without_token() -> None:
+    client = TestClient(app)
+    response = client.get("/reservations/mine")
+    assert response.status_code == 401
+
+
 def test_recommendations_fallback_to_all_when_radius_empty() -> None:
     far_station = make_station(n_chargers=1)
     far_station.lat = 55.9533

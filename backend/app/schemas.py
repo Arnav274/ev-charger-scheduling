@@ -46,6 +46,16 @@ class ReservationOut(BaseModel):
     end_time: datetime
 
 
+class ReservationDetailOut(BaseModel):
+    id: UUID
+    charger_id: UUID
+    user_id: UUID
+    start_time: datetime
+    end_time: datetime
+    station_name: str
+    charger_name: str
+
+
 class RecommendationRequest(BaseModel):
     origin_lat: float
     origin_lon: float

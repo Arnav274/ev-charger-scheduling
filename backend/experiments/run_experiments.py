@@ -6,7 +6,7 @@ from pathlib import Path
 
 from sqlalchemy.orm import joinedload
 
-from app.algorithms import RecommendationContext, STRATEGIES, haversine_km
+from app.algorithms import DijkstraStrategy, RecommendationContext, STRATEGIES, haversine_km
 from app.database import SessionLocal
 from app.models import Station
 from app.queueing import erlang_c_probability_of_delay, erlang_c_wait_minutes
@@ -255,7 +255,16 @@ def run(n_trials: int = 100) -> Path:
                         context.future_reservation_starts_by_station = future_reservation_starts_by_station  # type: ignore[attr-defined]
 
                         t0 = time.perf_counter()
-                        ranked = sorted(stations, key=lambda s: strategy.score(s, context, max_vals))
+                        pre_computed_dijkstra: dict[str, float] | None = None
+                        if isinstance(strategy, DijkstraStrategy):
+                            pre_computed_dijkstra = strategy.rank_all(stations, context)
+
+                        def _score(s: Station, _strategy=strategy, _ctx=context, _mv=max_vals, _pd=pre_computed_dijkstra) -> float:
+                            if _pd is not None:
+                                return _strategy.score(s, _ctx, _mv, _pd[str(s.id)])
+                            return _strategy.score(s, _ctx, _mv)
+
+                        ranked = sorted(stations, key=_score)
                         candidate_pool = ranked[: variant["top_k"]]
                         best = random.choice(candidate_pool)
                         runtime_ms = (time.perf_counter() - t0) * 1000

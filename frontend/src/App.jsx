@@ -8,6 +8,7 @@ import {
   fetchExperimentSummary,
   fetchStation,
   fetchVehicles,
+  getMyReservations,
   getRecommendations,
   loginUser,
   registerUser,
@@ -62,6 +63,7 @@ function App() {
   const [fetchingHotspots, setFetchingHotspots] = useState(false);
   const [vehicles, setVehicles] = useState([]);
   const [vehicleForm, setVehicleForm] = useState({ make_model: "", battery_kwh: "" });
+  const [myReservations, setMyReservations] = useState([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState(null);
   const reserveSectionRef = useRef(null);
 
@@ -73,6 +75,11 @@ function App() {
   useEffect(() => {
     if (!accessToken) { setVehicles([]); setSelectedVehicleId(null); return; }
     fetchVehicles(accessToken).then(setVehicles).catch(() => {});
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (!accessToken) { setMyReservations([]); return; }
+    getMyReservations(accessToken).then(setMyReservations).catch(() => {});
   }, [accessToken]);
 
   async function loadNearby() {
@@ -194,8 +201,8 @@ function App() {
       setVehicleForm({ make_model: "", battery_kwh: "" });
       const updated = await fetchVehicles(accessToken);
       setVehicles(updated);
-    } catch {
-      // vehicle save errors are silent — the list will simply not update
+    } catch (err) {
+      setAuthStatus(err.message || "Failed to save vehicle. Please try again.");
     }
   }
 
@@ -257,6 +264,7 @@ function App() {
       );
       setReservationStatus("Reservation created.");
       setForm((prev) => ({ ...prev, start_time: "", end_time: "" }));
+      getMyReservations(accessToken).then(setMyReservations).catch(() => {});
     } catch (err) {
       setReservationStatus(err.message);
     }
@@ -378,6 +386,30 @@ function App() {
                 </div>
               )}
               {authStatus ? <p className="status">{authStatus}</p> : null}
+              {myReservations.length > 0 && (
+                <div className="my-reservations">
+                  <h4>My Reservations</h4>
+                  <ul>
+                    {myReservations.map((r) => {
+                      const fmt = (iso) => {
+                        const d = new Date(iso);
+                        const dd = String(d.getDate()).padStart(2, "0");
+                        const mm = String(d.getMonth() + 1).padStart(2, "0");
+                        const yyyy = d.getFullYear();
+                        const hh = String(d.getHours()).padStart(2, "0");
+                        const min = String(d.getMinutes()).padStart(2, "0");
+                        return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+                      };
+                      return (
+                        <li key={r.id}>
+                          <strong>{r.station_name}</strong> — {r.charger_name}<br />
+                          {fmt(r.start_time)} → {fmt(r.end_time)}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
             </section>
 
             <div className="field">
@@ -406,29 +438,35 @@ function App() {
               <button onClick={() => onRecommend("cost_optimized")}>Cost</button>
               <button onClick={() => onRecommend("queue_aware")}>Queue-aware</button>
               <button onClick={() => onRecommend("static_queue")}>Static queue (baseline)</button>
+              <button onClick={() => onRecommend("dijkstra")}>Dijkstra</button>
             </div>
-            <div className="field">
-              <label>Battery level (%)</label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                placeholder="e.g. 40"
-                value={batteryLevel}
-                onChange={(e) => setBatteryLevel(e.target.value)}
-              />
+            <p style={{fontSize: '0.8em', color: '#666', margin: '8px 0 2px'}}>
+              For range-aware routing:
+            </p>
+            <div style={{border: '1px solid #ddd', borderRadius: '6px', padding: '8px 12px'}}>
+              <div className="field">
+                <label>Battery level (%)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  placeholder="e.g. 40"
+                  value={batteryLevel}
+                  onChange={(e) => setBatteryLevel(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label>Battery capacity (kWh)</label>
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="e.g. 60"
+                  value={batteryCapacity}
+                  onChange={(e) => setBatteryCapacity(e.target.value)}
+                />
+              </div>
+              <button onClick={() => onRecommend("range_aware")}>Range-aware</button>
             </div>
-            <div className="field">
-              <label>Battery capacity (kWh)</label>
-              <input
-                type="number"
-                min="1"
-                placeholder="e.g. 60"
-                value={batteryCapacity}
-                onChange={(e) => setBatteryCapacity(e.target.value)}
-              />
-            </div>
-            <button onClick={() => onRecommend("range_aware")}>Range-aware</button>
             <label className="checkbox">
               <input type="checkbox" checked={showHotspots} onChange={(e) => setShowHotspots(e.target.checked)} />
               Show hotspots (predictive delay)

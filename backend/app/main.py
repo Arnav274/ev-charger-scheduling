@@ -28,6 +28,7 @@ from app.schemas import (
     RecommendationOut,
     RecommendationRequest,
     ReservationCreate,
+    ReservationDetailOut,
     ReservationOut,
     SlotRequest,
     SlotSuggestion,
@@ -279,6 +280,39 @@ def create_reservation(
     )
 
 
+@app.get("/reservations/mine", response_model=list[ReservationDetailOut])
+def get_my_reservations(
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+    db: Session = Depends(get_db),
+) -> list[ReservationDetailOut]:
+    rows = db.execute(
+        text(
+            """
+            SELECT r.id, r.charger_id, r.user_id, r.start_time, r.end_time,
+                   c.name AS charger_name, s.name AS station_name
+            FROM reservations r
+            JOIN chargers c ON c.id = r.charger_id
+            JOIN stations s ON s.id = c.station_id
+            WHERE r.user_id = :user_id
+            ORDER BY r.start_time DESC
+            """
+        ),
+        {"user_id": str(user_id)},
+    ).all()
+    return [
+        ReservationDetailOut(
+            id=row.id,
+            charger_id=row.charger_id,
+            user_id=row.user_id,
+            start_time=row.start_time,
+            end_time=row.end_time,
+            station_name=row.station_name,
+            charger_name=row.charger_name,
+        )
+        for row in rows
+    ]
+
+
 @app.post("/recommendations", response_model=list[RecommendationOut])
 def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> list[RecommendationOut]:
     strategy = STRATEGIES.get(payload.algorithm)
@@ -406,7 +440,7 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
         or 1.0
     )
 
-    _predictive_algorithms = {"queue_aware", "range_aware", "dijkstra"}
+    _predictive_algorithms = {"queue_aware"}
     max_wait = max_wait_predictive if payload.algorithm in _predictive_algorithms else max_wait_static
 
     max_cost = max(s.price_pence_per_kwh for s in candidates) or 1.0
@@ -461,8 +495,7 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
                     c=max(
                         1,
                         len(s.chargers)
-                        - future_reserved_parallel_by_station.get(str(s.id), 0)
-                        - current_occupancy_by_station.get(str(s.id), 0),
+                        - future_reserved_parallel_by_station.get(str(s.id), 0),
                     ),
                 )
                 if payload.algorithm == "queue_aware"
@@ -479,8 +512,7 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
                     c=max(
                         1,
                         len(s.chargers)
-                        - future_reserved_parallel_by_station.get(str(s.id), 0)
-                        - current_occupancy_by_station.get(str(s.id), 0),
+                        - future_reserved_parallel_by_station.get(str(s.id), 0),
                     ),
                 )
                 if payload.algorithm == "queue_aware"

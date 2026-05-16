@@ -146,3 +146,11 @@ export async function fetchVehicles(accessToken) {
   }
   return res.json();
 }
+
+export async function getMyReservations(accessToken) {
+  const res = await fetch(`${API_BASE}/reservations/mine`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) return [];
+  return res.json();
+}

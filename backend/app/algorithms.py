@@ -80,7 +80,7 @@ class QueueAwareStrategy(SelectionStrategy):
             current_occupancy = int(context.current_occupancy_by_station.get(str(station.id), 0))
 
         c = max(1, len(station.chargers))
-        c_eff = max(1, c - reserved_parallel - current_occupancy)
+        c_eff = max(1, c - reserved_parallel)
         window_hours = max(1, int(getattr(context, "arrival_window_minutes", 15))) / 60.0
         lambda_future = station.arrival_rate_per_hour + (reservation_starts / window_hours)
         wait = erlang_c_wait_minutes(

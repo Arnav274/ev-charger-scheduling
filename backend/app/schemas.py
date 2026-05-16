@@ -50,18 +50,27 @@ class RecommendationRequest(BaseModel):
     origin_lat: float
     origin_lon: float
     radius_km: float = Field(default=5.0, gt=0)
-    algorithm: str = Field(default="queue_aware")
+    algorithm: str = "queue_aware"
     weights: tuple[float, float, float] = (1 / 3, 1 / 3, 1 / 3)
     top_k: int = 5
+    departure_time: datetime | None = None
+    arrival_time_target: datetime | None = None
+    arrival_window_minutes: int = Field(default=15, ge=1, le=240)
+    battery_level_percent: float | None = None  # 0–100
+    battery_capacity_kwh: float | None = None
 
 
 class RecommendationOut(BaseModel):
     station_id: UUID
     station_name: str
     score: float
-    distance_km: float
+    travel_distance_km: float
+    travel_time_min: float
+    arrival_time_est: datetime
     predicted_wait_min: float
+    probability_of_delay: float
     price_pence_per_kwh: float
+    current_occupancy: int
 
 
 class UserRegister(BaseModel):
@@ -76,3 +85,27 @@ class Token(BaseModel):
 
 class ExperimentSummaryResponse(BaseModel):
     rows: list[dict]
+
+
+class SlotRequest(BaseModel):
+    desired_arrival: datetime
+    duration_minutes: int = Field(gt=0, le=480)
+    charger_id: UUID | None = None
+
+
+class SlotSuggestion(BaseModel):
+    charger_id: UUID
+    suggested_start: datetime
+    suggested_end: datetime
+    wait_from_desired_minutes: float
+
+
+class VehicleCreate(BaseModel):
+    make_model: str = Field(max_length=120)
+    battery_kwh: float = Field(gt=0)
+
+
+class VehicleOut(BaseModel):
+    id: UUID
+    make_model: str
+    battery_kwh: float

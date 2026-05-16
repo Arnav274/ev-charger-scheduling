@@ -3,15 +3,19 @@ import L from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import {
   createReservation,
+  createVehicle,
   fetchNearbyStations,
   fetchExperimentSummary,
   fetchStation,
+  fetchVehicles,
   getRecommendations,
   loginUser,
   registerUser,
+  suggestSlot,
 } from "./api";
 import EthicsPanel from "./EthicsPanel";
 import StatsDashboard from "./StatsDashboard";
+import HeatmapLayer from "./HeatmapLayer";
 
 const defaultCenter = { lat: 51.5074, lon: -0.1278 };
 const TOKEN_KEY = "ev_portfolio_access_token";
@@ -47,11 +51,28 @@ function App() {
   const [statsLoadError, setStatsLoadError] = useState("");
   const [authStatus, setAuthStatus] = useState("");
   const [reservationStatus, setReservationStatus] = useState("");
+  const [showHotspots, setShowHotspots] = useState(false);
+  const [slotArrival, setSlotArrival] = useState("");
+  const [slotDuration, setSlotDuration] = useState("60");
+  const [suggestedSlots, setSuggestedSlots] = useState([]);
+  const [slotStatus, setSlotStatus] = useState("");
+  const [batteryLevel, setBatteryLevel] = useState("");
+  const [batteryCapacity, setBatteryCapacity] = useState("");
+  const [supplementaryStations, setSupplementaryStations] = useState(new Map());
+  const [fetchingHotspots, setFetchingHotspots] = useState(false);
+  const [vehicles, setVehicles] = useState([]);
+  const [vehicleForm, setVehicleForm] = useState({ make_model: "", battery_kwh: "" });
+  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
   const reserveSectionRef = useRef(null);
 
   useEffect(() => {
     if (accessToken) localStorage.setItem(TOKEN_KEY, accessToken);
     else localStorage.removeItem(TOKEN_KEY);
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (!accessToken) { setVehicles([]); setSelectedVehicleId(null); return; }
+    fetchVehicles(accessToken).then(setVehicles).catch(() => {});
   }, [accessToken]);
 
   async function loadNearby() {
@@ -78,12 +99,62 @@ function App() {
       .catch((err) => setStatsLoadError(err.message || "fetch failed"));
   }, [tab]);
 
+  useEffect(() => {
+    if (!recommendations.length) return;
+    const stationById = new Map(stations.map((s) => [String(s.id), s]));
+    const missing = recommendations
+      .map((r) => String(r.station_id))
+      .filter((id) => !stationById.has(id) && !supplementaryStations.has(id));
+    if (!missing.length) return;
+
+    setFetchingHotspots(true);
+    Promise.all(missing.map((id) => fetchStation(id).then((st) => [id, st]).catch(() => null)))
+      .then((results) => {
+        setSupplementaryStations((prev) => {
+          const next = new Map(prev);
+          results.forEach((entry) => { if (entry) next.set(entry[0], entry[1]); });
+          return next;
+        });
+      })
+      .finally(() => setFetchingHotspots(false));
+  }, [recommendations, stations, supplementaryStations]);
+
+  async function onSuggestSlot() {
+    if (!selectedStation || !slotArrival) {
+      setSlotStatus("Choose a desired arrival time.");
+      return;
+    }
+    const dur = parseInt(slotDuration, 10);
+    if (!dur || dur <= 0) {
+      setSlotStatus("Enter a positive duration.");
+      return;
+    }
+    try {
+      setSlotStatus("Searching…");
+      setSuggestedSlots([]);
+      const data = await suggestSlot(selectedStation.id, {
+        desired_arrival: new Date(slotArrival).toISOString(),
+        duration_minutes: dur,
+      });
+      if (data.length === 0) {
+        setSlotStatus("No slot found within 4 hours of the desired arrival.");
+      } else {
+        setSuggestedSlots(data);
+        setSlotStatus("");
+      }
+    } catch (err) {
+      setSlotStatus(err.message);
+    }
+  }
+
   async function onSelectStation(stationId) {
     try {
       const data = await fetchStation(stationId);
       setSelectedStation(data);
       setForm((prev) => ({ ...prev, charger_id: data.chargers[0]?.id || "" }));
       setReservationStatus("");
+      setSuggestedSlots([]);
+      setSlotStatus("");
       requestAnimationFrame(() => {
         if (typeof reserveSectionRef.current?.scrollIntoView === "function") {
           reserveSectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -96,17 +167,35 @@ function App() {
 
   async function onRecommend(algorithm) {
     try {
-      const data = await getRecommendations({
+      const payload = {
         origin_lat: center.lat,
         origin_lon: center.lon,
         radius_km: radiusKm,
         algorithm,
         top_k: 5,
-      });
+        arrival_window_minutes: 15,
+      };
+      if (batteryLevel !== "" && batteryCapacity !== "") {
+        payload.battery_level_percent = Number(batteryLevel);
+        payload.battery_capacity_kwh = Number(batteryCapacity);
+      }
+      const data = await getRecommendations(payload);
       setRecommendations(data);
       setStatus(`Recommendations computed with ${algorithm}.`);
     } catch (err) {
       setStatus(err.message);
+    }
+  }
+
+  async function onSaveVehicle(e) {
+    e.preventDefault();
+    try {
+      await createVehicle({ make_model: vehicleForm.make_model, battery_kwh: Number(vehicleForm.battery_kwh) }, accessToken);
+      setVehicleForm({ make_model: "", battery_kwh: "" });
+      const updated = await fetchVehicles(accessToken);
+      setVehicles(updated);
+    } catch {
+      // vehicle save errors are silent — the list will simply not update
     }
   }
 
@@ -174,6 +263,23 @@ function App() {
   }
 
   const position = useMemo(() => [center.lat, center.lon], [center]);
+  const hotspotPoints = useMemo(() => {
+    if (!recommendations.length) return [];
+    const stationById = new Map(stations.map((s) => [String(s.id), s]));
+    const byId = new Map();
+    recommendations.forEach((r) => {
+      const st = stationById.get(String(r.station_id)) ?? supplementaryStations.get(String(r.station_id));
+      if (!st) return;
+      const intensity = Math.max(0, Math.min(1, Number(r.probability_of_delay || 0)));
+      byId.set(String(r.station_id), {
+        lat: st.lat,
+        lon: st.lon,
+        intensity,
+        label: r.station_name,
+      });
+    });
+    return Array.from(byId.values());
+  }, [recommendations, stations, supplementaryStations]);
 
   return (
     <div className="layout">
@@ -225,6 +331,50 @@ function App() {
                   <button type="button" onClick={() => setAccessToken("")}>
                     Sign out
                   </button>
+                  <h4>My Vehicle</h4>
+                  <form onSubmit={onSaveVehicle}>
+                    <div className="field">
+                      <label>Make / Model</label>
+                      <input
+                        type="text"
+                        maxLength={120}
+                        placeholder="e.g. Tesla Model 3"
+                        value={vehicleForm.make_model}
+                        onChange={(e) => setVehicleForm((f) => ({ ...f, make_model: e.target.value }))}
+                        required
+                      />
+                    </div>
+                    <div className="field">
+                      <label>Battery (kWh)</label>
+                      <input
+                        type="number"
+                        min="0.1"
+                        step="0.1"
+                        placeholder="e.g. 75"
+                        value={vehicleForm.battery_kwh}
+                        onChange={(e) => setVehicleForm((f) => ({ ...f, battery_kwh: e.target.value }))}
+                        required
+                      />
+                    </div>
+                    <button type="submit">Save vehicle</button>
+                  </form>
+                  {vehicles.length > 0 && (
+                    <ul>
+                      {vehicles.map((v) => (
+                        <li key={v.id}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedVehicleId(v.id);
+                              setBatteryCapacity(String(v.battery_kwh));
+                            }}
+                          >
+                            {v.make_model} ({v.battery_kwh} kWh){selectedVehicleId === v.id ? " (selected)" : ""}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               )}
               {authStatus ? <p className="status">{authStatus}</p> : null}
@@ -255,12 +405,40 @@ function App() {
               <button onClick={() => onRecommend("nearest")}>Nearest</button>
               <button onClick={() => onRecommend("cost_optimized")}>Cost</button>
               <button onClick={() => onRecommend("queue_aware")}>Queue-aware</button>
+              <button onClick={() => onRecommend("static_queue")}>Static queue (baseline)</button>
             </div>
+            <div className="field">
+              <label>Battery level (%)</label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                placeholder="e.g. 40"
+                value={batteryLevel}
+                onChange={(e) => setBatteryLevel(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label>Battery capacity (kWh)</label>
+              <input
+                type="number"
+                min="1"
+                placeholder="e.g. 60"
+                value={batteryCapacity}
+                onChange={(e) => setBatteryCapacity(e.target.value)}
+              />
+            </div>
+            <button onClick={() => onRecommend("range_aware")}>Range-aware</button>
+            <label className="checkbox">
+              <input type="checkbox" checked={showHotspots} onChange={(e) => setShowHotspots(e.target.checked)} />
+              Show hotspots (predictive delay)
+            </label>
             <p className="status">{status}</p>
+            {fetchingHotspots && <p className="status">Fetching hotspot locations…</p>}
 
             <h3>Stations</h3>
             <p className="stats-note">
-              Using local cached OpenChargeMap sample (2 stations). Live ingestion requires `OPENCHARGEMAP_API_KEY`.
+              Station count depends on ingestion. For realistic experiments, ingest 50+ live stations with `OPENCHARGEMAP_API_KEY`.
             </p>
             <ul>
               {stations.map((s) => (
@@ -277,7 +455,9 @@ function App() {
             <ol>
               {recommendations.map((r) => (
                 <li key={r.station_id}>
-                  {r.station_name} | {r.distance_km.toFixed(2)} km | {r.predicted_wait_min.toFixed(2)} min wait
+                  {r.station_name} | {Number(r.travel_distance_km).toFixed(2)} km | {Number(r.travel_time_min).toFixed(1)} min travel |{" "}
+                  {Number(r.predicted_wait_min).toFixed(2)} min wait | P(delay) {Number(r.probability_of_delay).toFixed(2)} |{" "}
+                  occupancy {r.current_occupancy}
                 </li>
               ))}
             </ol>
@@ -324,6 +504,61 @@ function App() {
                   <button type="submit">Reserve</button>
                 </form>
                 {reservationStatus ? <p className="status">{reservationStatus}</p> : null}
+
+                <h3>Suggest charging slot</h3>
+                <div className="field">
+                  <label>Desired arrival</label>
+                  <input
+                    type="datetime-local"
+                    value={slotArrival}
+                    min={toLocalDatetimeInput(new Date())}
+                    onChange={(e) => setSlotArrival(e.target.value)}
+                  />
+                </div>
+                <div className="field">
+                  <label>Duration (minutes)</label>
+                  <input
+                    type="number"
+                    min="30"
+                    step="30"
+                    value={slotDuration}
+                    onChange={(e) => setSlotDuration(e.target.value)}
+                  />
+                </div>
+                <button type="button" onClick={onSuggestSlot}>Find available slot</button>
+                {slotStatus ? <p className="status">{slotStatus}</p> : null}
+                {suggestedSlots.length > 0 && (
+                  <ul>
+                    {suggestedSlots.map((s) => {
+                      const charger = selectedStation.chargers.find((c) => c.id === s.charger_id);
+                      const chargerLabel = charger ? `${charger.name} (${charger.power_kw}kW)` : s.charger_id.slice(0, 8);
+                      const start = new Date(s.suggested_start);
+                      const end = new Date(s.suggested_end);
+                      return (
+                        <li key={s.charger_id} style={{ marginBottom: "0.5rem" }}>
+                          <strong>{chargerLabel}</strong>:{" "}
+                          {start.toLocaleString()} – {end.toLocaleString()}{" "}
+                          {s.wait_from_desired_minutes > 0
+                            ? `(wait ${Math.round(s.wait_from_desired_minutes)} min)`
+                            : "(no wait)"}
+                          <button
+                            type="button"
+                            style={{ marginLeft: "0.5rem" }}
+                            onClick={() =>
+                              setForm({
+                                charger_id: s.charger_id,
+                                start_time: toLocalDatetimeInput(start),
+                                end_time: toLocalDatetimeInput(end),
+                              })
+                            }
+                          >
+                            Use this slot
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </section>
             )}
           </>
@@ -332,6 +567,7 @@ function App() {
 
       <MapContainer center={position} zoom={12} style={{ height: "100vh", width: "100%" }}>
         <FitBoundsToStations stations={stations} />
+        <HeatmapLayer enabled={showHotspots} points={hotspotPoints} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

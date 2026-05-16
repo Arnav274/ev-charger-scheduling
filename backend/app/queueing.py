@@ -1,3 +1,6 @@
+"""M/M/c (Erlang-C) steady-state queueing model (Kleinrock, 1975). Poisson-arrival and
+exponential-service assumptions are justified in the dissertation methodology section."""
+
 import math
 
 

@@ -15,7 +15,13 @@ Three-tier project for the CMP final-year portfolio:
 - Reservation API with overlap blocking (requires `Authorization: Bearer <jwt>`):
   - `POST /reservations` (returns `409` on overlap via exclusion constraint)
 - Strategy-based recommendation endpoint:
-  - `POST /recommendations` with `nearest`, `cost_optimized`, `queue_aware`
+  - `POST /recommendations` with `nearest`, `cost_optimized`, `static_queue` (baseline), `queue_aware` (predictive, now incorporating live occupancy from active sessions), `dijkstra` (pure-Python Dijkstra on a haversine graph — graph-theory baseline for dissertation comparison), `range_aware` (penalises distant stations when battery level is low)
+- Vehicle management API (requires JWT):
+  - `POST /vehicles` — register a vehicle (make/model + battery capacity)
+  - `GET /vehicles` — list vehicles for the authenticated user
+  - The frontend **Range** panel reads the logged-in user's saved vehicle battery capacity and passes it to the `range_aware` algorithm automatically
+- Slot suggestion endpoint:
+  - `POST /stations/{station_id}/suggest-slot` — returns the earliest free 30-minute-aligned slot per charger within a 4-hour window, given a desired arrival time and session duration
 - Erlang-C queueing module:
   - Probability of delay and expected waiting time
 - OpenChargeMap ingestion script for Westminster+Camden:
@@ -34,6 +40,8 @@ Three-tier project for the CMP final-year portfolio:
 
 ## Local run
 
+**Day-to-day restart (PowerShell, after reboot, code changes):** [docs/DAILY_DEV_GUIDE.md](docs/DAILY_DEV_GUIDE.md).
+
 ### 0) Optional: set local API key env var (recommended for live station data)
 
 Copy `.env.example` to `.env` and fill `OPENCHARGEMAP_API_KEY`.
@@ -50,6 +58,8 @@ Do **not** commit `.env`.
 docker compose up --build
 ```
 
+First run note: `osrm-prep` downloads and preprocesses the Greater London OpenStreetMap extract into the `osrmdata` volume. This can take several minutes; subsequent runs reuse the volume.
+
 ### 2) Run database migration
 
 ```bash
@@ -61,6 +71,12 @@ docker compose exec backend alembic upgrade head
 ```bash
 docker compose exec backend python -m scripts.seed_demo
 docker compose exec backend python -m scripts.ingest_openchargemap
+```
+
+Optional but recommended (creates a deterministic hotspot so `queue_aware` visibly diverges from `static_queue`):
+
+```bash
+docker compose exec backend python -m scripts.seed_background_reservations
 ```
 
 After pulling new npm dependencies:
@@ -129,6 +145,29 @@ curl -X POST "http://localhost:8000/recommendations" \
   -d "{\"origin_lat\":51.5074,\"origin_lon\":-0.1278,\"algorithm\":\"queue_aware\",\"radius_km\":5,\"top_k\":5}"
 ```
 
+Register a vehicle and use it with the range-aware algorithm:
+
+```bash
+curl -X POST "http://localhost:8000/vehicles" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_HERE" \
+  -d '{"make_model":"Tesla Model 3","battery_kwh":75.0}'
+```
+
+```bash
+curl -X POST "http://localhost:8000/recommendations" \
+  -H "Content-Type: application/json" \
+  -d '{"origin_lat":51.5074,"origin_lon":-0.1278,"algorithm":"range_aware","radius_km":5,"top_k":5,"battery_level_percent":20,"battery_capacity_kwh":75.0}'
+```
+
+Find the earliest free charging slot at a station (replace `STATION_UUID` with a real ID from `/stations/nearby`):
+
+```bash
+curl -X POST "http://localhost:8000/stations/STATION_UUID/suggest-slot" \
+  -H "Content-Type: application/json" \
+  -d '{"desired_arrival":"2026-05-17T09:00:00Z","duration_minutes":60}'
+```
+
 ## Testing
 
 Run unit tests in backend container:
@@ -172,6 +211,7 @@ Generated artifacts:
 - `backend/experiments/outputs/experiment_summary_metrics.csv`
 - `backend/experiments/outputs/summary_ci.csv`
 - `backend/experiments/outputs/anova.txt`
+- `backend/experiments/outputs/anova_pdelay.txt` (if `probability_of_delay` is present)
 - `backend/experiments/outputs/posthoc_wait.csv`
 - `backend/experiments/outputs/analysis_notes.md`
 - `backend/experiments/outputs/sensitivity_summary.csv`
@@ -196,6 +236,6 @@ Presentation rehearsal pack (`presentation/`):
 ## Notes for portfolio evidence
 
 - **City map requirement**: satisfied by PostGIS + nearby station endpoint + map UI.
-- **Scheduling algorithms requirement**: three swappable algorithms implemented.
+- **Scheduling algorithms requirement**: six swappable algorithms implemented (`nearest`, `cost_optimized`, `static_queue`, `queue_aware`, `dijkstra`, `range_aware`).
 - **Algorithm comparison requirement**: experiment runner + ANOVA + CIs + plots.
 - **Reservation platform requirement**: full station browse + charger reservation workflow with conflict rejection.

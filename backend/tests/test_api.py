@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from app.auth_deps import get_current_user_id
 from app.database import get_db
 from app.main import app
-from app.models import Charger, Reservation, Station
+from app.models import Charger, Reservation, Station, Vehicle
 
 
 class FakeResult:
@@ -18,6 +18,11 @@ class FakeResult:
 
     def all(self) -> list[SimpleNamespace]:
         return self._rows
+
+    def one(self) -> SimpleNamespace:
+        if len(self._rows) != 1:
+            raise Exception(f"Expected exactly one row, got {len(self._rows)}")
+        return self._rows[0]
 
 
 class FakeQuery:
@@ -53,18 +58,26 @@ class FakeDb:
         *,
         nearby_rows: list[SimpleNamespace] | None = None,
         station_rows: list[Station] | None = None,
+        reservation_rows: list[SimpleNamespace] | None = None,
         fail_overlap: bool = False,
         fail_generic_commit: bool = False,
     ) -> None:
         self._nearby_rows = nearby_rows or []
         self._station_rows = station_rows or []
+        self._reservation_rows = reservation_rows or []
         self._fail_overlap = fail_overlap
         self._fail_generic_commit = fail_generic_commit
         self.added: list[Reservation] = []
         self.refreshed: list[Reservation] = []
         self.rollback_called = False
 
-    def execute(self, *_args, **_kwargs) -> FakeResult:
+    def execute(self, statement, *_args, **_kwargs) -> FakeResult:
+        sql = str(statement)
+        # COUNT(*) occupancy query needs a single synthetic row, not the reservation list
+        if "COUNT" in sql and ("FROM reservations" in sql or "from reservations" in sql):
+            return FakeResult([SimpleNamespace(occupancy=0)])
+        if "FROM reservations" in sql or "from reservations" in sql:
+            return FakeResult(self._reservation_rows)
         return FakeResult(self._nearby_rows)
 
     def query(self, _model):
@@ -269,7 +282,7 @@ def test_recommendations_rejects_unknown_algorithm() -> None:
     assert "Unknown algorithm" in response.json()["detail"]
 
 
-@pytest.mark.parametrize("algorithm", ["nearest", "cost_optimized", "queue_aware"])
+@pytest.mark.parametrize("algorithm", ["nearest", "cost_optimized", "queue_aware", "static_queue"])
 def test_recommendations_support_all_algorithms(algorithm: str) -> None:
     station_a = make_station(n_chargers=2)
     station_b = make_station(n_chargers=3)
@@ -289,6 +302,96 @@ def test_recommendations_support_all_algorithms(algorithm: str) -> None:
     payload = response.json()
     assert len(payload) == 2
     assert all("station_name" in row for row in payload)
+    assert all("travel_time_min" in row for row in payload)
+    assert all("travel_distance_km" in row for row in payload)
+    assert all("arrival_time_est" in row for row in payload)
+    assert all("probability_of_delay" in row for row in payload)
+
+
+def test_queue_aware_increases_wait_under_future_reservations() -> None:
+    station = make_station(n_chargers=2)
+    # Two overlapping future reservations in the arrival window.
+    now = datetime.now(timezone.utc)
+    reservation_rows = [
+        SimpleNamespace(start_time=now + timedelta(minutes=5), end_time=now + timedelta(minutes=35)),
+        SimpleNamespace(start_time=now + timedelta(minutes=10), end_time=now + timedelta(minutes=40)),
+    ]
+    client = with_override(FakeDb(station_rows=[station], reservation_rows=reservation_rows))
+
+    base = client.post(
+        "/recommendations",
+        json={
+            "origin_lat": 51.5074,
+            "origin_lon": -0.1278,
+            "radius_km": 5,
+            "algorithm": "static_queue",
+            "top_k": 1,
+            "arrival_time_target": now.isoformat(),
+            "arrival_window_minutes": 30,
+        },
+    ).json()[0]
+    pred = client.post(
+        "/recommendations",
+        json={
+            "origin_lat": 51.5074,
+            "origin_lon": -0.1278,
+            "radius_km": 5,
+            "algorithm": "queue_aware",
+            "top_k": 1,
+            "arrival_time_target": now.isoformat(),
+            "arrival_window_minutes": 30,
+        },
+    ).json()[0]
+    assert pred["predicted_wait_min"] >= base["predicted_wait_min"]
+
+
+def test_create_vehicle_returns_201() -> None:
+    fake_db = FakeDb()
+    client = with_override(fake_db)
+    uid = uuid4()
+    app.dependency_overrides[get_current_user_id] = lambda: uid
+    response = client.post(
+        "/vehicles",
+        json={"make_model": "Tesla Model 3", "battery_kwh": 75.0},
+    )
+    assert response.status_code == 201
+    assert response.json()["make_model"] == "Tesla Model 3"
+    assert response.json()["battery_kwh"] == pytest.approx(75.0)
+
+
+def test_suggest_slot_returns_available_slot() -> None:
+    station = make_station(n_chargers=2)
+    client = with_override(FakeDb(station_rows=[station]))
+    # Fixed 30-min-aligned future time so _next_30min_aligned returns it unchanged,
+    # guaranteeing wait_from_desired_minutes == 0.
+    desired = datetime(2030, 6, 1, 10, 0, 0, tzinfo=timezone.utc)
+    response = client.post(
+        f"/stations/{station.id}/suggest-slot",
+        json={"desired_arrival": desired.isoformat(), "duration_minutes": 60},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert len(payload) > 0
+    assert payload[0]["wait_from_desired_minutes"] == pytest.approx(0.0)
+
+
+def test_suggest_slot_returns_empty_when_fully_booked() -> None:
+    station = make_station(n_chargers=2)
+    desired = datetime(2030, 6, 1, 10, 0, 0, tzinfo=timezone.utc)
+    window_end = desired + timedelta(hours=4)
+    # One reservation per charger spanning the full 4-hour candidate window
+    # blocks every possible 30-min-aligned slot for a 60-minute session.
+    reservation_rows = [
+        SimpleNamespace(charger_id=str(charger.id), start_time=desired, end_time=window_end)
+        for charger in station.chargers
+    ]
+    client = with_override(FakeDb(station_rows=[station], reservation_rows=reservation_rows))
+    response = client.post(
+        f"/stations/{station.id}/suggest-slot",
+        json={"desired_arrival": desired.isoformat(), "duration_minutes": 60},
+    )
+    assert response.status_code == 200
+    assert response.json() == []
 
 
 def test_recommendations_fallback_to_all_when_radius_empty() -> None:

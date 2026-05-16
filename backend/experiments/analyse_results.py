@@ -8,6 +8,8 @@ from scipy import stats
 
 OUT_DIR = Path(__file__).parent / "outputs"
 
+ALL_ALGORITHMS = ["nearest", "cost_optimized", "queue_aware", "static_queue", "dijkstra", "range_aware"]
+
 
 def bootstrap_ci(series: pd.Series, n_boot: int = 1000, alpha: float = 0.05) -> tuple[float, float]:
     samples = [series.sample(frac=1.0, replace=True).mean() for _ in range(n_boot)]
@@ -25,6 +27,10 @@ def main() -> None:
     for (variant, scenario, algorithm), group in df.groupby(["variant", "scenario", "algorithm"]):
         d_ci = bootstrap_ci(group["distance_km"])
         w_ci = bootstrap_ci(group["wait_min"])
+        if "probability_of_delay" in group.columns:
+            p_ci = bootstrap_ci(group["probability_of_delay"])
+        else:
+            p_ci = (0.0, 0.0)
         summary_rows.append(
             {
                 "variant": variant,
@@ -36,6 +42,9 @@ def main() -> None:
                 "wait_mean": group["wait_min"].mean(),
                 "wait_ci_low": w_ci[0],
                 "wait_ci_high": w_ci[1],
+                "pdelay_mean": group["probability_of_delay"].mean() if "probability_of_delay" in group.columns else 0.0,
+                "pdelay_ci_low": p_ci[0],
+                "pdelay_ci_high": p_ci[1],
                 "runtime_ms_mean": group["runtime_ms"].mean(),
                 "reservation_accept_rate": group["reservation_accepted"].mean(),
             }
@@ -62,11 +71,12 @@ def main() -> None:
     posthoc_rows = []
     alg_groups = {name: grp["wait_min"].values for name, grp in baseline_df.groupby("algorithm")}
     names = list(alg_groups.keys())
+    n_comparisons = max(1, len(names) * (len(names) - 1) // 2)
     for i in range(len(names)):
         for j in range(i + 1, len(names)):
             a, b = names[i], names[j]
             t_stat, p_raw = stats.ttest_ind(alg_groups[a], alg_groups[b], equal_var=False)
-            p_adj = min(1.0, p_raw * 3)  # Bonferroni for 3 pairwise comparisons
+            p_adj = min(1.0, p_raw * n_comparisons)  # Bonferroni correction
             posthoc_rows.append(
                 {
                     "group_a": a,
@@ -89,6 +99,22 @@ def main() -> None:
                 }
             )
     pd.DataFrame(posthoc_rows).to_csv(OUT_DIR / "posthoc_wait.csv", index=False)
+
+    # Optional: ANOVA for probability of delay (risk metric).
+    if "probability_of_delay" in baseline_df.columns:
+        pdelay_groups = [g["probability_of_delay"].values for _, g in baseline_df.groupby("algorithm")]
+        f2, p2 = stats.f_oneway(*pdelay_groups)
+        grand_mean2 = baseline_df["probability_of_delay"].mean()
+        ss_between2 = sum(
+            len(group) * ((group.mean() - grand_mean2) ** 2)
+            for _, group in baseline_df.groupby("algorithm")["probability_of_delay"]
+        )
+        ss_total2 = ((baseline_df["probability_of_delay"] - grand_mean2) ** 2).sum()
+        eta2 = float(ss_between2 / ss_total2) if ss_total2 else 0.0
+        (OUT_DIR / "anova_pdelay.txt").write_text(
+            f"One-way ANOVA probability_of_delay (baseline_equal)\nF={f2:.4f}\np={p2:.8f}\neta_squared={eta2:.6f}\n",
+            encoding="utf-8",
+        )
     sensitivity_rows = []
     for (variant, algorithm), group in df.groupby(["variant", "algorithm"]):
         sensitivity_rows.append(
@@ -135,7 +161,14 @@ def main() -> None:
     grouped = baseline_df.groupby("algorithm")[["distance_km", "wait_min"]].mean().reset_index()
     grouped["wait_min_log10"] = grouped["wait_min"].apply(lambda x: 0.0 if x <= 0 else float(np.log10(x)))
     sns.scatterplot(data=grouped, x="distance_km", y="wait_min_log10", hue="algorithm", s=120)
-    label_offsets = {"nearest": (6, 6), "cost_optimized": (8, 10), "queue_aware": (8, -12)}
+    label_offsets = {
+        "nearest": (6, 6),
+        "cost_optimized": (8, 10),
+        "queue_aware": (8, -12),
+        "static_queue": (8, -20),
+        "dijkstra": (6, 14),
+        "range_aware": (6, -6),
+    }
     for _, row in grouped.iterrows():
         dx, dy = label_offsets.get(row["algorithm"], (6, 6))
         plt.annotate(
@@ -148,6 +181,96 @@ def main() -> None:
     plt.ylabel("log10(wait_min)")
     plt.tight_layout()
     plt.savefig(OUT_DIR / "pareto_distance_wait.png", dpi=180)
+    plt.close()
+
+    generate_comparison_table(df)
+    plot_algorithm_comparison_bar(baseline_df)
+    plot_erlang_sensitivity(df)
+
+
+def generate_comparison_table(df: pd.DataFrame) -> None:
+    """Aggregate per-algorithm stats for the baseline_equal variant and write outputs/comparison_table.md."""
+    df = df[df["variant"] == "baseline_equal"]
+    rows = []
+    for algorithm, grp in df.groupby("algorithm"):
+        d_ci = bootstrap_ci(grp["distance_km"])
+        w_ci = bootstrap_ci(grp["wait_min"])
+        pdelay_mean = grp["probability_of_delay"].mean() if "probability_of_delay" in grp.columns else 0.0
+        rows.append(
+            {
+                "algorithm": algorithm,
+                "mean_distance_km": round(grp["distance_km"].mean(), 4),
+                "ci_low_dist": round(d_ci[0], 4),
+                "ci_high_dist": round(d_ci[1], 4),
+                "mean_wait_min": round(grp["wait_min"].mean(), 4),
+                "ci_low_wait": round(w_ci[0], 4),
+                "ci_high_wait": round(w_ci[1], 4),
+                "mean_pdelay": round(float(pdelay_mean), 4),
+                "acceptance_rate": round(float(grp["reservation_accepted"].mean()), 4),
+            }
+        )
+    tbl = pd.DataFrame(rows)
+    # Sort by mean_wait_min ascending so best performers appear first.
+    tbl = tbl.sort_values("mean_wait_min").reset_index(drop=True)
+
+    header = "| " + " | ".join(tbl.columns) + " |"
+    sep = "| " + " | ".join("---" for _ in tbl.columns) + " |"
+    body_lines = [
+        "| " + " | ".join(str(v) for v in row) + " |"
+        for row in tbl.itertuples(index=False, name=None)
+    ]
+    md = "\n".join(["# Algorithm Comparison Table", "", header, sep] + body_lines + [""])
+    (OUT_DIR / "comparison_table.md").write_text(md, encoding="utf-8")
+
+
+def plot_algorithm_comparison_bar(baseline_df: pd.DataFrame) -> None:
+    """Grouped bar chart of mean wait_min per algorithm for the baseline_equal variant."""
+    if baseline_df.empty:
+        return
+    algorithms = sorted(baseline_df["algorithm"].unique())
+    scenarios = sorted(baseline_df["scenario"].unique())
+
+    x = np.arange(len(algorithms))
+    width = 0.8 / max(len(scenarios), 1)
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    for i, scenario in enumerate(scenarios):
+        means = []
+        for alg in algorithms:
+            sub = baseline_df[(baseline_df["algorithm"] == alg) & (baseline_df["scenario"] == scenario)]
+            means.append(sub["wait_min"].mean() if not sub.empty else 0.0)
+        ax.bar(x + i * width - (len(scenarios) - 1) * width / 2, means, width=width, label=scenario)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(algorithms, rotation=15, ha="right")
+    ax.set_ylabel("Mean wait time (min)")
+    ax.set_title("Algorithm Wait Time Comparison — baseline_equal variant")
+    ax.legend(title="Scenario")
+    plt.tight_layout()
+    plt.savefig(OUT_DIR / "algorithm_comparison_bar.png", dpi=180)
+    plt.close()
+
+
+def plot_erlang_sensitivity(df: pd.DataFrame) -> None:
+    sens_df = df[df["variant"] == "erlang_sensitivity"].copy()
+    if sens_df.empty:
+        return
+    grouped = (
+        sens_df.groupby(["lambda_multiplier", "algorithm"])["wait_min"]
+        .mean()
+        .reset_index()
+        .rename(columns={"wait_min": "mean_wait_min"})
+    )
+    plt.figure(figsize=(9, 5))
+    for algorithm, alg_df in grouped.groupby("algorithm"):
+        alg_df = alg_df.sort_values("lambda_multiplier")
+        plt.plot(alg_df["lambda_multiplier"], alg_df["mean_wait_min"], marker="o", label=algorithm)
+    plt.xlabel("Arrival-rate multiplier (λ scale factor)")
+    plt.ylabel("Mean wait time (min)")
+    plt.title("Erlang-C Sensitivity: mean wait vs arrival-rate multiplier")
+    plt.legend(title="Algorithm")
+    plt.tight_layout()
+    plt.savefig(OUT_DIR / "erlang_sensitivity_plot.png", dpi=180)
     plt.close()
 
 

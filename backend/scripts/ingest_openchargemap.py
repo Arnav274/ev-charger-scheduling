@@ -10,6 +10,7 @@ from sqlalchemy import text
 from app.database import SessionLocal
 
 CACHE_PATH = Path(__file__).parent / "cache" / "openchargemap_westminster_camden_sample.json"
+MIN_STATIONS_REQUIRED = 50
 
 
 def borough_from_lat_lon(lat: float, lon: float) -> str:
@@ -44,9 +45,14 @@ def fetch_openchargemap(
         "User-Agent": "uea-ev-dissertation/1.0 (educational project)",
         "Accept": "application/json",
     }
-    api_key = os.getenv("OPENCHARGEMAP_API_KEY")
-    if api_key:
-        headers["X-API-Key"] = api_key
+    api_key = (os.getenv("OPENCHARGEMAP_API_KEY") or "").strip()
+    if not api_key:
+        raise RuntimeError(
+            "OPENCHARGEMAP_API_KEY is missing or empty in this environment. "
+            "Put OPENCHARGEMAP_API_KEY=... in the project .env next to docker-compose.yml, then recreate the backend "
+            "so the container picks it up: docker compose up -d --force-recreate backend"
+        )
+    headers["X-API-Key"] = api_key
 
     response = requests.get(
         "https://api.openchargemap.io/v3/poi/",
@@ -56,16 +62,18 @@ def fetch_openchargemap(
     )
     if response.status_code == 403:
         raise RuntimeError(
-            "OpenChargeMap returned 403 Forbidden. "
-            "Set OPENCHARGEMAP_API_KEY for live ingestion, or run without --live to use the cached sample dataset."
+            "OpenChargeMap returned 403 Forbidden with X-API-Key set. "
+            "Check the key is valid at https://openchargemap.org/site/developerinfo — "
+            "or run without --live to use the cached sample dataset."
         )
     response.raise_for_status()
     return response.json()
 
 
-def ingest(records: list[dict]) -> None:
+def ingest(records: list[dict], *, enforce_min_stations: bool = True) -> None:
     db = SessionLocal()
     try:
+        inserted_station_ids: set[str] = set()
         for rec in records:
             info = rec.get("AddressInfo", {})
             source_id = str(rec.get("ID"))
@@ -109,11 +117,12 @@ def ingest(records: list[dict]) -> None:
                     "lat": lat,
                     "lon": lon,
                     "price": 55.0,
-                    "arrival_rate": 4.0,
+                    "arrival_rate": 0.75,
                     "service_min": 40.0,
                     "raw_json": json.dumps(rec),
                 },
             ).scalar_one()
+            inserted_station_ids.add(str(station_id))
 
             # Reservations reference chargers; remove them before replacing charger rows.
             db.execute(
@@ -143,6 +152,14 @@ def ingest(records: list[dict]) -> None:
                     },
                 )
         db.commit()
+        # Dissertation-scale guard applies to live API pulls only; cached sample is intentionally tiny for offline dev.
+        if enforce_min_stations:
+            station_count = db.execute(text("SELECT COUNT(*) FROM stations WHERE source = 'openchargemap'")).scalar_one()
+            if int(station_count) < MIN_STATIONS_REQUIRED:
+                raise RuntimeError(
+                    f"Only {station_count} OpenChargeMap stations in DB after ingest; require >= {MIN_STATIONS_REQUIRED}. "
+                    "Increase --distance-km and/or --max-results, and ensure OPENCHARGEMAP_API_KEY is set for live ingestion."
+                )
     finally:
         db.close()
 
@@ -162,6 +179,7 @@ if __name__ == "__main__":
             longitude=args.longitude,
             distance_km=args.distance_km,
             max_results=args.max_results,
-        )
+        ),
+        enforce_min_stations=args.live,
     )
     print("Ingestion complete.")

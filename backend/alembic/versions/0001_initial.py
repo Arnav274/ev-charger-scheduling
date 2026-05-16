@@ -48,7 +48,7 @@ def upgrade() -> None:
         sa.Column("lat", sa.Float(), nullable=False),
         sa.Column("lon", sa.Float(), nullable=False),
         sa.Column("price_pence_per_kwh", sa.Float(), nullable=False, server_default="55"),
-        sa.Column("arrival_rate_per_hour", sa.Float(), nullable=False, server_default="4"),
+        sa.Column("arrival_rate_per_hour", sa.Float(), nullable=False, server_default="0.75"),
         sa.Column("mean_service_minutes", sa.Float(), nullable=False, server_default="40"),
         sa.Column("raw_json", sa.JSON(), nullable=False, server_default="{}"),
         sa.PrimaryKeyConstraint("id"),

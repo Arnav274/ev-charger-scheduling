@@ -94,6 +94,19 @@ export async function createReservation(payload, accessToken) {
   return res.json();
 }
 
+export async function suggestSlot(stationId, payload) {
+  const res = await fetch(`${API_BASE}/stations/${stationId}/suggest-slot`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = await safeJson(res);
+    throw new Error(parseErrorDetail(body.detail, "Failed to suggest slot"));
+  }
+  return res.json();
+}
+
 export async function getRecommendations(payload) {
   const res = await fetch(`${API_BASE}/recommendations`, {
     method: "POST",
@@ -103,6 +116,33 @@ export async function getRecommendations(payload) {
   if (!res.ok) {
     const body = await safeJson(res);
     throw new Error(parseErrorDetail(body.detail, "Failed to get recommendations"));
+  }
+  return res.json();
+}
+
+export async function createVehicle(payload, accessToken) {
+  const res = await fetch(`${API_BASE}/vehicles`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = await safeJson(res);
+    throw new Error(parseErrorDetail(body.detail, "Failed to save vehicle"));
+  }
+  return res.json();
+}
+
+export async function fetchVehicles(accessToken) {
+  const res = await fetch(`${API_BASE}/vehicles`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) {
+    const body = await safeJson(res);
+    throw new Error(parseErrorDetail(body.detail, "Failed to fetch vehicles"));
   }
   return res.json();
 }

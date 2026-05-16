@@ -17,3 +17,7 @@ backend/experiments/outputs/
 # Coverage artifacts
 **/.coverage
 **/coverage.xml
+
+# Local Claude Code settings and tooling artefacts
+.claude/
+repomix-output.xml

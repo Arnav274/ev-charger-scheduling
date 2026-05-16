@@ -1,4 +1,5 @@
 import csv
+import copy
 import random
 import time
 from pathlib import Path
@@ -8,10 +9,13 @@ from sqlalchemy.orm import joinedload
 from app.algorithms import RecommendationContext, STRATEGIES, haversine_km
 from app.database import SessionLocal
 from app.models import Station
-from app.queueing import erlang_c_wait_minutes
+from app.queueing import erlang_c_probability_of_delay, erlang_c_wait_minutes
+from app.routing_osrm import route_one_to_many
 
 OUT_DIR = Path(__file__).parent / "outputs"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+ARRIVAL_WINDOW_MIN = 15.0
 
 
 def jain_fairness(loads: list[int]) -> float:
@@ -28,6 +32,93 @@ def jain_fairness(loads: list[int]) -> float:
 
 def overlaps(start_a: float, end_a: float, start_b: float, end_b: float) -> bool:
     return start_a < end_b and start_b < end_a
+
+
+def max_overlapping_in_window(
+    intervals: list[tuple[float, float]], *, window_start: float, window_end: float
+) -> int:
+    """
+    Maximum number of overlapping intervals during [window_start, window_end).
+    """
+    if window_end <= window_start:
+        return 0
+    events: list[tuple[float, int]] = []
+    for s, e in intervals:
+        if e <= s:
+            continue
+        if e <= window_start or s >= window_end:
+            continue
+        s2 = max(s, window_start)
+        e2 = min(e, window_end)
+        if e2 <= s2:
+            continue
+        events.append((s2, +1))
+        events.append((e2, -1))
+    if not events:
+        return 0
+    # End before start when tied.
+    events.sort(key=lambda x: (x[0], x[1]))
+    cur = 0
+    best = 0
+    for _t, d in events:
+        cur += d
+        if cur > best:
+            best = cur
+    return best
+
+
+def count_starts_in_window(intervals: list[tuple[float, float]], *, window_start: float, window_end: float) -> int:
+    if window_end <= window_start:
+        return 0
+    return sum(1 for s, _e in intervals if window_start <= s < window_end)
+
+
+def flatten_station_intervals(charger_schedules: dict[str, list[tuple[float, float]]]) -> list[tuple[float, float]]:
+    out: list[tuple[float, float]] = []
+    for slots in charger_schedules.values():
+        out.extend(slots)
+    return out
+
+
+def seed_background_schedules(
+    *,
+    stations: list[Station],
+    background_reservations_per_station: int = 12,
+) -> dict[str, dict[str, list[tuple[float, float]]]]:
+    """
+    Deterministic background reservations used as shared 'ground truth' so predictive queueing diverges from static.
+    Stored as minutes-from-midnight floats in [0, 1440).
+    """
+    rnd = random.Random(12345)
+    schedules: dict[str, dict[str, list[tuple[float, float]]]] = {
+        str(s.id): {str(c.id): [] for c in s.chargers} for s in stations
+    }
+    if not stations:
+        return schedules
+
+    # Create a deliberate hotspot on a small subset of stations (higher parallel overlap).
+    hotspot_station_ids = [str(s.id) for s in stations[: max(1, min(5, len(stations) // 10))]]
+
+    for s in stations:
+        sid = str(s.id)
+        is_hotspot = sid in hotspot_station_ids
+        n = background_reservations_per_station * (3 if is_hotspot else 1)
+        for _ in range(n):
+            # Bias hotspot into a narrow time band to increase overlap.
+            if is_hotspot:
+                start = rnd.uniform(8 * 60, 10 * 60)  # 08:00-10:00
+                duration = rnd.uniform(35, 65)
+            else:
+                start = rnd.uniform(0, 24 * 60)
+                duration = rnd.uniform(20, 60)
+
+            # Try to place on any charger (no per-charger overlap).
+            try_reserve(
+                schedules[sid],
+                request_start_min=start,
+                duration_min=duration,
+            )
+    return schedules
 
 
 def try_reserve(
@@ -72,14 +163,21 @@ def run(n_trials: int = 100) -> Path:
         }
         summary_metrics: list[dict] = []
         variants = [
-            {"name": "baseline_equal", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.0, "top_k": 1},
-            {"name": "distance_priority", "weights": (0.7, 0.2, 0.1), "load_multiplier": 1.0, "top_k": 1},
-            {"name": "queue_stress", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.6, "top_k": 1},
-            {"name": "topk_robustness", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.0, "top_k": 3},
+            {"name": "baseline_equal", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.0, "top_k": 1, "lambda_multiplier": 1.0},
+            {"name": "distance_priority", "weights": (0.7, 0.2, 0.1), "load_multiplier": 1.0, "top_k": 1, "lambda_multiplier": 1.0},
+            {"name": "queue_stress", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.6, "top_k": 1, "lambda_multiplier": 1.6},
+            {"name": "topk_robustness", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.0, "top_k": 3, "lambda_multiplier": 1.0},
+            # Erlang sensitivity sweep — fixed equal weights, varies arrival-rate multiplier only.
+            {"name": "erlang_sensitivity", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 0.5, "top_k": 1, "lambda_multiplier": 0.5},
+            {"name": "erlang_sensitivity", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.0, "top_k": 1, "lambda_multiplier": 1.0},
+            {"name": "erlang_sensitivity", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.5, "top_k": 1, "lambda_multiplier": 1.5},
+            {"name": "erlang_sensitivity", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 2.0, "top_k": 1, "lambda_multiplier": 2.0},
+            {"name": "erlang_sensitivity", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 3.0, "top_k": 1, "lambda_multiplier": 3.0},
         ]
 
         for variant in variants:
             for scenario, cfg in scenario_configs.items():
+                background = seed_background_schedules(stations=stations)
                 per_alg_loads = {
                     algorithm: {str(s.id): 0 for s in stations}
                     for algorithm in STRATEGIES
@@ -88,7 +186,7 @@ def run(n_trials: int = 100) -> Path:
                 per_alg_rejections = {algorithm: 0 for algorithm in STRATEGIES}
                 per_alg_schedules = {
                     algorithm: {
-                        str(s.id): {str(c.id): [] for c in s.chargers}
+                        str(s.id): copy.deepcopy(background[str(s.id)])
                         for s in stations
                     }
                     for algorithm in STRATEGIES
@@ -101,8 +199,27 @@ def run(n_trials: int = 100) -> Path:
                         origin_lat=origin_lat,
                         origin_lon=origin_lon,
                         weights=variant["weights"],
+                        arrival_window_minutes=int(ARRIVAL_WINDOW_MIN),
                     )
-                    max_distance = max(haversine_km(origin_lat, origin_lon, s.lat, s.lon) for s in stations) or 1.0
+                    travel_metrics = route_one_to_many(
+                        origin_lat=origin_lat,
+                        origin_lon=origin_lon,
+                        destinations=[(s.lat, s.lon) for s in stations],
+                    )
+                    if travel_metrics is None:
+                        travel_by_station = {
+                            str(s.id): (haversine_km(origin_lat, origin_lon, s.lat, s.lon), (haversine_km(origin_lat, origin_lon, s.lat, s.lon) / 25.0) * 60.0)
+                            for s in stations
+                        }
+                    else:
+                        travel_by_station = {
+                            str(s.id): (m.distance_km, m.duration_min)
+                            for s, m in zip(stations, travel_metrics, strict=False)
+                        }
+                    # attach travel metrics for strategy scoring (road-network distance via OSRM when available)
+                    context.travel_by_station = travel_by_station  # type: ignore[attr-defined]
+
+                    max_distance = max(travel_by_station[str(s.id)][0] for s in stations) or 1.0
                     max_wait = max(
                         erlang_c_wait_minutes(
                             s.arrival_rate_per_hour * variant["load_multiplier"],
@@ -115,12 +232,33 @@ def run(n_trials: int = 100) -> Path:
                     max_vals = {"distance": max_distance, "wait": max_wait, "cost": max_cost}
 
                     for algorithm, strategy in STRATEGIES.items():
+                        # Build predictive context from the algorithm's current reservation schedule:
+                        # a) reserved_parallel in the arrival window (capacity reduction)
+                        # b) starts in window (arrival-rate uplift)
+                        request_start = random.uniform(0, 24 * 60)
+                        future_reserved_parallel_by_station: dict[str, int] = {}
+                        future_reservation_starts_by_station: dict[str, int] = {}
+                        for s in stations:
+                            sid = str(s.id)
+                            distance_km, travel_time_min = travel_by_station[sid]
+                            arrival_start = request_start + float(travel_time_min)
+                            window_start = arrival_start
+                            window_end = arrival_start + ARRIVAL_WINDOW_MIN
+                            all_intervals = flatten_station_intervals(per_alg_schedules[algorithm][sid])
+                            future_reserved_parallel_by_station[sid] = max_overlapping_in_window(
+                                all_intervals, window_start=window_start, window_end=window_end
+                            )
+                            future_reservation_starts_by_station[sid] = count_starts_in_window(
+                                all_intervals, window_start=window_start, window_end=window_end
+                            )
+                        context.future_reserved_parallel_by_station = future_reserved_parallel_by_station  # type: ignore[attr-defined]
+                        context.future_reservation_starts_by_station = future_reservation_starts_by_station  # type: ignore[attr-defined]
+
                         t0 = time.perf_counter()
                         ranked = sorted(stations, key=lambda s: strategy.score(s, context, max_vals))
                         candidate_pool = ranked[: variant["top_k"]]
                         best = random.choice(candidate_pool)
                         runtime_ms = (time.perf_counter() - t0) * 1000
-                        request_start = random.uniform(0, 24 * 60)
                         duration = random.uniform(*cfg["duration_range"])
                         accepted = try_reserve(
                             per_alg_schedules[algorithm][str(best.id)],
@@ -131,21 +269,41 @@ def run(n_trials: int = 100) -> Path:
                         if not accepted:
                             per_alg_rejections[algorithm] += 1
                         per_alg_loads[algorithm][str(best.id)] += 1
+
+                        # Use the same predictive computation that powers `queue_aware` (reservation-aware),
+                        # so offline evaluation matches online behavior.
+                        sid = str(best.id)
+                        reserved_parallel = int(future_reserved_parallel_by_station.get(sid, 0))
+                        reservation_starts = int(future_reservation_starts_by_station.get(sid, 0))
+                        c = max(1, len(best.chargers))
+                        c_eff = max(1, c - reserved_parallel) if algorithm == "queue_aware" else c
+                        window_hours = max(1.0, ARRIVAL_WINDOW_MIN) / 60.0
+                        lambda_base = best.arrival_rate_per_hour * float(variant["load_multiplier"])
+                        lambda_future = (
+                            lambda_base + (reservation_starts / window_hours) if algorithm == "queue_aware" else lambda_base
+                        )
+                        wait_min = erlang_c_wait_minutes(lambda_future, best.mean_service_minutes, c_eff)
+                        p_delay = erlang_c_probability_of_delay(
+                            arrival_rate_per_hour=lambda_future,
+                            service_rate_per_hour=60.0 / best.mean_service_minutes,
+                            c=c_eff,
+                        )
+
                         rows.append(
                             {
                                 "variant": variant["name"],
                                 "scenario": scenario,
                                 "algorithm": algorithm,
-                                "distance_km": haversine_km(origin_lat, origin_lon, best.lat, best.lon),
-                                "wait_min": erlang_c_wait_minutes(
-                                    best.arrival_rate_per_hour * variant["load_multiplier"],
-                                    best.mean_service_minutes,
-                                    max(1, len(best.chargers)),
-                                ),
+                                "distance_km": travel_by_station[str(best.id)][0],
+                                "wait_min": wait_min,
+                                "probability_of_delay": p_delay,
+                                "reserved_parallel": reserved_parallel if algorithm == "queue_aware" else 0,
+                                "reservation_starts": reservation_starts if algorithm == "queue_aware" else 0,
                                 "price_pence_per_kwh": best.price_pence_per_kwh,
                                 "runtime_ms": runtime_ms,
                                 "reservation_accepted": int(accepted),
                                 "load_multiplier": variant["load_multiplier"],
+                                "lambda_multiplier": variant["lambda_multiplier"],
                                 "top_k_sampled": variant["top_k"],
                                 "weights_distance": variant["weights"][0],
                                 "weights_wait": variant["weights"][1],

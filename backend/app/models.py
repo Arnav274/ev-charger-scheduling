@@ -40,7 +40,7 @@ class Station(Base):
     lat: Mapped[float] = mapped_column(Float, nullable=False)
     lon: Mapped[float] = mapped_column(Float, nullable=False)
     price_pence_per_kwh: Mapped[float] = mapped_column(Float, default=55.0, nullable=False)
-    arrival_rate_per_hour: Mapped[float] = mapped_column(Float, default=4.0, nullable=False)
+    arrival_rate_per_hour: Mapped[float] = mapped_column(Float, default=0.75, nullable=False)
     mean_service_minutes: Mapped[float] = mapped_column(Float, default=40.0, nullable=False)
     raw_json: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
 

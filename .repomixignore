@@ -1,30 +1,27 @@
-# Infrastructure — never needed for logic review
-backend/alembic.ini
-backend/alembic/env.py
-backend/alembic/script.py.mako
+# Empty package markers
 backend/app/__init__.py
 backend/experiments/__init__.py
 backend/scripts/__init__.py
+
+# Build config
+backend/alembic.ini
+backend/alembic/env.py
+backend/alembic/script.py.mako
 backend/Dockerfile
-backend/requirements.txt
 frontend/Dockerfile
 frontend/index.html
 frontend/vite.config.js
-docker-compose.yml
 .env.example
 .gitignore
 
-# Operational docs not needed for code review
-README.md
+# Operational docs not for dissertation
 DEMO_STEPS.md
 docs/DAILY_DEV_GUIDE.md
 
 # Cache data
 backend/scripts/cache/
 
-# Minor frontend pieces
-frontend/src/EthicsPanel.jsx
-frontend/src/HeatmapLayer.jsx
+# Minimal frontend noise
 frontend/src/main.jsx
-frontend/src/styles.css
 frontend/src/test/
+frontend/src/EthicsPanel.jsx

@@ -25,6 +25,15 @@ const toLocalDatetimeInput = (d) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
+const ALGO_LABELS = {
+  nearest: "Nearest",
+  cost_optimized: "Cost-optimised",
+  queue_aware: "Queue-aware",
+  static_queue: "Static queue (baseline)",
+  dijkstra: "Dijkstra",
+  range_aware: "Range-aware",
+};
+
 function FitBoundsToStations({ stations }) {
   const map = useMap();
 
@@ -42,6 +51,7 @@ function App() {
   const [center, setCenter] = useState(defaultCenter);
   const [radiusKm, setRadiusKm] = useState(5);
   const [stations, setStations] = useState([]);
+  const [stationFilter, setStationFilter] = useState("");
   const [selectedStation, setSelectedStation] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
   const [status, setStatus] = useState("Ready.");
@@ -65,7 +75,14 @@ function App() {
   const [vehicleForm, setVehicleForm] = useState({ make_model: "", battery_kwh: "" });
   const [myReservations, setMyReservations] = useState([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState(null);
+  const [activeAlgorithm, setActiveAlgorithm] = useState(null);
+  const [locating, setLocating] = useState(false);
+  const [reservationSuccess, setReservationSuccess] = useState(null);
+
   const reserveSectionRef = useRef(null);
+  const recommendationsRef = useRef(null);
+  const rangeAwareRef = useRef(null);
+  const myAccountRef = useRef(null);
 
   useEffect(() => {
     if (accessToken) localStorage.setItem(TOKEN_KEY, accessToken);
@@ -81,6 +98,22 @@ function App() {
     if (!accessToken) { setMyReservations([]); return; }
     getMyReservations(accessToken).then(setMyReservations).catch(() => {});
   }, [accessToken]);
+
+  useEffect(() => {
+    if (!recommendations.length) return;
+    requestAnimationFrame(() => {
+      if (typeof recommendationsRef.current?.scrollIntoView === "function") {
+        recommendationsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  }, [recommendations]);
+
+  useEffect(() => {
+    if (!selectedStation) return;
+    const ms30 = 30 * 60 * 1000;
+    const rounded = new Date(Math.round(Date.now() / ms30) * ms30);
+    setSlotArrival(toLocalDatetimeInput(rounded));
+  }, [selectedStation]);
 
   async function loadNearby() {
     try {
@@ -125,6 +158,10 @@ function App() {
       })
       .finally(() => setFetchingHotspots(false));
   }, [recommendations, stations, supplementaryStations]);
+
+  useEffect(() => {
+    setStationFilter("");
+  }, [stations]);
 
   async function onSuggestSlot() {
     if (!selectedStation || !slotArrival) {
@@ -194,6 +231,38 @@ function App() {
     }
   }
 
+  function handleUseMyLocation() {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    setStatus("Getting location…");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude: lat, longitude: lon } = pos.coords;
+        setCenter({ lat, lon });
+        setLocating(false);
+        setStatus("Location found — loading nearby stations.");
+        fetchNearbyStations(lat, lon, radiusKm)
+          .then((data) => { setStations(data); setStatus(`Loaded ${data.length} stations.`); })
+          .catch((err) => setStatus(err.message));
+      },
+      () => {
+        setLocating(false);
+        setStatus("Location access denied — using default London centre");
+      },
+    );
+  }
+
+  function handleAlgoClick(algo) {
+    setActiveAlgorithm(ALGO_LABELS[algo]);
+    onRecommend(algo);
+  }
+
+  function handleRangeAwareClick() {
+    setActiveAlgorithm(ALGO_LABELS.range_aware);
+    if (rangeAwareRef.current) rangeAwareRef.current.open = true;
+    onRecommend("range_aware");
+  }
+
   async function onSaveVehicle(e) {
     e.preventDefault();
     try {
@@ -253,6 +322,7 @@ function App() {
       setReservationStatus("End time must be after start time.");
       return;
     }
+    const charger = selectedStation.chargers.find((c) => c.id === form.charger_id);
     try {
       await createReservation(
         {
@@ -262,10 +332,23 @@ function App() {
         },
         accessToken,
       );
-      setReservationStatus("Reservation created.");
+      setReservationStatus("");
+      setReservationSuccess({
+        stationName: selectedStation.name,
+        chargerName: charger ? `${charger.name} (${charger.power_kw}kW)` : form.charger_id,
+        start,
+        end,
+      });
       setForm((prev) => ({ ...prev, start_time: "", end_time: "" }));
       getMyReservations(accessToken).then(setMyReservations).catch(() => {});
+      requestAnimationFrame(() => {
+        if (typeof myAccountRef.current?.scrollIntoView === "function") {
+          myAccountRef.current.open = true;
+          myAccountRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
     } catch (err) {
+      setReservationSuccess(null);
       setReservationStatus(err.message);
     }
   }
@@ -292,13 +375,14 @@ function App() {
   return (
     <div className="layout">
       <div className="sidebar">
-        <h2>EV Reservation Platform</h2>
+        <h2 className="sidebar-title">EV Reservation Platform</h2>
+
         <div className="tabs">
           <button type="button" className={tab === "map" ? "active" : ""} onClick={() => setTab("map")}>
             Map
           </button>
           <button type="button" className={tab === "privacy" ? "active" : ""} onClick={() => setTab("privacy")}>
-            Privacy & ethics
+            Privacy &amp; ethics
           </button>
           <button type="button" className={tab === "stats" ? "active" : ""} onClick={() => setTab("stats")}>
             Stats
@@ -311,299 +395,442 @@ function App() {
 
         {tab === "map" && (
           <>
-            <section className="auth-box">
-              <h3>Account</h3>
-              {!accessToken ? (
-                <>
-                  <p className="status small">JWT required for reservations. Try demo credential from README seed script.</p>
-                  <form className="auth-form" onSubmit={onRegister}>
-                    <div className="field">
-                      <label>Email</label>
-                      <input value={regs.email} onChange={(e) => setRegs({ ...regs, email: e.target.value })} type="email" required />
-                    </div>
-                    <div className="field">
-                      <label>Password (min 8)</label>
-                      <input value={regs.password} onChange={(e) => setRegs({ ...regs, password: e.target.value })} type="password" required />
-                    </div>
-                    <div className="buttons">
-                      <button type="submit">Register</button>
-                      <button type="button" onClick={onLogin}>
-                        Sign in
-                      </button>
-                    </div>
-                  </form>
-                </>
-              ) : (
-                <div className="auth-status">
-                  <p className="status">Authenticated (JWT in localStorage).</p>
-                  <button type="button" onClick={() => setAccessToken("")}>
-                    Sign out
+            <p className="status global-status">{status}</p>
+            {fetchingHotspots && <p className="status">Fetching hotspot locations…</p>}
+
+            {/* 1. Find stations */}
+            <details open className="sidebar-section">
+              <summary className="section-summary">Find stations</summary>
+              <div className="section-body">
+                <div className="field">
+                  <label>Latitude</label>
+                  <input
+                    type="number"
+                    value={center.lat}
+                    onChange={(e) => setCenter((c) => ({ ...c, lat: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="field">
+                  <label>Longitude</label>
+                  <input
+                    type="number"
+                    value={center.lon}
+                    onChange={(e) => setCenter((c) => ({ ...c, lon: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="field">
+                  <label>Radius (km)</label>
+                  <input type="number" value={radiusKm} onChange={(e) => setRadiusKm(Number(e.target.value))} />
+                </div>
+                <div className="find-buttons">
+                  <button className="btn-primary btn-block" onClick={loadNearby}>Find nearby stations</button>
+                  {navigator.geolocation && (
+                    <button
+                      className="btn-secondary btn-block"
+                      onClick={handleUseMyLocation}
+                      disabled={locating}
+                    >
+                      {locating ? "Getting location…" : "📍 Use my location"}
+                    </button>
+                  )}
+                </div>
+                <p className="stats-note">
+                  Station count depends on ingestion. For realistic experiments, ingest 50+ live stations with{" "}
+                  <code>OPENCHARGEMAP_API_KEY</code>.
+                </p>
+                {stations.length > 0 && (
+                  <div className="field">
+                    <label>Filter stations</label>
+                    <input
+                      type="text"
+                      placeholder="Type to search…"
+                      value={stationFilter}
+                      onChange={(e) => setStationFilter(e.target.value)}
+                    />
+                  </div>
+                )}
+                {stations.length > 0 && (
+                  <div className="field">
+                    <label>Select station</label>
+                    <select
+                      defaultValue=""
+                      onChange={(e) => e.target.value && onSelectStation(e.target.value)}
+                    >
+                      <option value="" disabled>— choose a station —</option>
+                      {stations
+                        .filter((s) =>
+                          s.name.toLowerCase().includes(stationFilter.toLowerCase())
+                        )
+                        .map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name}{s.borough ? ` (${s.borough})` : ""}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+            </details>
+
+            {/* 2. Algorithm */}
+            <details open className="sidebar-section">
+              <summary className="section-summary">Algorithm</summary>
+              <div className="section-body">
+                <div className="algo-buttons">
+                  <button
+                    className={`btn-algo${activeAlgorithm === ALGO_LABELS.nearest ? " active" : ""}`}
+                    title="Picks the closest station by road distance"
+                    onClick={() => handleAlgoClick("nearest")}
+                  >
+                    Nearest
                   </button>
-                  <h4>My Vehicle</h4>
-                  <form onSubmit={onSaveVehicle}>
+                  <button
+                    className={`btn-algo${activeAlgorithm === ALGO_LABELS.cost_optimized ? " active" : ""}`}
+                    title="Balances distance, wait time, and price per kWh"
+                    onClick={() => handleAlgoClick("cost_optimized")}
+                  >
+                    Cost
+                  </button>
+                  <button
+                    className={`btn-algo${activeAlgorithm === ALGO_LABELS.queue_aware ? " active" : ""}`}
+                    title="Predicts queue using Erlang-C + reservation lookahead — avoids congested stations"
+                    onClick={() => handleAlgoClick("queue_aware")}
+                  >
+                    Queue-aware
+                  </button>
+                  <button
+                    className={`btn-algo${activeAlgorithm === ALGO_LABELS.static_queue ? " active" : ""}`}
+                    title="Erlang-C queueing model without reservation lookahead"
+                    onClick={() => handleAlgoClick("static_queue")}
+                  >
+                    Static queue
+                  </button>
+                  <button
+                    className={`btn-algo${activeAlgorithm === ALGO_LABELS.dijkstra ? " active" : ""}`}
+                    title="Shortest path by straight-line graph distance"
+                    onClick={() => handleAlgoClick("dijkstra")}
+                  >
+                    Dijkstra
+                  </button>
+                  <button
+                    className={`btn-algo${activeAlgorithm === ALGO_LABELS.range_aware ? " active" : ""}`}
+                    title="Adds battery safety penalty for low-battery EVs — fill in battery fields first"
+                    onClick={handleRangeAwareClick}
+                  >
+                    Range-aware
+                  </button>
+                </div>
+                <p className="algo-tip">
+                  Tip: Queue-aware and Static queue may recommend a further station to avoid congestion — this is intentional.
+                </p>
+              </div>
+            </details>
+
+            {/* Recommendations — hidden until results exist */}
+            <div
+              ref={recommendationsRef}
+              className={`sidebar-section recommendations-section${recommendations.length === 0 ? " hidden" : ""}`}
+            >
+              <h3 className="recommendations-label">Results: {activeAlgorithm}</h3>
+              <ol className="recommendations-list">
+                {recommendations.map((r) => (
+                  <li key={r.station_id}>
+                    {r.station_name} | {Number(r.travel_distance_km).toFixed(2)} km |{" "}
+                    {Number(r.travel_time_min).toFixed(1)} min travel |{" "}
+                    {Number(r.predicted_wait_min).toFixed(2)} min wait | P(delay){" "}
+                    {Number(r.probability_of_delay).toFixed(2)} | occupancy {r.current_occupancy}
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            {/* 3. Range-aware routing */}
+            <details className="sidebar-section" ref={rangeAwareRef}>
+              <summary className="section-summary">Range-aware routing</summary>
+              <div className="section-body">
+                <div className="field">
+                  <label>Battery level (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    placeholder="e.g. 40"
+                    value={batteryLevel}
+                    onChange={(e) => setBatteryLevel(e.target.value)}
+                  />
+                </div>
+                <div className="field">
+                  <label>Battery capacity (kWh)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="e.g. 60"
+                    value={batteryCapacity}
+                    onChange={(e) => setBatteryCapacity(e.target.value)}
+                  />
+                </div>
+                <button
+                  className={`btn-algo${activeAlgorithm === ALGO_LABELS.range_aware ? " active" : ""}`}
+                  onClick={handleRangeAwareClick}
+                >
+                  Range-aware
+                </button>
+              </div>
+            </details>
+
+            {/* 4. Reserve / Book — only when a station is selected */}
+            {selectedStation && (
+              <details open className="sidebar-section" ref={reserveSectionRef}>
+                <summary className="section-summary">Reserve / Book</summary>
+                <div className="section-body">
+                  <p className="selected-station-name">{selectedStation.name}</p>
+                  <form onSubmit={onReserve}>
                     <div className="field">
-                      <label>Make / Model</label>
+                      <label>Charger</label>
+                      <select
+                        value={form.charger_id}
+                        onChange={(e) => setForm({ ...form, charger_id: e.target.value })}
+                        required
+                      >
+                        {selectedStation.chargers.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name} ({c.power_kw}kW)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="field">
+                      <label>Start</label>
                       <input
-                        type="text"
-                        maxLength={120}
-                        placeholder="e.g. Tesla Model 3"
-                        value={vehicleForm.make_model}
-                        onChange={(e) => setVehicleForm((f) => ({ ...f, make_model: e.target.value }))}
+                        type="datetime-local"
+                        value={form.start_time}
+                        onChange={(e) => setForm({ ...form, start_time: e.target.value })}
+                        min={toLocalDatetimeInput(new Date())}
                         required
                       />
                     </div>
                     <div className="field">
-                      <label>Battery (kWh)</label>
+                      <label>End</label>
                       <input
-                        type="number"
-                        min="0.1"
-                        step="0.1"
-                        placeholder="e.g. 75"
-                        value={vehicleForm.battery_kwh}
-                        onChange={(e) => setVehicleForm((f) => ({ ...f, battery_kwh: e.target.value }))}
+                        type="datetime-local"
+                        value={form.end_time}
+                        onChange={(e) => setForm({ ...form, end_time: e.target.value })}
+                        min={form.start_time || toLocalDatetimeInput(new Date())}
                         required
                       />
                     </div>
-                    <button type="submit">Save vehicle</button>
+                    <button type="submit" className="btn-primary btn-block">Reserve</button>
                   </form>
-                  {vehicles.length > 0 && (
-                    <ul>
-                      {vehicles.map((v) => (
-                        <li key={v.id}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedVehicleId(v.id);
-                              setBatteryCapacity(String(v.battery_kwh));
-                            }}
-                          >
-                            {v.make_model} ({v.battery_kwh} kWh){selectedVehicleId === v.id ? " (selected)" : ""}
-                          </button>
-                        </li>
-                      ))}
+                  {reservationSuccess && (
+                    <div className="reservation-banner">
+                      <strong>Booked ✓</strong> {reservationSuccess.stationName}
+                      <br />
+                      {reservationSuccess.chargerName}
+                      <br />
+                      {reservationSuccess.start.toLocaleString()} → {reservationSuccess.end.toLocaleString()}
+                    </div>
+                  )}
+                  {reservationStatus ? <p className="status reservation-error">{reservationStatus}</p> : null}
+
+                  <h4 className="subsection-heading">Suggest charging slot</h4>
+                  <div className="field">
+                    <label>Desired arrival</label>
+                    <input
+                      type="datetime-local"
+                      value={slotArrival}
+                      min={toLocalDatetimeInput(new Date())}
+                      onChange={(e) => setSlotArrival(e.target.value)}
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Duration (minutes)</label>
+                    <input
+                      type="number"
+                      min="30"
+                      step="30"
+                      value={slotDuration}
+                      onChange={(e) => setSlotDuration(e.target.value)}
+                    />
+                  </div>
+                  <button type="button" className="btn-primary btn-block" onClick={onSuggestSlot}>
+                    Find available slot
+                  </button>
+                  {slotStatus ? <p className="status">{slotStatus}</p> : null}
+                  {suggestedSlots.length > 0 && (
+                    <ul className="slot-list">
+                      {suggestedSlots.map((s) => {
+                        const charger = selectedStation.chargers.find((c) => c.id === s.charger_id);
+                        const chargerLabel = charger
+                          ? `${charger.name} (${charger.power_kw}kW)`
+                          : s.charger_id.slice(0, 8);
+                        const start = new Date(s.suggested_start);
+                        const end = new Date(s.suggested_end);
+                        return (
+                          <li key={s.charger_id} className="slot-item">
+                            <strong>{chargerLabel}</strong>:{" "}
+                            {start.toLocaleString()} – {end.toLocaleString()}{" "}
+                            {s.wait_from_desired_minutes > 0
+                              ? `(wait ${Math.round(s.wait_from_desired_minutes)} min)`
+                              : "(no wait)"}
+                            <button
+                              type="button"
+                              className="btn-use-slot"
+                              onClick={() => {
+                                setForm({
+                                  charger_id: s.charger_id,
+                                  start_time: toLocalDatetimeInput(start),
+                                  end_time: toLocalDatetimeInput(end),
+                                });
+                                setSuggestedSlots([]);
+                              }}
+                            >
+                              Use this slot
+                            </button>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </div>
-              )}
-              {authStatus ? <p className="status">{authStatus}</p> : null}
-              {myReservations.length > 0 && (
-                <div className="my-reservations">
-                  <h4>My Reservations</h4>
-                  <ul>
-                    {myReservations.map((r) => {
-                      const fmt = (iso) => {
-                        const d = new Date(iso);
-                        const dd = String(d.getDate()).padStart(2, "0");
-                        const mm = String(d.getMonth() + 1).padStart(2, "0");
-                        const yyyy = d.getFullYear();
-                        const hh = String(d.getHours()).padStart(2, "0");
-                        const min = String(d.getMinutes()).padStart(2, "0");
-                        return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
-                      };
-                      return (
-                        <li key={r.id}>
-                          <strong>{r.station_name}</strong> — {r.charger_name}<br />
-                          {fmt(r.start_time)} → {fmt(r.end_time)}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
-            </section>
-
-            <div className="field">
-              <label>Latitude</label>
-              <input
-                type="number"
-                value={center.lat}
-                onChange={(e) => setCenter((c) => ({ ...c, lat: Number(e.target.value) }))}
-              />
-            </div>
-            <div className="field">
-              <label>Longitude</label>
-              <input
-                type="number"
-                value={center.lon}
-                onChange={(e) => setCenter((c) => ({ ...c, lon: Number(e.target.value) }))}
-              />
-            </div>
-            <div className="field">
-              <label>Radius (km)</label>
-              <input type="number" value={radiusKm} onChange={(e) => setRadiusKm(Number(e.target.value))} />
-            </div>
-            <button onClick={loadNearby}>Find nearby stations</button>
-            <div className="buttons">
-              <button onClick={() => onRecommend("nearest")}>Nearest</button>
-              <button onClick={() => onRecommend("cost_optimized")}>Cost</button>
-              <button onClick={() => onRecommend("queue_aware")}>Queue-aware</button>
-              <button onClick={() => onRecommend("static_queue")}>Static queue (baseline)</button>
-              <button onClick={() => onRecommend("dijkstra")}>Dijkstra</button>
-            </div>
-            <p style={{fontSize: '0.8em', color: '#666', margin: '8px 0 2px'}}>
-              For range-aware routing:
-            </p>
-            <div style={{border: '1px solid #ddd', borderRadius: '6px', padding: '8px 12px'}}>
-              <div className="field">
-                <label>Battery level (%)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  placeholder="e.g. 40"
-                  value={batteryLevel}
-                  onChange={(e) => setBatteryLevel(e.target.value)}
-                />
-              </div>
-              <div className="field">
-                <label>Battery capacity (kWh)</label>
-                <input
-                  type="number"
-                  min="1"
-                  placeholder="e.g. 60"
-                  value={batteryCapacity}
-                  onChange={(e) => setBatteryCapacity(e.target.value)}
-                />
-              </div>
-              <button onClick={() => onRecommend("range_aware")}>Range-aware</button>
-            </div>
-            <label className="checkbox">
-              <input type="checkbox" checked={showHotspots} onChange={(e) => setShowHotspots(e.target.checked)} />
-              Show hotspots (predictive delay)
-            </label>
-            <p className="status">{status}</p>
-            {fetchingHotspots && <p className="status">Fetching hotspot locations…</p>}
-
-            <h3>Stations</h3>
-            <p className="stats-note">
-              Station count depends on ingestion. For realistic experiments, ingest 50+ live stations with `OPENCHARGEMAP_API_KEY`.
-            </p>
-            <ul>
-              {stations.map((s) => (
-                <li key={s.id}>
-                  <button onClick={() => onSelectStation(s.id)}>
-                    {s.name}
-                    {s.borough ? ` (${s.borough})` : ""}
-                  </button>
-                </li>
-              ))}
-            </ul>
-
-            <h3>Recommendations</h3>
-            <ol>
-              {recommendations.map((r) => (
-                <li key={r.station_id}>
-                  {r.station_name} | {Number(r.travel_distance_km).toFixed(2)} km | {Number(r.travel_time_min).toFixed(1)} min travel |{" "}
-                  {Number(r.predicted_wait_min).toFixed(2)} min wait | P(delay) {Number(r.probability_of_delay).toFixed(2)} |{" "}
-                  occupancy {r.current_occupancy}
-                </li>
-              ))}
-            </ol>
-
-            {selectedStation && (
-              <section ref={reserveSectionRef}>
-                <h3>Reserve charger</h3>
-                <p>{selectedStation.name}</p>
-                <form onSubmit={onReserve}>
-                  <div className="field">
-                    <label>Charger</label>
-                    <select
-                      value={form.charger_id}
-                      onChange={(e) => setForm({ ...form, charger_id: e.target.value })}
-                      required
-                    >
-                      {selectedStation.chargers.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name} ({c.power_kw}kW)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="field">
-                    <label>Start</label>
-                    <input
-                      type="datetime-local"
-                      value={form.start_time}
-                      onChange={(e) => setForm({ ...form, start_time: e.target.value })}
-                      min={toLocalDatetimeInput(new Date())}
-                      required
-                    />
-                  </div>
-                  <div className="field">
-                    <label>End</label>
-                    <input
-                      type="datetime-local"
-                      value={form.end_time}
-                      onChange={(e) => setForm({ ...form, end_time: e.target.value })}
-                      min={form.start_time || toLocalDatetimeInput(new Date())}
-                      required
-                    />
-                  </div>
-                  <button type="submit">Reserve</button>
-                </form>
-                {reservationStatus ? <p className="status">{reservationStatus}</p> : null}
-
-                <h3>Suggest charging slot</h3>
-                <div className="field">
-                  <label>Desired arrival</label>
-                  <input
-                    type="datetime-local"
-                    value={slotArrival}
-                    min={toLocalDatetimeInput(new Date())}
-                    onChange={(e) => setSlotArrival(e.target.value)}
-                  />
-                </div>
-                <div className="field">
-                  <label>Duration (minutes)</label>
-                  <input
-                    type="number"
-                    min="30"
-                    step="30"
-                    value={slotDuration}
-                    onChange={(e) => setSlotDuration(e.target.value)}
-                  />
-                </div>
-                <button type="button" onClick={onSuggestSlot}>Find available slot</button>
-                {slotStatus ? <p className="status">{slotStatus}</p> : null}
-                {suggestedSlots.length > 0 && (
-                  <ul>
-                    {suggestedSlots.map((s) => {
-                      const charger = selectedStation.chargers.find((c) => c.id === s.charger_id);
-                      const chargerLabel = charger ? `${charger.name} (${charger.power_kw}kW)` : s.charger_id.slice(0, 8);
-                      const start = new Date(s.suggested_start);
-                      const end = new Date(s.suggested_end);
-                      return (
-                        <li key={s.charger_id} style={{ marginBottom: "0.5rem" }}>
-                          <strong>{chargerLabel}</strong>:{" "}
-                          {start.toLocaleString()} – {end.toLocaleString()}{" "}
-                          {s.wait_from_desired_minutes > 0
-                            ? `(wait ${Math.round(s.wait_from_desired_minutes)} min)`
-                            : "(no wait)"}
-                          <button
-                            type="button"
-                            style={{ marginLeft: "0.5rem" }}
-                            onClick={() =>
-                              setForm({
-                                charger_id: s.charger_id,
-                                start_time: toLocalDatetimeInput(start),
-                                end_time: toLocalDatetimeInput(end),
-                              })
-                            }
-                          >
-                            Use this slot
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </section>
+              </details>
             )}
+
+            {/* 5. My account */}
+            <details className="sidebar-section auth-box" ref={myAccountRef}>
+              <summary className="section-summary">My account</summary>
+              <div className="section-body">
+                {!accessToken ? (
+                  <>
+                    <p className="status small">Sign in to reserve chargers.</p>
+                    <form className="auth-form" onSubmit={onRegister}>
+                      <div className="field">
+                        <label>Email</label>
+                        <input
+                          value={regs.email}
+                          onChange={(e) => setRegs({ ...regs, email: e.target.value })}
+                          type="email"
+                          required
+                        />
+                      </div>
+                      <div className="field">
+                        <label>Password (min 8)</label>
+                        <input
+                          value={regs.password}
+                          onChange={(e) => setRegs({ ...regs, password: e.target.value })}
+                          type="password"
+                          required
+                        />
+                      </div>
+                      <div className="buttons">
+                        <button type="submit" className="btn-primary">Register</button>
+                        <button type="button" className="btn-secondary" onClick={onLogin}>
+                          Sign in
+                        </button>
+                      </div>
+                    </form>
+                  </>
+                ) : (
+                  <div className="auth-status">
+                    <p className="status signed-in">Signed in ✓</p>
+                    <button type="button" className="btn-secondary" onClick={() => setAccessToken("")}>
+                      Sign out
+                    </button>
+                    <h4 className="subsection-heading">My Vehicle</h4>
+                    <form onSubmit={onSaveVehicle}>
+                      <div className="field">
+                        <label>Make / Model</label>
+                        <input
+                          type="text"
+                          maxLength={120}
+                          placeholder="e.g. Tesla Model 3"
+                          value={vehicleForm.make_model}
+                          onChange={(e) => setVehicleForm((f) => ({ ...f, make_model: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div className="field">
+                        <label>Battery (kWh)</label>
+                        <input
+                          type="number"
+                          min="0.1"
+                          step="0.1"
+                          placeholder="e.g. 75"
+                          value={vehicleForm.battery_kwh}
+                          onChange={(e) => setVehicleForm((f) => ({ ...f, battery_kwh: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <button type="submit" className="btn-primary">Save vehicle</button>
+                    </form>
+                    {vehicles.length > 0 && (
+                      <ul className="vehicle-list">
+                        {vehicles.map((v) => (
+                          <li key={v.id}>
+                            <button
+                              type="button"
+                              className="btn-link"
+                              onClick={() => {
+                                setSelectedVehicleId(v.id);
+                                setBatteryCapacity(String(v.battery_kwh));
+                              }}
+                            >
+                              {v.make_model} ({v.battery_kwh} kWh)
+                              {selectedVehicleId === v.id ? " (selected)" : ""}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+                {authStatus ? <p className="status">{authStatus}</p> : null}
+                {myReservations.length > 0 && (
+                  <div className="my-reservations">
+                    <h4 className="subsection-heading">My Reservations</h4>
+                    <ul>
+                      {myReservations.map((r) => {
+                        const fmt = (iso) => {
+                          const d = new Date(iso);
+                          const dd = String(d.getDate()).padStart(2, "0");
+                          const mm = String(d.getMonth() + 1).padStart(2, "0");
+                          const yyyy = d.getFullYear();
+                          const hh = String(d.getHours()).padStart(2, "0");
+                          const min = String(d.getMinutes()).padStart(2, "0");
+                          return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+                        };
+                        return (
+                          <li key={r.id} className="reservation-item">
+                            <strong>{r.station_name}</strong> — {r.charger_name}
+                            <br />
+                            {fmt(r.start_time)} → {fmt(r.end_time)}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </details>
+
+            {/* 6. Hotspot overlay */}
+            <details className="sidebar-section">
+              <summary className="section-summary">Hotspot overlay</summary>
+              <div className="section-body">
+                <label className="checkbox">
+                  <input
+                    type="checkbox"
+                    checked={showHotspots}
+                    onChange={(e) => setShowHotspots(e.target.checked)}
+                  />
+                  Show hotspots (predictive delay)
+                </label>
+              </div>
+            </details>
           </>
         )}
       </div>
 
-      <MapContainer center={position} zoom={12} style={{ height: "100vh", width: "100%" }}>
+      <MapContainer center={position} zoom={12} className="map-container">
         <FitBoundsToStations stations={stations} />
         <HeatmapLayer enabled={showHotspots} points={hotspotPoints} />
         <TileLayer

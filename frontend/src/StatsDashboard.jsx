@@ -66,6 +66,30 @@ export default function StatsDashboard({ rows, loadError }) {
         Values come from frozen <code>summary_ci.csv</code> (<code>/stats/experiment-summary</code>). Large wait predictions indicate unstable Erlang‑C
         regimes (ρ ≥ 1) for that synthetic profile—explain in writing, do not hide the anomaly.
       </p>
+      <p className="stats-summary">
+        These charts show simulation results across multiple configurations. Each bar represents one routing algorithm. Lower wait time and higher
+        acceptance rate are better. Queue-aware achieves near-zero predicted wait by avoiding congested stations, at the cost of slightly longer
+        travel distance.
+      </p>
+      <details className="stats-details">
+        <summary>What am I looking at?</summary>
+        <div className="stats-details-body">
+          <p><strong>Variant options:</strong></p>
+          <ul>
+            <li><strong>baseline_equal</strong> — equal weights across all routing criteria</li>
+            <li><strong>distance_priority</strong> — users prefer shorter drives</li>
+            <li><strong>queue_stress</strong> — artificially high load to stress-test queuing behaviour</li>
+            <li><strong>topk_robustness</strong> — only top-k stations sampled per request</li>
+          </ul>
+          <p><strong>Scenario options:</strong></p>
+          <ul>
+            <li><strong>urban</strong> — high-density city demand profile</li>
+            <li><strong>mixed</strong> — blend of urban and highway demand</li>
+            <li><strong>highway</strong> — long-distance motorway demand profile</li>
+          </ul>
+          <p><em>Note: Very large wait values (e.g. 40 min) indicate the Erlang-C queueing model became unstable at high load (ρ ≥ 1). This is expected and discussed in the dissertation.</em></p>
+        </div>
+      </details>
       <div className="chart-box">
         <h4>Mean travel distance (km)</h4>
         <ResponsiveContainer width="100%" height={260}>

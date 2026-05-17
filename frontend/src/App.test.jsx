@@ -46,8 +46,11 @@ describe("App", () => {
       {
         station_id: "s1",
         station_name: "Station 1",
-        distance_km: 1.2,
+        travel_distance_km: 1.2,
+        travel_time_min: 8.0,
         predicted_wait_min: 5.4,
+        probability_of_delay: 0.15,
+        current_occupancy: 1,
         score: 0.1,
         price_pence_per_kwh: 50,
       },
@@ -59,7 +62,7 @@ describe("App", () => {
     await waitFor(() => expect(api.fetchNearbyStations).toHaveBeenCalled());
     await userEvent.click(await screen.findByRole("button", { name: "Nearest" }));
 
-    expect(await screen.findByText(/Station 1 \| 1.20 km \| 5.40 min wait/)).toBeInTheDocument();
+    expect(await screen.findByText(/Station 1 \| 1\.20 km \| 8\.0 min travel \| 5\.40 min wait/)).toBeInTheDocument();
   });
 
   it("submits reservation form and shows success status", async () => {
@@ -78,16 +81,17 @@ describe("App", () => {
     render(<App />);
     await waitFor(() => expect(api.fetchNearbyStations).toHaveBeenCalled());
 
-    await userEvent.click(await screen.findByRole("button", { name: "Station 1" }));
+    const stationSelect = await screen.findByRole("combobox");
+    await userEvent.selectOptions(stationSelect, "s1");
     const datetimeInputs = document.querySelectorAll('input[type="datetime-local"]');
-    await userEvent.type(datetimeInputs[0], "2026-05-10T10:00");
-    await userEvent.type(datetimeInputs[1], "2026-05-10T11:00");
+    await userEvent.type(datetimeInputs[0], "2027-01-15T10:00");
+    await userEvent.type(datetimeInputs[1], "2027-01-15T11:00");
     await userEvent.click(screen.getByRole("button", { name: "Reserve" }));
 
     await waitFor(() => expect(api.createReservation).toHaveBeenCalled());
     const [payload, token] = api.createReservation.mock.calls[0];
     expect(token).toBe("test-jwt");
     expect(payload.charger_id).toBe("c1");
-    expect(await screen.findByText("Reservation created.")).toBeInTheDocument();
+    expect(await screen.findByText(/Booked ✓/)).toBeInTheDocument();
   });
 });

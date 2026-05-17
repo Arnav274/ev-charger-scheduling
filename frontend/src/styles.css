@@ -1,56 +1,68 @@
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  color: #1a1a1a;
+}
+
+/* ── Layout ── */
 .layout {
   display: grid;
-  grid-template-columns: 360px 1fr;
+  grid-template-columns: 340px 1fr;
   height: 100vh;
+  overflow: hidden;
 }
 
 .sidebar {
-  padding: 16px;
-  overflow: auto;
-  border-right: 1px solid #ddd;
-}
-
-.field {
-  margin-bottom: 8px;
+  width: 340px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-right: 1px solid #e2e8f0;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-
-.buttons {
-  display: flex;
   gap: 8px;
-  margin: 12px 0;
+  background: #f8fafc;
 }
 
-button {
-  cursor: pointer;
+.map-container {
+  height: 100vh;
+  width: 100%;
 }
 
-.status {
-  font-size: 14px;
+/* ── Sidebar title ── */
+.sidebar-title {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e3a8a;
 }
 
-.status.small {
-  font-size: 12px;
-}
-
+/* ── Tabs ── */
 .tabs {
   display: flex;
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: 4px;
+  margin-bottom: 4px;
 }
 
 .tabs button {
   flex: 1;
   padding: 6px 4px;
-  border: 1px solid #ccc;
-  background: #f5f5f5;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #374151;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tabs button.active {
@@ -59,26 +71,374 @@ button {
   border-color: #1d4ed8;
 }
 
-.auth-box {
-  border: 1px solid #e5e5e5;
-  padding: 10px;
-  margin-bottom: 12px;
+/* ── Collapsible sections (cards) ── */
+.sidebar-section {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.section-summary {
+  padding: 10px 14px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #1e40af;
+}
+
+.section-summary::after {
+  content: "›";
+  font-size: 16px;
+  transition: transform 0.15s;
+  color: #64748b;
+}
+
+details[open] > .section-summary::after {
+  transform: rotate(90deg);
+}
+
+/* remove default marker in webkit */
+.section-summary::-webkit-details-marker {
+  display: none;
+}
+
+.section-body {
+  padding: 4px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Recommendations ── */
+.recommendations-section {
+  padding: 10px 14px 12px;
+}
+
+.recommendations-section.hidden {
+  display: none;
+}
+
+.recommendations-label {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.recommendations-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recommendations-list li {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #374151;
+  word-break: break-word;
+}
+
+/* ── Global status line ── */
+.global-status {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* ── Form fields ── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.field label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.field input,
+.field select {
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
+  font-size: 13px;
+  width: 100%;
+  background: #fff;
+  color: #111827;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 0;
+  border-color: #2563eb;
+}
+
+/* ── Buttons ── */
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.btn-primary.btn-block {
+  width: 100%;
+}
+
+.btn-secondary {
+  background: #f1f5f9;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.btn-secondary:hover {
+  background: #e2e8f0;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  padding: 4px 0;
+  font-size: 13px;
+  color: #2563eb;
+  text-align: left;
+  text-decoration: underline;
+  width: 100%;
+  word-break: break-word;
+}
+
+.btn-link:hover {
+  color: #1d4ed8;
+}
+
+/* ── Algorithm buttons grid ── */
+.algo-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.btn-algo {
+  background: #2563eb;
+  color: #fff;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  flex: 1 1 auto;
+  white-space: nowrap;
+  transition: background 0.15s, outline 0.1s;
+}
+
+.btn-algo:hover {
+  background: #1d4ed8;
+}
+
+.btn-algo.active {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
+  background: #1e40af;
+}
+
+.find-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.algo-tip {
+  font-size: 11px;
+  color: #6b7280;
+  margin: 4px 0 0;
+  line-height: 1.4;
+}
+
+/* ── Auth ── */
+.auth-box {
+  /* inherits sidebar-section card styles */
 }
 
 .auth-form .buttons {
+  margin-top: 4px;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.signed-in {
+  color: #16a34a;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+/* ── Status messages ── */
+.status {
+  font-size: 13px;
+  color: #374151;
+  margin: 4px 0;
+}
+
+.status.small {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* ── Station list ── */
+.station-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ── Reservation success banner ── */
+.reservation-banner {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #166534;
+}
+
+.reservation-error {
+  color: #dc2626;
+}
+
+/* ── Reserve section ── */
+.selected-station-name {
+  font-weight: 600;
+  color: #1e3a8a;
+  margin: 0 0 8px;
+}
+
+.subsection-heading {
+  margin: 10px 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* ── Slot list ── */
+.slot-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slot-item {
+  font-size: 12px;
+  line-height: 1.5;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.btn-use-slot {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 12px;
+  align-self: flex-start;
+}
+
+.btn-use-slot:hover {
+  background: #dbeafe;
+}
+
+/* ── Vehicle list ── */
+.vehicle-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── My Reservations ── */
+.my-reservations {
   margin-top: 8px;
 }
 
-.chart-box {
-  margin-top: 16px;
+.my-reservations ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.stats-note {
+.reservation-item {
   font-size: 12px;
-  color: #444;
+  line-height: 1.5;
+  border-left: 3px solid #2563eb;
+  padding-left: 8px;
+  color: #374151;
 }
 
+/* ── Checkbox ── */
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ── Stats note ── */
+.stats-note {
+  font-size: 11px;
+  color: #6b7280;
+  margin: 4px 0;
+}
+
+/* ── Ethics / Stats panels ── */
 .ethics-panel p {
   font-size: 14px;
   line-height: 1.45;
@@ -86,4 +446,46 @@ button {
 
 .ethics-panel code {
   font-size: 12px;
+}
+
+.chart-box {
+  margin-top: 16px;
+}
+
+/* ── Stats summary & details ── */
+.stats-summary {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #374151;
+  margin: 10px 0 6px;
+}
+
+.stats-details {
+  background: var(--card-bg, #fff);
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.stats-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #1d4ed8;
+  user-select: none;
+}
+
+.stats-details-body {
+  margin-top: 10px;
+  line-height: 1.55;
+}
+
+.stats-details-body ul {
+  margin: 4px 0 10px 18px;
+  padding: 0;
+}
+
+.stats-details-body li {
+  margin-bottom: 3px;
 }

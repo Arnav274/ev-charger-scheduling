@@ -38,10 +38,17 @@ AC charging stations operate well below full capacity, with many stations seeing
 1 session per hour during off-peak periods. The figure of 0.75 arrivals/hour is consistent
 with a typical urban AC charge point under moderate demand — below the empirical peak but
 above the near-idle off-peak rate, making it a representative baseline for algorithm
-comparison. UK public EVSE utilisation data reported by Zap-Map (2023) places average
-sessions at approximately 2–5 per point per day (≈ 0.08–0.21/hr averaged over 24 hours),
-confirming that 0.75/hr is a realistic busy-hour figure rather than an unreachable extreme.
+comparison. UK public EVSE utilisation data compiled by Zapmap for the Department for Transport
+confirms that average sessions per point per day remain well below saturation for most
+of the network (Department for Transport, 2026; Zapmap, 2026), confirming that 0.75/hr
+is a realistic busy-hour figure rather than an unreachable extreme.
 
+> Department for Transport. (2026). *Electric vehicle public charging infrastructure
+> statistics*. GOV.UK.
+> https://www.gov.uk/government/collections/electric-vehicle-charging-infrastructure-statistics
+
+> Zapmap. (2026). *EV charging statistics 2026*.
+> https://www.zapmap.com/ev-stats/how-many-charging-points [Accessed: May 2026]
 **Sensitivity tested in experiments (`run_experiments.py`):**
 
 | Variant | `load_multiplier` | Effective λ (arrivals/hr) | ρ (c = 1) | Queue state |
@@ -83,7 +90,7 @@ Used in `erlang_c_wait_minutes` and `erlang_c_probability_of_delay`.
 > 42 Minutes per Session*. Energetics / EVWATTS Dashboard, 2.4 million charging sessions,
 > June 2020 – June 2023.
 > https://www.energy.gov/eere/vehicles/articles/fotw-1319-december-4-2023-ev-charging-paid-dc-fast-charging-stations-average
-
+> [Accessed: January 2026]
 The DoE dataset of 2.4 million sessions found a mean of **42 minutes** for paid DC fast
 charging. Level 2 AC sessions have longer *connection* times (drivers leave vehicles
 plugged in after charging completes), but empirical *active charging* durations for 7–22 kW

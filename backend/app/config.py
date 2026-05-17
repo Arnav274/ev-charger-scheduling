@@ -8,7 +8,7 @@ import os
 # Hecht, C., Figgener, J., & Sauer, D.U. (2022). Analysis of electric vehicle
 # charging station usage and profitability in Germany based on empirical data.
 # iScience, 25(12), 105634. https://doi.org/10.1016/j.isci.2022.105634
-ARRIVAL_RATE_PER_HOUR_DEFAULT: float = 4.0
+ARRIVAL_RATE_PER_HOUR_DEFAULT: float = 0.75
 
 # U.S. Department of Energy, EERE. (2023, December 4). FOTW #1319: EV Charging
 # at Paid DC Fast Charging Stations Average 42 Minutes per Session (2.4 M

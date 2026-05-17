@@ -16,8 +16,10 @@ and as the λ input to Erlang-C wait-time calculations.
 
 With `MEAN_SERVICE_MINUTES_DEFAULT = 40`, the per-charger service rate is
 μ = 60 / 40 = **1.5 sessions/hr**. The M/M/c stability condition requires
-λ < c · μ. For a single-charger station (c = 1), this means λ must be strictly
-below 1.5/hr. Setting λ = 0.75 gives a utilisation ratio of:
+λ < c · μ. The following derivation assumes a representative single-charger
+station (c = 1); stations with multiple chargers have proportionally lower
+utilisation, ρ = λ/(c·μ). For c = 1, λ must be strictly below 1.5/hr.
+Setting λ = 0.75 gives a utilisation ratio of:
 
 > ρ = λ / (c · μ) = 0.75 / 1.5 = **0.50**
 
@@ -44,8 +46,11 @@ confirming that 0.75/hr is a realistic busy-hour figure rather than an unreachab
 
 | Variant | `load_multiplier` | Effective λ (arrivals/hr) | ρ (c = 1) | Queue state |
 |---|---|---|---|---|
-| `baseline_equal`, `distance_priority`, `topk_robustness` | 1.0 | 0.75 | 0.50 | Stable |
+| `baseline_equal`, `distance_priority`, `topk_robustness` | 1.0 | 0.75 | 0.50 | Stable — baseline |
 | `queue_stress` | 1.6 | 1.20 | 0.80 | Stable — peak demand |
+| `erlang_sensitivity` × 0.5 | 0.5 | 0.375 | 0.25 | Stable — light load |
+| `erlang_sensitivity` × 1.0 | 1.0 | 0.75 | 0.50 | Stable — baseline |
+| `erlang_sensitivity` × 1.5 | 1.5 | 1.125 | 0.75 | Stable — moderate load |
 | `erlang_sensitivity` × 2.0 | 2.0 | 1.50 | 1.00 | Boundary — saturation onset |
 | `erlang_sensitivity` × 3.0 | 3.0 | 2.25 | 1.50 | Unstable — penalty region |
 
@@ -54,8 +59,10 @@ remaining stable, allowing the Erlang-C model to produce finite wait predictions
 Erlang-C wait times increase non-linearly as ρ → 1; results in the analysis show that
 `queue_aware` reduces mean wait by the largest margin precisely under the `queue_stress`
 condition, validating the strategy's reservation-lookahead mechanism. The
-`erlang_sensitivity` sweep intentionally pushes into the saturation regime (ρ ≥ 1) to
-characterise the penalty boundary and is excluded from the main algorithm comparison table.
+`erlang_sensitivity` sweep spans sub-baseline through saturation (ρ = 0.25 to 1.50) to
+characterise Erlang-C behaviour across the full stability range; only the ×2.0 and ×3.0
+variants push into or beyond the saturation boundary and are excluded from the main
+algorithm comparison table.
 
 **Caveats:** Arrival rates vary substantially by charger type (AC vs DC), location
 (motorway services vs urban street), time of day, and national fleet penetration rate.
@@ -155,6 +162,6 @@ use a higher value (0.25–0.30 kWh/km).
 
 | Constant | Value | Primary source | Sensitivity range exercised |
 |---|---|---|---|
-| `ARRIVAL_RATE_PER_HOUR_DEFAULT` | 0.75 arr/hr | Hecht et al. (2022) iScience | 0.75–2.25 (×1.0 to ×3.0 load multipliers; ρ 0.5→1.5) |
+| `ARRIVAL_RATE_PER_HOUR_DEFAULT` | 0.75 arr/hr | Hecht et al. (2022) iScience | 0.375–2.25 (×0.5 to ×3.0 load multipliers; ρ 0.25→1.5) |
 | `MEAN_SERVICE_MINUTES_DEFAULT` | 40 min | DoE EERE FOTW #1319 (2023) | 20–65 min (uniform draw in seeding) |
 | `ENERGY_CONSUMPTION_KWH_PER_KM` | 0.2 kWh/km | Weiss et al. (2024) Sustainability | Not yet varied — planned future work |

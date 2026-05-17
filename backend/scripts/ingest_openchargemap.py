@@ -7,6 +7,7 @@ from uuid import uuid4
 import requests
 from sqlalchemy import text
 
+from app.config import ARRIVAL_RATE_PER_HOUR_DEFAULT
 from app.database import SessionLocal
 
 CACHE_PATH = Path(__file__).parent / "cache" / "openchargemap_westminster_camden_sample.json"
@@ -117,7 +118,7 @@ def ingest(records: list[dict], *, enforce_min_stations: bool = True) -> None:
                     "lat": lat,
                     "lon": lon,
                     "price": 55.0,
-                    "arrival_rate": 0.75,
+                    "arrival_rate": ARRIVAL_RATE_PER_HOUR_DEFAULT,
                     "service_min": 40.0,
                     "raw_json": json.dumps(rec),
                 },

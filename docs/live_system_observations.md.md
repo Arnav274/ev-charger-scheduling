@@ -20,7 +20,7 @@ Closest: BMM-CP-000504 at 6.18m
 
 Furthest in result: Almacantar at 998.34m
 
-All stations have: id (UUID), name, borough, lat, lon, 
+All stations have: id (UUID), name, borough, lat, lon,
 
 price\_pence\_per\_kwh (all 55.0), distance\_m
 
@@ -87,4 +87,46 @@ Response: 400 Bad Request — "Unknown algorithm 'algorithm'"
 \- All probability\_of\_delay values are between 0 and 1
 
 \- Invalid algorithm name returns 400 not 500
+
+## POST /recommendations — all 6 algorithms (top result only)
+
+Origin: 51.5074, -0.1278, radius\_km=1
+
+
+
+nearest:      BMM-CP-000504        | dist=0.14km | wait=40.00min | P(delay)=0.50 | score=0.1373
+
+dijkstra:     BMM-CP-000504        | dist=0.14km | wait=40.00min | P(delay)=0.50 | score=0.0062
+
+static\_queue: Q-Park Leicester Sq  | dist=0.50km | wait=0.02min  | P(delay)=0.002 | score=0.4111
+
+queue\_aware:  Q-Park Leicester Sq  | dist=0.50km | wait=0.02min  | P(delay)=0.002 | score=0.0354
+
+cost\_optimized: \[paste your result]
+
+range\_aware:  BMM-CP-000504        | dist=0.14km | wait=40.00min | P(delay)=0.50 | score=0.1373
+
+
+
+\## POST /stations/{id}/suggest-slot
+
+Station: Q-Park Leicester Square (6fe1a1aa)
+
+Request: desired\_arrival=2026-05-17T11:48:36, duration\_minutes=1, 
+
+&#x20;        charger\_id=3fa85f64 (fake docs UUID)
+
+Response: \[] (empty — correct, charger\_id did not exist)
+
+Note: empty list returned correctly when charger not found
+
+
+
+\## Stats tab
+
+Status: "Could not load experiment summary: Failed to fetch"
+
+Cause: Docker containers not running when browser was opened
+
+Resolution: refresh after Docker up resolves it
 

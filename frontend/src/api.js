@@ -61,7 +61,12 @@ export async function fetchExperimentSummary() {
 
 export async function fetchNearbyStations(lat, lon, radiusKm = 5) {
   const url = `${API_BASE}/stations/nearby?lat=${lat}&lon=${lon}&radius_km=${radiusKm}`;
-  const res = await fetch(url);
+  let res;
+  try {
+    res = await fetch(url);
+  } catch {
+    throw new Error("Backend offline — run docker compose up to load stations");
+  }
   if (!res.ok) {
     const body = await safeJson(res);
     throw new Error(parseErrorDetail(body.detail, "Failed to fetch nearby stations"));

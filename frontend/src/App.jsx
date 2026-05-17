@@ -126,7 +126,33 @@ function App() {
   }
 
   useEffect(() => {
-    loadNearby();
+    let cancelled = false;
+    const timers = [];
+
+    async function initialLoad() {
+      try {
+        const data = await fetchNearbyStations(center.lat, center.lon, radiusKm);
+        if (!cancelled) {
+          setStations(data);
+          setStatus(`Loaded ${data.length} stations.`);
+        }
+      } catch {
+        if (cancelled) return;
+        const DELAY = 5;
+        for (let i = DELAY; i > 0; i--) {
+          if (cancelled) return;
+          setStatus(`Backend starting — retrying in ${i}s… (or click Find nearby stations)`);
+          await new Promise((r) => { const t = setTimeout(r, 1000); timers.push(t); });
+        }
+        if (!cancelled) loadNearby();
+      }
+    }
+
+    initialLoad();
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
   }, []);
 
   useEffect(() => {

@@ -23,6 +23,7 @@ body {
   width: 340px;
   overflow-x: hidden;
   overflow-y: auto;
+  min-height: 0;
   border-right: 1px solid #e2e8f0;
   padding: 12px;
   display: flex;
@@ -77,6 +78,7 @@ body {
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .section-summary {
@@ -241,8 +243,8 @@ button {
 
 /* ── Algorithm buttons grid ── */
 .algo-buttons {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
 }
 
@@ -254,8 +256,8 @@ button {
   padding: 6px 10px;
   font-size: 12px;
   font-weight: 500;
-  flex: 1 1 auto;
   white-space: nowrap;
+  text-align: center;
   transition: background 0.15s, outline 0.1s;
 }
 

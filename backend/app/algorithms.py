@@ -162,17 +162,25 @@ class DijkstraStrategy(SelectionStrategy):
 
 
 class RangeAwareStrategy(SelectionStrategy):
-    """Distance-first strategy with a penalty for stations the EV may not reach safely.
+    """Wait-minimising strategy restricted to stations the EV can safely reach.
 
-    Standard EV consumption estimate: 0.2 kWh/km (IEA/ACEA fleet average).
-    If remaining charge after travel leaves < 2 kWh buffer the station is
-    penalised heavily so it sorts below reachable alternatives.
-    When battery fields are absent the strategy degrades to NearestStrategy.
+    Among reachable stations the score is normalised Erlang-C wait time, so the
+    algorithm selects the fastest charger the EV can actually get to.  Stations
+    that would drain the battery below the 2 kWh safety buffer receive a large
+    additive penalty, pushing them behind all reachable alternatives.
+
+    Behaviour by battery state:
+      - High SOC (all stations reachable): equivalent to StaticQueueStrategy.
+      - Low SOC (some stations unreachable): picks lowest-wait among reachable
+        stations, which may be farther than the globally nearest charger.
+      - No battery context supplied: falls back to StaticQueueStrategy.
+
+    Consumption estimate: 0.2 kWh/km (IEA/ACEA fleet average, config.py).
     """
 
     _CONSUMPTION_KWH_PER_KM = ENERGY_CONSUMPTION_KWH_PER_KM
-    _SAFETY_BUFFER_KWH = 2.0       # minimum acceptable remaining kWh on arrival
-    _RANGE_PENALTY = 1e6           # large additive penalty for near-empty arrival
+    _SAFETY_BUFFER_KWH = 2.0
+    _RANGE_PENALTY = 1e6
 
     def score(self, station: Station, context: RecommendationContext, max_vals: dict[str, float]) -> float:
         if context.travel_by_station is not None and str(station.id) in context.travel_by_station:
@@ -180,15 +188,21 @@ class RangeAwareStrategy(SelectionStrategy):
         else:
             distance_km = haversine_km(context.origin_lat, context.origin_lon, station.lat, station.lon)
 
+        wait = erlang_c_wait_minutes(
+            arrival_rate_per_hour=station.arrival_rate_per_hour,
+            mean_service_minutes=station.mean_service_minutes,
+            c=max(1, len(station.chargers)),
+        )
+        # Normalise wait so the penalty dominates clearly.
+        base_score = wait / max(max_vals["wait"], 1e-9)
+
         penalty = 0.0
         if context.battery_level_percent is not None and context.battery_capacity_kwh is not None:
             remaining_kwh = (context.battery_level_percent / 100.0) * context.battery_capacity_kwh
-            estimated_consumption_kwh = distance_km * self._CONSUMPTION_KWH_PER_KM
-            range_safety_margin = remaining_kwh - estimated_consumption_kwh
-            if range_safety_margin < self._SAFETY_BUFFER_KWH:
+            if remaining_kwh - distance_km * self._CONSUMPTION_KWH_PER_KM < self._SAFETY_BUFFER_KWH:
                 penalty = self._RANGE_PENALTY
 
-        return distance_km + penalty
+        return base_score + penalty
 
 
 STRATEGIES: dict[str, SelectionStrategy] = {

@@ -195,11 +195,19 @@ def run(n_trials: int = 100) -> Path:
                 for _ in range(n_trials):
                     origin_lat = random.uniform(*cfg["lat_range"])
                     origin_lon = random.uniform(*cfg["lon_range"])
+                    # Simulate range-stressed EVs: 8–30 % SOC on a 40 kWh battery
+                    # gives a safe reach of 6–50 km (at 0.2 kWh/km, 2 kWh buffer).
+                    # This ensures RangeAwareStrategy's penalty actually fires for
+                    # distant stations in mixed/highway scenarios.
+                    battery_capacity_kwh = 40.0
+                    battery_level_percent = random.uniform(8.0, 30.0)
                     context = RecommendationContext(
                         origin_lat=origin_lat,
                         origin_lon=origin_lon,
                         weights=variant["weights"],
                         arrival_window_minutes=int(ARRIVAL_WINDOW_MIN),
+                        battery_level_percent=battery_level_percent,
+                        battery_capacity_kwh=battery_capacity_kwh,
                     )
                     travel_metrics = route_one_to_many(
                         origin_lat=origin_lat,
@@ -317,6 +325,8 @@ def run(n_trials: int = 100) -> Path:
                                 "weights_distance": variant["weights"][0],
                                 "weights_wait": variant["weights"][1],
                                 "weights_cost": variant["weights"][2],
+                                "battery_level_percent": battery_level_percent,
+                                "battery_capacity_kwh": battery_capacity_kwh,
                             }
                         )
                 for algorithm in STRATEGIES:

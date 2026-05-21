@@ -69,22 +69,19 @@ class QueueAwareStrategy(SelectionStrategy):
         else:
             distance = haversine_km(context.origin_lat, context.origin_lon, station.lat, station.lon)
         reserved_parallel = 0
-        reservation_starts = 0
         if context.future_reserved_parallel_by_station is not None:
             reserved_parallel = int(context.future_reserved_parallel_by_station.get(str(station.id), 0))
-        if context.future_reservation_starts_by_station is not None:
-            reservation_starts = int(context.future_reservation_starts_by_station.get(str(station.id), 0))
-
-        current_occupancy = 0
-        if context.current_occupancy_by_station is not None:
-            current_occupancy = int(context.current_occupancy_by_station.get(str(station.id), 0))
 
         c = max(1, len(station.chargers))
+        # Reduce effective server count by the number of chargers already reserved in the arrival
+        # window. The base arrival rate λ is unchanged — only capacity is reduced. Inflating λ
+        # with reservation_starts / window_hours was removed because dividing by a 0.25-hour window
+        # amplified even a single reservation start into a +4/hr spike, driving ρ ≥ 1 and triggering
+        # the 1e6 saturation penalty for any station with one upcoming booking — the opposite of
+        # useful. c_eff alone provides a proportionate, well-calibrated signal.
         c_eff = max(1, c - reserved_parallel)
-        window_hours = max(1, int(getattr(context, "arrival_window_minutes", 15))) / 60.0
-        lambda_future = station.arrival_rate_per_hour + (reservation_starts / window_hours)
         wait = erlang_c_wait_minutes(
-            arrival_rate_per_hour=lambda_future,
+            arrival_rate_per_hour=station.arrival_rate_per_hour,
             mean_service_minutes=station.mean_service_minutes,
             c=c_eff,
         )

@@ -83,10 +83,11 @@ def flatten_station_intervals(charger_schedules: dict[str, list[tuple[float, flo
 def seed_background_schedules(
     *,
     stations: list[Station],
-    background_reservations_per_station: int = 12,
+    background_reservations_per_station: int = 18,
 ) -> dict[str, dict[str, list[tuple[float, float]]]]:
     """
     Deterministic background reservations used as shared 'ground truth' so predictive queueing diverges from static.
+    18 = λ × 24 h = 0.75 × 24, so background density matches the configured arrival rate.
     Stored as minutes-from-midnight floats in [0, 1440).
     """
     rnd = random.Random(12345)
@@ -287,21 +288,17 @@ def run(n_trials: int = 100) -> Path:
                             per_alg_rejections[algorithm] += 1
                         per_alg_loads[algorithm][str(best.id)] += 1
 
-                        # Use the same predictive computation that powers `queue_aware` (reservation-aware),
-                        # so offline evaluation matches online behavior.
+                        # Evaluate the selected station using the same scoring model used online:
+                        # queue_aware uses c_eff (capacity reduced by reserved chargers in window).
+                        # Lambda is always the base rate — no reservation_starts inflation.
                         sid = str(best.id)
                         reserved_parallel = int(future_reserved_parallel_by_station.get(sid, 0))
-                        reservation_starts = int(future_reservation_starts_by_station.get(sid, 0))
                         c = max(1, len(best.chargers))
                         c_eff = max(1, c - reserved_parallel) if algorithm == "queue_aware" else c
-                        window_hours = max(1.0, ARRIVAL_WINDOW_MIN) / 60.0
-                        lambda_base = best.arrival_rate_per_hour * float(variant["load_multiplier"])
-                        lambda_future = (
-                            lambda_base + (reservation_starts / window_hours) if algorithm == "queue_aware" else lambda_base
-                        )
-                        wait_min = erlang_c_wait_minutes(lambda_future, best.mean_service_minutes, c_eff)
+                        lambda_eval = best.arrival_rate_per_hour * float(variant["load_multiplier"])
+                        wait_min = erlang_c_wait_minutes(lambda_eval, best.mean_service_minutes, c_eff)
                         p_delay = erlang_c_probability_of_delay(
-                            arrival_rate_per_hour=lambda_future,
+                            arrival_rate_per_hour=lambda_eval,
                             service_rate_per_hour=60.0 / best.mean_service_minutes,
                             c=c_eff,
                         )
@@ -315,7 +312,7 @@ def run(n_trials: int = 100) -> Path:
                                 "wait_min": wait_min,
                                 "probability_of_delay": p_delay,
                                 "reserved_parallel": reserved_parallel if algorithm == "queue_aware" else 0,
-                                "reservation_starts": reservation_starts if algorithm == "queue_aware" else 0,
+                                "reservation_starts": 0,
                                 "price_pence_per_kwh": best.price_pence_per_kwh,
                                 "runtime_ms": runtime_ms,
                                 "reservation_accepted": int(accepted),

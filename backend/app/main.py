@@ -421,12 +421,10 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
         or 1.0
     )
 
-    _window_hours = max(1, int(payload.arrival_window_minutes)) / 60.0
     max_wait_predictive = (
         max(
             erlang_c_wait_minutes(
-                arrival_rate_per_hour=s.arrival_rate_per_hour
-                + future_reservation_starts_by_station.get(str(s.id), 0) / _window_hours,
+                arrival_rate_per_hour=s.arrival_rate_per_hour,
                 mean_service_minutes=s.mean_service_minutes,
                 c=max(
                     1,
@@ -486,11 +484,7 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
             ),
             predicted_wait_min=(
                 erlang_c_wait_minutes(
-                    arrival_rate_per_hour=s.arrival_rate_per_hour
-                    + (
-                        future_reservation_starts_by_station.get(str(s.id), 0)
-                        / (max(1, payload.arrival_window_minutes) / 60.0)
-                    ),
+                    arrival_rate_per_hour=s.arrival_rate_per_hour,
                     mean_service_minutes=s.mean_service_minutes,
                     c=max(
                         1,
@@ -503,11 +497,7 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
             ),
             probability_of_delay=(
                 erlang_c_probability_of_delay(
-                    arrival_rate_per_hour=s.arrival_rate_per_hour
-                    + (
-                        future_reservation_starts_by_station.get(str(s.id), 0)
-                        / (max(1, payload.arrival_window_minutes) / 60.0)
-                    ),
+                    arrival_rate_per_hour=s.arrival_rate_per_hour,
                     service_rate_per_hour=60.0 / s.mean_service_minutes,
                     c=max(
                         1,

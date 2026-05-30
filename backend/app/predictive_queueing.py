@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 @dataclass(frozen=True)
 class ReservationInterval:
+    """Lightweight projection of a Reservation row, used by the sweep-line overlap counter."""
     start_time: datetime
     end_time: datetime
 
@@ -13,6 +14,7 @@ class ReservationInterval:
 
 
 def ensure_utc(dt: datetime) -> datetime:
+    """Normalise to UTC. Naive datetimes are assumed UTC; aware datetimes are converted."""
     if dt.tzinfo is None:
         return dt.replace(tzinfo=timezone.utc)
     return dt.astimezone(timezone.utc)
@@ -26,6 +28,13 @@ def arrival_window(
     travel_time_min: float,
     arrival_window_minutes: int,
 ) -> tuple[datetime, datetime, datetime]:
+    """
+    Return (arrival_est, window_start, window_end).
+
+    The window [arrival_est, arrival_est + arrival_window_minutes) is used to
+    query which reservations overlap the user's expected arrival, so algorithms
+    can estimate how many chargers will actually be free when they get there.
+    """
     departure_time = ensure_utc(departure_time)
     arrival_est = departure_time + timedelta(minutes=float(travel_time_min))
     window_start = arrival_est
@@ -50,7 +59,9 @@ def max_overlapping(intervals: list[ReservationInterval]) -> int:
     if not events:
         return 0
 
-    # End event before start event 
+    # Sweep-line: sort events by time, breaking ties so -1 (end) sorts before
+    # +1 (start) at the same instant — avoids counting a departing and arriving
+    # car simultaneously as two occupied chargers.
     events.sort(key=lambda x: (x[0], x[1]))
     current = 0
     best = 0

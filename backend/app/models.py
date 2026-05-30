@@ -43,6 +43,9 @@ class Station(Base):
     lat: Mapped[float] = mapped_column(Float, nullable=False)
     lon: Mapped[float] = mapped_column(Float, nullable=False)
     price_pence_per_kwh: Mapped[float] = mapped_column(Float, default=55.0, nullable=False)
+    # M/M/c queueing parameters: λ (arrivals/hour) and 1/μ (mean service time).
+    # Defaults: 0.75 arrivals/hr and 40 min/session are calibrated from DfT/Zapmap
+    # data and used across all Erlang-C wait calculations (see queueing.py).
     arrival_rate_per_hour: Mapped[float] = mapped_column(Float, default=0.75, nullable=False)
     mean_service_minutes: Mapped[float] = mapped_column(Float, default=40.0, nullable=False)
     raw_json: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
@@ -58,7 +61,7 @@ class Charger(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     station_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("stations.id"), nullable=False)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
-    power_kw: Mapped[float] = mapped_column(Float, default=22.0, nullable=False)
+    power_kw: Mapped[float] = mapped_column(Float, default=22.0, nullable=False)  # 22 kW = typical UK Type 2 fast charger
     connector_type: Mapped[str] = mapped_column(String(80), default="Type2", nullable=False)
 
     station: Mapped["Station"] = relationship(back_populates="chargers")

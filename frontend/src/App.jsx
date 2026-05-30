@@ -533,10 +533,12 @@ function App() {
 
 
 
-                <p className="stats-note">
-                  Station count depends on ingestion. For realistic experiments, ingest 50+ live stations with{" "}
-                  <code>OPENCHARGEMAP_API_KEY</code>.
-                </p>
+                {stations.length < 50 && (
+                  <p className="stats-note">
+                    Station count depends on ingestion. For realistic experiments, ingest 50+ live stations with{" "}
+                    <code>OPENCHARGEMAP_API_KEY</code>.
+                  </p>
+                )}
                 {stations.length > 0 && (
                   <div className="field">
                     <label>Filter stations</label>

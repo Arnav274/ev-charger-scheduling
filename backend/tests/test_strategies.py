@@ -137,7 +137,9 @@ class TestRangeAwareStrategy:
 
     def test_range_aware_no_penalty_when_battery_sufficient(self):
         origin_lat, origin_lon = 51.5, -0.1
-        s_near = _make_station(lat=origin_lat + 0.009, lon=origin_lon)
+        # Use calibrated arrival rate (0.75/hr → ρ=0.5) so base score is small;
+        # the assertion verifies no range penalty is added on top.
+        s_near = _make_station(lat=origin_lat + 0.009, lon=origin_lon, arrival_rate=0.75)
 
         ctx = _ctx(
             origin_lat, origin_lon,

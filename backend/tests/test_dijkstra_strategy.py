@@ -9,8 +9,7 @@ import pytest
 from app.algorithms import DijkstraStrategy, RecommendationContext, STRATEGIES
 
 
-------------------------------------------------------------------
-#Helpers
+# Helpers
 
 
 

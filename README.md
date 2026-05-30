@@ -27,7 +27,20 @@ git clone https://github.com/YOUR_USERNAME/REPO_NAME.git
 cd REPO_NAME
 ```
 
-### 2. Start all services
+### 2. Add your API key
+
+Copy the example env file and add your OpenChargeMap API key (free at https://openchargemap.org/site/develop/api):
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and fill in your key:
+```
+OPENCHARGEMAP_API_KEY=your_key_here
+```
+
+### 3. Start all services
 
 ```bash
 docker compose up --build
@@ -41,9 +54,9 @@ backend-1  | INFO:     Application startup complete.
 frontend-1 | VITE ready in ...ms
 ```
 
-### 3. Set up the database (first time only)
+### 4. Set up the database (first time only)
 
-Open a **second terminal** in the same folder and run these three commands one at a time:
+Open a **second terminal** in the same folder and run these four commands one at a time:
 
 ```bash
 docker compose exec backend alembic upgrade head
@@ -53,7 +66,12 @@ docker compose exec backend alembic upgrade head
 ```bash
 docker compose exec backend python -m scripts.seed_demo
 ```
-*(adds demo user and sample charging stations)*
+*(adds the demo user account)*
+
+```bash
+docker compose exec backend python scripts/ingest_openchargemap.py
+```
+*(downloads real London EV charging station data — requires the API key from step 2)*
 
 ```bash
 docker compose exec backend python -m scripts.seed_background_reservations
@@ -147,7 +165,7 @@ Something else is using port 5173, 8000, or 5432. Stop other Docker containers o
 Make sure Docker Desktop is open and running before you run `docker compose up`.
 
 **Map loads but no stations appear:**
-The seed step may not have run. Run the three setup commands from Step 3 again.
+The seed step may not have run. Run the four setup commands from Step 4 again.
 
 **OSRM keeps re-downloading:**
 This was a known bug — it has been fixed. If you pulled an older version, update with `git pull` and try again.

@@ -21,3 +21,8 @@ backend/experiments/outputs/
 # Local Claude Code settings and tooling artefacts
 .claude/
 repomix-output.xml
+
+# Repomix dev tooling
+repomix.config.json
+.repomixignore
+repomix-output.txt

@@ -1,73 +1,153 @@
-# EV charging reservation (dissertation project)
+# EV Charging Reservation System
 
-Find chargers on a map, pick a scheduling algorithm, book a slot. London station data. Needs Docker.
+A full-stack web application that lets electric vehicle drivers find, compare, and book charging stations across London. Built as a university final-year project.
 
-## Run it
+The system uses real London charging station data and implements six different scheduling algorithms to recommend the best station based on distance, predicted wait time, price, or battery range.
 
-From the project folder:
+---
+
+## What you need before starting
+
+1. **Docker Desktop** — download and install from https://www.docker.com/products/docker-desktop/
+   - Make sure Docker Desktop is **running** (you should see the whale icon in your taskbar) before proceeding
+   - Windows users: Docker Desktop requires WSL 2 to be enabled — the installer will prompt you if needed
+
+2. **Git** — to clone the repository (you probably already have this)
+
+3. ~**500 MB free disk space** for the London map data
+
+---
+
+## First-time setup (takes ~5–10 minutes)
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/YOUR_USERNAME/REPO_NAME.git
+cd REPO_NAME
+```
+
+### 2. Start all services
 
 ```bash
 docker compose up --build
 ```
 
-First time only (wait until containers are up; OSRM download can take a few minutes):
+This starts four services: the database, the routing engine (OSRM), the backend API, and the frontend. **The first run downloads and processes the London street map — this takes 5–10 minutes.** You'll see a lot of log output; that's normal.
+
+Wait until you see something like:
+```
+backend-1  | INFO:     Application startup complete.
+frontend-1 | VITE ready in ...ms
+```
+
+### 3. Set up the database (first time only)
+
+Open a **second terminal** in the same folder and run these three commands one at a time:
 
 ```bash
 docker compose exec backend alembic upgrade head
-docker compose exec backend python -m scripts.seed_demo
-docker compose exec backend python -m scripts.ingest_openchargemap
 ```
+*(creates the database tables)*
 
-Optional — more booked slots so `queue_aware` looks different from `static_queue`:
+```bash
+docker compose exec backend python -m scripts.seed_demo
+```
+*(adds demo user and sample charging stations)*
 
 ```bash
 docker compose exec backend python -m scripts.seed_background_reservations
 ```
+*(adds background bookings so the queue algorithms have realistic data to work with)*
 
-Open:
+---
 
-- App: http://localhost:5173
-- API docs: http://localhost:8000/docs
+## Running it (after the first setup)
 
-Demo login: `demo.user@example.com` / `DemoPass123!`
+Next time you want to start the app, just run:
 
-## Algorithms
+```bash
+docker compose up
+```
 
-In the app dropdown or in `POST /recommendations` as `"algorithm"`:
+No `--build` needed, and no need to re-run the setup commands. It will start in under a minute.
 
-`nearest`, `dijkstra`, `static_queue`, `queue_aware`, `cost_optimized`, `range_aware`
+To stop everything:
 
-Code: `backend/app/algorithms.py`
+```bash
+docker compose down
+```
 
-## Tests
+---
+
+## Opening the app
+
+Once running, open your browser and go to:
+
+- **App:** http://localhost:5173
+- **API documentation:** http://localhost:8000/docs
+
+**Demo login credentials:**
+- Email: `demo.user@example.com`
+- Password: `DemoPass123!`
+
+---
+
+## What to do in the app
+
+1. Log in with the demo credentials above
+2. You'll see a map of London with charging station markers
+3. The app will ask for your current location — allow it, or it defaults to central London
+4. Select a **scheduling algorithm** from the dropdown:
+   - **Nearest** — picks the closest station by road distance
+   - **Dijkstra** — shortest path on a simplified road graph
+   - **Static Queue** — factors in predicted queue wait time (Erlang-C formula)
+   - **Queue Aware** — same as above but accounts for upcoming bookings in your arrival window
+   - **Cost Optimised** — balances distance, wait time, and price
+   - **Range Aware** — only shows stations reachable on your current battery level
+5. The top recommendations appear ranked — click one to see details and book a slot
+
+---
+
+## Project structure
+
+```
+backend/          FastAPI backend (Python)
+  app/
+    algorithms.py   All six scheduling algorithms
+    main.py         API routes
+    models.py       Database models
+  experiments/      Statistical experiment scripts + results (CSVs)
+  tests/            Unit and integration tests
+
+frontend/         React + Leaflet map UI
+  src/
+    App.jsx         Main app component
+    api.js          API client
+
+docker-compose.yml  Orchestrates all services
+```
+
+---
+
+## Running the tests
 
 ```bash
 docker compose exec backend pytest -q
 ```
 
-## Experiments (already run for the report)
+---
 
-Results are in `backend/experiments/outputs/`.
+## Troubleshooting
 
-To run again:
+**"Port already in use" error:**
+Something else is using port 5173, 8000, or 5432. Stop other Docker containers or services on those ports, then try again.
 
-```bash
-docker compose exec backend python -m experiments.run_experiments
-docker compose exec backend python -m experiments.analyse_results
-```
+**Containers crash immediately:**
+Make sure Docker Desktop is open and running before you run `docker compose up`.
 
-## Folders
+**Map loads but no stations appear:**
+The seed step may not have run. Run the three setup commands from Step 3 again.
 
-- `backend/` — API, database, algorithms, experiments
-- `frontend/` — map UI
-- `docs/` — report notes (not needed to run the app)
-
-## Live station data (optional)
-
-Copy `.env.example` to `.env`, add `OPENCHARGEMAP_API_KEY`, then:
-
-```bash
-docker compose exec backend python -m scripts.ingest_openchargemap --live
-```
-
-Default ingest uses a cached sample — no key needed.
+**OSRM keeps re-downloading:**
+This was a known bug — it has been fixed. If you pulled an older version, update with `git pull` and try again.

@@ -7,12 +7,16 @@ describe("api helpers", () => {
     vi.restoreAllMocks();
   });
 
+
+
   it("fetchNearbyStations builds URL and returns parsed payload", async () => {
     const payload = [{ id: "1", name: "Station A" }];
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => payload,
     });
+
+
 
     const data = await fetchNearbyStations(51.5, -0.12, 7);
 
@@ -27,6 +31,7 @@ describe("api helpers", () => {
     await expect(fetchStation("abc")).rejects.toThrow("Failed to fetch station");
   });
 
+
   it("createReservation surfaces backend detail message", async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
@@ -35,6 +40,10 @@ describe("api helpers", () => {
 
     await expect(createReservation({}, "tok")).rejects.toThrow("Overlapping reservation");
   });
+
+
+
+
 
   it("createReservation sends bearer token", async () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ id: "x" }) });
@@ -49,6 +58,9 @@ describe("api helpers", () => {
     );
   });
 
+
+
+  
   it("getRecommendations posts payload and returns JSON", async () => {
     const payload = [{ station_id: "x" }];
     global.fetch = vi.fn().mockResolvedValue({

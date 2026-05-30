@@ -11,11 +11,15 @@ DEMO_USER_ID = "a0000001-0000-4000-8000-000000000001"
 DEMO_EMAIL = "demo.user@example.com"
 
 
+
 def main() -> None:
     password = os.getenv("DEMO_PASSWORD", "DemoPass123!")
     ph = hash_password(password)
     db = SessionLocal()
     try:
+
+
+        
         db.execute(
             text("DELETE FROM reservations WHERE user_id IN (SELECT id FROM users WHERE email = :email)"),
             {"email": DEMO_EMAIL},

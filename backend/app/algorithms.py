@@ -8,6 +8,8 @@ from app.models import Station
 from app.queueing import erlang_c_wait_minutes
 
 
+
+
 @dataclass
 class RecommendationContext:
     origin_lat: float
@@ -22,12 +24,16 @@ class RecommendationContext:
     battery_capacity_kwh: float | None = None
 
 
+
+
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     r = 6371.0
     dlat = radians(lat2 - lat1)
     dlon = radians(lon2 - lon1)
     a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
     return 2 * r * asin(sqrt(a))
+
+
 
 
 class SelectionStrategy:
@@ -42,6 +48,7 @@ class NearestStrategy(SelectionStrategy):
         return haversine_km(context.origin_lat, context.origin_lon, station.lat, station.lon)
 
 
+
 class CostOptimizedStrategy(SelectionStrategy):
     def score(self, station: Station, context: RecommendationContext, max_vals: dict[str, float]) -> float:
         if context.travel_by_station is not None and str(station.id) in context.travel_by_station:
@@ -53,6 +60,9 @@ class CostOptimizedStrategy(SelectionStrategy):
             mean_service_minutes=station.mean_service_minutes,
             c=max(1, len(station.chargers)),
         )
+
+
+
         cost = station.price_pence_per_kwh
         w_d, w_q, w_c = context.weights
         return (
@@ -60,6 +70,11 @@ class CostOptimizedStrategy(SelectionStrategy):
             + w_q * (wait / max_vals["wait"])
             + w_c * (cost / max_vals["cost"])
         )
+
+
+
+
+
 
 
 class QueueAwareStrategy(SelectionStrategy):
@@ -72,28 +87,25 @@ class QueueAwareStrategy(SelectionStrategy):
         if context.future_reserved_parallel_by_station is not None:
             reserved_parallel = int(context.future_reserved_parallel_by_station.get(str(station.id), 0))
 
+
+
+
+
         c = max(1, len(station.chargers))
-        # Reduce effective server count by the number of chargers already reserved in the arrival
-        # window. The base arrival rate λ is unchanged — only capacity is reduced. Inflating λ
-        # with reservation_starts / window_hours was removed because dividing by a 0.25-hour window
-        # amplified even a single reservation start into a +4/hr spike, driving ρ ≥ 1 and triggering
-        # the 1e6 saturation penalty for any station with one upcoming booking — the opposite of
-        # useful. c_eff alone provides a proportionate, well-calibrated signal.
         c_eff = max(1, c - reserved_parallel)
         wait = erlang_c_wait_minutes(
             arrival_rate_per_hour=station.arrival_rate_per_hour,
             mean_service_minutes=station.mean_service_minutes,
             c=c_eff,
         )
-        # 0.85 wait / 0.15 distance: supervisor spec prioritises minimising wait (Zhang, project brief 2024).
-        # Non-zero distance weight prevents recommending unreachable zero-queue stations.
         return 0.85 * (wait / max_vals["wait"]) + 0.15 * (distance / max_vals["distance"])
 
 
+
+
+
 class StaticQueueStrategy(SelectionStrategy):
-    """
-    Baseline: Erlang-C using only station parameters (no reservation lookahead).
-    """
+    """Baseline: Erlang-C using only station parameters, no reservation lookahead."""
 
     def score(self, station: Station, context: RecommendationContext, max_vals: dict[str, float]) -> float:
         if context.travel_by_station is not None and str(station.id) in context.travel_by_station:
@@ -105,36 +117,19 @@ class StaticQueueStrategy(SelectionStrategy):
             mean_service_minutes=station.mean_service_minutes,
             c=max(1, len(station.chargers)),
         )
+
+
         return 0.85 * (wait / max_vals["wait"]) + 0.15 * (distance / max_vals["distance"])
 
 
 class DijkstraStrategy(SelectionStrategy):
-    """Distance-based selection using Dijkstra's algorithm on a complete graph.
-
-    Intended to be driven via rank_all(), which passes ALL candidate stations
-    to shortest_paths_to_stations() in a single call so that each station can
-    act as an intermediate waypoint — the correct, academically meaningful use
-    of the algorithm. See dijkstra.py module docstring for the full rationale.
-
-    score() is retained for per-station calls and accepts an optional
-    pre_computed_distance; when not supplied it falls back to direct haversine
-    (useful for unit testing individual stations in isolation).
-    """
+    """Distance-based selection using Dijkstra on a complete Haversine graph."""
 
     def rank_all(
         self,
         stations: list,
         context: RecommendationContext,
     ) -> dict[str, float]:
-        """Run Dijkstra once over the full candidate graph.
-
-        Args:
-            stations: All candidate ORM Station objects.
-            context: Supplies the EV origin coordinates.
-
-        Returns:
-            Mapping of station_id (str) -> shortest-path distance in km.
-        """
         dijkstra_stations = [
             DijkstraStation(station_id=str(s.id), lat=s.lat, lon=s.lon)
             for s in stations
@@ -145,6 +140,8 @@ class DijkstraStrategy(SelectionStrategy):
             stations=dijkstra_stations,
         )
         return {sid: r.distance_km for sid, r in results.items()}
+
+
 
     def score(
         self,
@@ -158,22 +155,10 @@ class DijkstraStrategy(SelectionStrategy):
         return haversine_km(context.origin_lat, context.origin_lon, station.lat, station.lon)
 
 
+
+
 class RangeAwareStrategy(SelectionStrategy):
-    """Wait-minimising strategy restricted to stations the EV can safely reach.
-
-    Among reachable stations the score is normalised Erlang-C wait time, so the
-    algorithm selects the fastest charger the EV can actually get to.  Stations
-    that would drain the battery below the 2 kWh safety buffer receive a large
-    additive penalty, pushing them behind all reachable alternatives.
-
-    Behaviour by battery state:
-      - High SOC (all stations reachable): equivalent to StaticQueueStrategy.
-      - Low SOC (some stations unreachable): picks lowest-wait among reachable
-        stations, which may be farther than the globally nearest charger.
-      - No battery context supplied: falls back to StaticQueueStrategy.
-
-    Consumption estimate: 0.2 kWh/km (IEA/ACEA fleet average, config.py).
-    """
+    """Erlang-C wait scoring with a large penalty for stations outside battery range."""
 
     _CONSUMPTION_KWH_PER_KM = ENERGY_CONSUMPTION_KWH_PER_KM
     _SAFETY_BUFFER_KWH = 2.0
@@ -200,6 +185,8 @@ class RangeAwareStrategy(SelectionStrategy):
                 penalty = self._RANGE_PENALTY
 
         return base_score + penalty
+
+
 
 
 STRATEGIES: dict[str, SelectionStrategy] = {

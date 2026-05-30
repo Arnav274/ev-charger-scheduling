@@ -9,6 +9,8 @@ async function safeJson(res) {
   }
 }
 
+
+
 function parseErrorDetail(detail, fallback) {
   if (!detail) return fallback;
   if (typeof detail === "string") return detail;
@@ -24,6 +26,8 @@ function parseErrorDetail(detail, fallback) {
   return fallback;
 }
 
+
+
 export async function registerUser(email, password) {
   const res = await fetch(`${API_BASE}/auth/register`, {
     method: "POST",
@@ -37,6 +41,8 @@ export async function registerUser(email, password) {
   return res.json();
 }
 
+
+
 export async function loginUser(email, password) {
   const body = new URLSearchParams();
   body.set("username", email);
@@ -46,6 +52,8 @@ export async function loginUser(email, password) {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: body.toString(),
   });
+
+
   if (!res.ok) {
     const err = await safeJson(res);
     throw new Error(parseErrorDetail(err.detail, "Login failed"));
@@ -53,11 +61,15 @@ export async function loginUser(email, password) {
   return res.json();
 }
 
+
+
 export async function fetchExperimentSummary() {
   const res = await fetch(`${API_BASE}/stats/experiment-summary`);
   if (!res.ok) throw new Error("Failed to load experiment summary");
   return res.json();
 }
+
+
 
 export async function fetchNearbyStations(lat, lon, radiusKm = 5) {
   const url = `${API_BASE}/stations/nearby?lat=${lat}&lon=${lon}&radius_km=${radiusKm}`;
@@ -67,12 +79,14 @@ export async function fetchNearbyStations(lat, lon, radiusKm = 5) {
   } catch {
     throw new Error("Backend offline — run docker compose up to load stations");
   }
+
   if (!res.ok) {
     const body = await safeJson(res);
     throw new Error(parseErrorDetail(body.detail, "Failed to fetch nearby stations"));
   }
   return res.json();
 }
+
 
 export async function fetchStation(stationId) {
   const res = await fetch(`${API_BASE}/stations/${stationId}`);
@@ -82,6 +96,8 @@ export async function fetchStation(stationId) {
   }
   return res.json();
 }
+
+
 
 export async function createReservation(payload, accessToken) {
   const res = await fetch(`${API_BASE}/reservations`, {
@@ -99,6 +115,9 @@ export async function createReservation(payload, accessToken) {
   return res.json();
 }
 
+
+
+
 export async function suggestSlot(stationId, payload) {
   const res = await fetch(`${API_BASE}/stations/${stationId}/suggest-slot`, {
     method: "POST",
@@ -112,6 +131,9 @@ export async function suggestSlot(stationId, payload) {
   return res.json();
 }
 
+
+
+
 export async function getRecommendations(payload) {
   const res = await fetch(`${API_BASE}/recommendations`, {
     method: "POST",
@@ -124,6 +146,8 @@ export async function getRecommendations(payload) {
   }
   return res.json();
 }
+
+
 
 export async function createVehicle(payload, accessToken) {
   const res = await fetch(`${API_BASE}/vehicles`, {
@@ -141,6 +165,8 @@ export async function createVehicle(payload, accessToken) {
   return res.json();
 }
 
+
+
 export async function fetchVehicles(accessToken) {
   const res = await fetch(`${API_BASE}/vehicles`, {
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -151,6 +177,8 @@ export async function fetchVehicles(accessToken) {
   }
   return res.json();
 }
+
+
 
 export async function getMyReservations(accessToken) {
   const res = await fetch(`${API_BASE}/reservations/mine`, {

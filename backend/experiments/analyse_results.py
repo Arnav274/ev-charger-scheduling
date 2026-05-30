@@ -132,13 +132,13 @@ def main() -> None:
             [
                 "# Analysis Notes",
                 "",
-                "- Random seed for experiment generation is fixed at `42` in `run_experiments.py`.",
-                "- Scenarios use distinct geographic origin and session-duration ranges (urban/mixed/highway).",
-                "- Sensitivity variants include distance-priority weights, load stress multiplier, and top-k robustness sampling.",
-                "- Queue instability handling: when `rho >= 1`, `erlang_c_wait_minutes` returns a capped penalty (`1e6`) to represent infeasible congestion under M/M/c assumptions.",
-                "- ANOVA effect size is reported via eta-squared in `anova.txt` for the baseline variant.",
-                "- Pairwise post-hoc comparisons use Welch t-test with Bonferroni correction and include Cohen's d.",
-                "- Plot readability adjustments: boxplot values are capped at baseline p95; Pareto y-axis uses log10(wait).",
+                "- Random seed fixed at `42` in `run_experiments.py`.",
+                "- Scenarios vary by geographic origin range and session duration (urban/mixed/highway).",
+                "- Sensitivity variants cover distance-priority weights, load stress multiplier, and top-k sampling.",
+                "- When `rho >= 1`, `erlang_c_wait_minutes` returns `1e6` as a saturation penalty.",
+                "- ANOVA eta-squared is in `anova.txt` (baseline variant).",
+                "- Post-hoc pairwise comparisons use Welch t-test with Bonferroni correction and Cohen's d.",
+                "- Boxplot capped at p95; Pareto y-axis uses log10(wait) for readability.",
             ]
         ),
         encoding="utf-8",
@@ -244,7 +244,7 @@ def plot_algorithm_comparison_bar(baseline_df: pd.DataFrame) -> None:
     ax.set_xticks(x)
     ax.set_xticklabels(algorithms, rotation=15, ha="right")
     ax.set_ylabel("Mean wait time (min)")
-    ax.set_title("Algorithm Wait Time Comparison — baseline_equal variant")
+    ax.set_title("Algorithm Wait Time Comparison (baseline_equal)")
     ax.legend(title="Scenario")
     plt.tight_layout()
     plt.savefig(OUT_DIR / "algorithm_comparison_bar.png", dpi=180)

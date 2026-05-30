@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -17,6 +18,8 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"), nullable=False
     )
+
+
 
 
 class Vehicle(Base):
@@ -47,6 +50,8 @@ class Station(Base):
     chargers: Mapped[list["Charger"]] = relationship(back_populates="station", cascade="all, delete-orphan")
 
 
+
+
 class Charger(Base):
     __tablename__ = "chargers"
 
@@ -60,6 +65,8 @@ class Charger(Base):
     reservations: Mapped[list["Reservation"]] = relationship(
         back_populates="charger", cascade="all, delete-orphan"
     )
+
+
 
 
 class Reservation(Base):

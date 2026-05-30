@@ -2,10 +2,11 @@ import { useEffect } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 
-// Minimal Leaflet heatmap implementation without extra dependencies.
-// Uses circle markers with intensity-driven radius/opacity so it renders in vanilla Leaflet.
+// Uses circle markers so it renders in vanilla Leaflet.
 export default function HeatmapLayer({ points, enabled }) {
   const map = useMap();
+
+
 
   useEffect(() => {
     if (!enabled) return;

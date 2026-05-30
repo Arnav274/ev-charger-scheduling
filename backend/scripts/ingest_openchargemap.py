@@ -15,10 +15,12 @@ MIN_STATIONS_REQUIRED = 50
 
 
 def borough_from_lat_lon(lat: float, lon: float) -> str:
+
     # Coarse split for project scope labelling.
     if lat < 51.52:
         return "Westminster"
     return "Camden"
+
 
 
 def fetch_openchargemap(
@@ -31,6 +33,7 @@ def fetch_openchargemap(
 ) -> list[dict]:
     if not live:
         return json.loads(CACHE_PATH.read_text(encoding="utf-8"))
+
 
     # Default bounding area covers Westminster + Camden.
     params = {
@@ -55,6 +58,7 @@ def fetch_openchargemap(
         )
     headers["X-API-Key"] = api_key
 
+
     response = requests.get(
         "https://api.openchargemap.io/v3/poi/",
         params=params,
@@ -69,6 +73,7 @@ def fetch_openchargemap(
         )
     response.raise_for_status()
     return response.json()
+
 
 
 def ingest(records: list[dict], *, enforce_min_stations: bool = True) -> None:
@@ -163,6 +168,8 @@ def ingest(records: list[dict], *, enforce_min_stations: bool = True) -> None:
                 )
     finally:
         db.close()
+
+
 
 
 if __name__ == "__main__":

@@ -2,6 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import {
+
+
+
+
   createReservation,
   createVehicle,
   fetchNearbyStations,
@@ -13,7 +17,13 @@ import {
   loginUser,
   registerUser,
   suggestSlot,
+
 } from "./api";
+
+
+
+
+
 import EthicsPanel from "./EthicsPanel";
 import StatsDashboard from "./StatsDashboard";
 import HeatmapLayer from "./HeatmapLayer";
@@ -25,6 +35,8 @@ const toLocalDatetimeInput = (d) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
+
+
 const ALGO_LABELS = {
   nearest: "Nearest",
   cost_optimized: "Cost-optimised",
@@ -33,6 +45,7 @@ const ALGO_LABELS = {
   dijkstra: "Dijkstra",
   range_aware: "Range-aware",
 };
+
 
 function FitBoundsToStations({ stations }) {
   const map = useMap();
@@ -45,6 +58,7 @@ function FitBoundsToStations({ stations }) {
 
   return null;
 }
+
 
 function App() {
   const [tab, setTab] = useState("map");
@@ -79,25 +93,38 @@ function App() {
   const [locating, setLocating] = useState(false);
   const [reservationSuccess, setReservationSuccess] = useState(null);
 
+
+
+
   const reserveSectionRef = useRef(null);
+
   const recommendationsRef = useRef(null);
   const rangeAwareRef = useRef(null);
   const myAccountRef = useRef(null);
+
+
 
   useEffect(() => {
     if (accessToken) localStorage.setItem(TOKEN_KEY, accessToken);
     else localStorage.removeItem(TOKEN_KEY);
   }, [accessToken]);
 
+
+
   useEffect(() => {
     if (!accessToken) { setVehicles([]); setSelectedVehicleId(null); return; }
     fetchVehicles(accessToken).then(setVehicles).catch(() => {});
   }, [accessToken]);
 
+
+
+
   useEffect(() => {
     if (!accessToken) { setMyReservations([]); return; }
     getMyReservations(accessToken).then(setMyReservations).catch(() => {});
   }, [accessToken]);
+
+
 
   useEffect(() => {
     if (!recommendations.length) return;
@@ -108,12 +135,16 @@ function App() {
     });
   }, [recommendations]);
 
+
+
   useEffect(() => {
     if (!selectedStation) return;
     const ms30 = 30 * 60 * 1000;
     const rounded = new Date(Math.round(Date.now() / ms30) * ms30);
     setSlotArrival(toLocalDatetimeInput(rounded));
   }, [selectedStation]);
+
+
 
   async function loadNearby() {
     try {
@@ -125,9 +156,13 @@ function App() {
     }
   }
 
+
+
   useEffect(() => {
     let cancelled = false;
     const timers = [];
+
+
 
     async function initialLoad() {
       try {
@@ -148,12 +183,16 @@ function App() {
       }
     }
 
+
+
     initialLoad();
     return () => {
       cancelled = true;
       timers.forEach(clearTimeout);
     };
   }, []);
+
+
 
   useEffect(() => {
     if (tab !== "stats") return;
@@ -164,6 +203,8 @@ function App() {
       })
       .catch((err) => setStatsLoadError(err.message || "fetch failed"));
   }, [tab]);
+
+
 
   useEffect(() => {
     if (!recommendations.length) return;
@@ -184,6 +225,8 @@ function App() {
       })
       .finally(() => setFetchingHotspots(false));
   }, [recommendations, stations, supplementaryStations]);
+
+
 
   useEffect(() => {
     setStationFilter("");
@@ -217,6 +260,8 @@ function App() {
     }
   }
 
+
+
   async function onSelectStation(stationId) {
     try {
       const data = await fetchStation(stationId);
@@ -234,6 +279,8 @@ function App() {
       setStatus(err.message);
     }
   }
+
+
 
   async function onRecommend(algorithm) {
     try {
@@ -257,6 +304,7 @@ function App() {
     }
   }
 
+
   function handleUseMyLocation() {
     if (!navigator.geolocation) return;
     setLocating(true);
@@ -278,6 +326,8 @@ function App() {
     );
   }
 
+
+
   function handleAlgoClick(algo) {
     setActiveAlgorithm(ALGO_LABELS[algo]);
     onRecommend(algo);
@@ -288,6 +338,8 @@ function App() {
     if (rangeAwareRef.current) rangeAwareRef.current.open = true;
     onRecommend("range_aware");
   }
+
+
 
   async function onSaveVehicle(e) {
     e.preventDefault();
@@ -316,6 +368,10 @@ function App() {
     }
   }
 
+
+
+
+
   async function onLogin(e) {
     e.preventDefault();
     try {
@@ -326,6 +382,8 @@ function App() {
       setAuthStatus(err.message);
     }
   }
+
+
 
   async function onReserve(e) {
     e.preventDefault();
@@ -379,6 +437,10 @@ function App() {
     }
   }
 
+
+
+
+
   const position = useMemo(() => [center.lat, center.lon], [center]);
   const hotspotPoints = useMemo(() => {
     if (!recommendations.length) return [];
@@ -398,6 +460,9 @@ function App() {
     return Array.from(byId.values());
   }, [recommendations, stations, supplementaryStations]);
 
+
+
+
   return (
     <div className="layout">
       <div className="sidebar">
@@ -415,6 +480,9 @@ function App() {
           </button>
         </div>
 
+
+
+
         {tab === "privacy" && <EthicsPanel />}
 
         {tab === "stats" && <StatsDashboard rows={statsRows} loadError={statsLoadError} />}
@@ -423,6 +491,8 @@ function App() {
           <>
             <p className="status global-status">{status}</p>
             {fetchingHotspots && <p className="status">Fetching hotspot locations…</p>}
+
+
 
             {/* 1. Find stations */}
             <details open className="sidebar-section">
@@ -460,6 +530,9 @@ function App() {
                     </button>
                   )}
                 </div>
+
+
+
                 <p className="stats-note">
                   Station count depends on ingestion. For realistic experiments, ingest 50+ live stations with{" "}
                   <code>OPENCHARGEMAP_API_KEY</code>.
@@ -475,6 +548,8 @@ function App() {
                     />
                   </div>
                 )}
+
+
                 {stations.length > 0 && (
                   <div className="field">
                     <label>Select station</label>
@@ -497,6 +572,8 @@ function App() {
                 )}
               </div>
             </details>
+
+
 
             {/* 2. Algorithm */}
             <details open className="sidebar-section">
@@ -552,6 +629,7 @@ function App() {
               </div>
             </details>
 
+
             {/* Recommendations — hidden until results exist */}
             <div
               ref={recommendationsRef}
@@ -569,6 +647,9 @@ function App() {
                 ))}
               </ol>
             </div>
+
+
+
 
             {/* 3. Range-aware routing */}
             <details className="sidebar-section" ref={rangeAwareRef}>
@@ -603,6 +684,9 @@ function App() {
                 </button>
               </div>
             </details>
+
+
+
 
             {/* 4. Reserve / Book — only when a station is selected */}
             {selectedStation && (
@@ -720,6 +804,10 @@ function App() {
                 </div>
               </details>
             )}
+
+
+
+
 
             {/* 5. My account */}
             <details className="sidebar-section auth-box" ref={myAccountRef}>

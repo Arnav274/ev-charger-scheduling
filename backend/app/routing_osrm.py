@@ -15,9 +15,13 @@ class TravelMetric:
     duration_min: float
 
 
+
+
 def _coords_str(lat: float, lon: float) -> str:
     # OSRM expects lon,lat
     return f"{lon:.6f},{lat:.6f}"
+
+
 
 
 @lru_cache(maxsize=2048)
@@ -36,6 +40,7 @@ def _table_cached(origin_lat: float, origin_lon: float, dest_key: str) -> dict:
         },
         timeout=20,
     )
+
     res.raise_for_status()
     return res.json()
 
@@ -47,12 +52,15 @@ def route_one_to_many(
     destinations: Iterable[tuple[float, float]],
 ) -> list[TravelMetric] | None:
     """
+
     Returns OSRM distance/time from origin to each destination (same order).
     If OSRM is unreachable or errors, returns None (caller should fallback).
     """
     dest_list = list(destinations)
     if not dest_list:
         return []
+
+
 
     try:
         dest_key = ";".join(_coords_str(lat, lon) for lat, lon in dest_list)
@@ -68,4 +76,5 @@ def route_one_to_many(
         return out
     except Exception:
         return None
+
 

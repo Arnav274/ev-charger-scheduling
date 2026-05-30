@@ -1,9 +1,4 @@
-"""Unit tests for each SelectionStrategy in app.algorithms.
-
-All tests are in-memory only — no database required.
-Stations are MagicMock objects that satisfy the attribute interface
-consumed by the strategies (same pattern as test_dijkstra_strategy.py).
-"""
+"""Unit tests for each SelectionStrategy in app.algorithms."""
 
 import uuid
 from unittest.mock import MagicMock
@@ -61,8 +56,6 @@ _MAX = {"distance": 100.0, "wait": 1000.0, "cost": 100.0}
 
 class TestNearestStrategy:
     def test_nearest_returns_closest_station(self):
-        """Three stations placed ~1 km, ~2 km, ~5 km north of origin must be
-        ranked in that order by NearestStrategy."""
         # At lat 51.5°, 0.009° ≈ 1 km, 0.018° ≈ 2 km, 0.045° ≈ 5 km.
         origin_lat, origin_lon = 51.5, -0.1
         s1 = _make_station(lat=origin_lat + 0.009, lon=origin_lon)
@@ -83,14 +76,6 @@ class TestNearestStrategy:
 
 class TestQueueAwareStrategy:
     def test_queue_aware_higher_score_under_reservations(self):
-        """A 2-charger station with both chargers reserved in the arrival window
-        should receive a higher QueueAwareStrategy score than StaticQueueStrategy.
-
-        QueueAware reduces c_eff to max(1, 2-2-0)=1, raising the predicted
-        Erlang-C wait. StaticQueue ignores reservations and keeps c=2.
-        Both strategies use the same distance term, so the higher wait drives
-        the QueueAware score above the StaticQueue score.
-        """
         station = _make_station(
             lat=0.01, lon=0.0,
             num_chargers=2,
@@ -116,9 +101,6 @@ class TestQueueAwareStrategy:
 
 class TestDijkstraStrategy:
     def test_dijkstra_strategy_consistent_with_haversine(self):
-        """NearestStrategy (haversine fallback) and DijkstraStrategy both use
-        great-circle distances; sorting the same 3-station layout must yield
-        the same nearest station under both strategies."""
         origin_lat, origin_lon = 0.0, 0.0
         s_near = _make_station(lat=0.01, lon=0.0)
         s_mid = _make_station(lat=0.05, lon=0.0)
@@ -140,9 +122,6 @@ class TestDijkstraStrategy:
 
 class TestRangeAwareStrategy:
     def test_range_aware_penalises_distant_station_on_low_battery(self):
-        """A station ~50 km away is unreachable at 5 % battery (3 kWh remaining,
-        10 kWh needed at 0.2 kWh/km). RangeAwareStrategy must apply the 1e6
-        range penalty, yielding a score well above 1e5."""
         origin_lat, origin_lon = 51.5, -0.1
         # 0.45° latitude ≈ 50 km
         s_far = _make_station(lat=origin_lat + 0.45, lon=origin_lon)
@@ -157,9 +136,6 @@ class TestRangeAwareStrategy:
         assert score > 1e5
 
     def test_range_aware_no_penalty_when_battery_sufficient(self):
-        """A station ~1 km away with 80 % battery (48 kWh) is comfortably
-        reachable; RangeAwareStrategy must return the bare distance with no
-        penalty (score < 10 km)."""
         origin_lat, origin_lon = 51.5, -0.1
         s_near = _make_station(lat=origin_lat + 0.009, lon=origin_lon)
 

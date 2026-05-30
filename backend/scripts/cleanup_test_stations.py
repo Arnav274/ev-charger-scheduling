@@ -18,6 +18,9 @@ def main() -> None:
                 )
                 """
             )
+
+
+            
         )
         db.execute(
             text(
@@ -25,6 +28,10 @@ def main() -> None:
                 DELETE FROM chargers
                 WHERE station_id IN (SELECT id FROM stations WHERE source = 'test')
                 """
+
+
+
+
             )
         )
         deleted = db.execute(text("DELETE FROM stations WHERE source = 'test'")).rowcount

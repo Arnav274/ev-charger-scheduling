@@ -11,7 +11,6 @@ body {
   color: #1a1a1a;
 }
 
-/* ── Layout ── */
 .layout {
   display: grid;
   grid-template-columns: 340px 1fr;
@@ -37,7 +36,7 @@ body {
   width: 100%;
 }
 
-/* ── Sidebar title ── */
+
 .sidebar-title {
   margin: 0 0 4px;
   font-size: 1.1rem;
@@ -45,7 +44,7 @@ body {
   color: #1e3a8a;
 }
 
-/* ── Tabs ── */
+
 .tabs {
   display: flex;
   gap: 4px;
@@ -72,7 +71,7 @@ body {
   border-color: #1d4ed8;
 }
 
-/* ── Collapsible sections (cards) ── */
+
 .sidebar-section {
   background: #fff;
   border-radius: 8px;
@@ -105,7 +104,7 @@ details[open] > .section-summary::after {
   transform: rotate(90deg);
 }
 
-/* remove default marker in webkit */
+
 .section-summary::-webkit-details-marker {
   display: none;
 }
@@ -117,7 +116,6 @@ details[open] > .section-summary::after {
   gap: 6px;
 }
 
-/* ── Recommendations ── */
 .recommendations-section {
   padding: 10px 14px 12px;
 }
@@ -148,14 +146,12 @@ details[open] > .section-summary::after {
   word-break: break-word;
 }
 
-/* ── Global status line ── */
 .global-status {
   margin: 0;
   font-size: 12px;
   color: #6b7280;
 }
 
-/* ── Form fields ── */
 .field {
   display: flex;
   flex-direction: column;
@@ -186,7 +182,6 @@ details[open] > .section-summary::after {
   border-color: #2563eb;
 }
 
-/* ── Buttons ── */
 button {
   cursor: pointer;
   font-family: inherit;
@@ -241,7 +236,6 @@ button {
   color: #1d4ed8;
 }
 
-/* ── Algorithm buttons grid ── */
 .algo-buttons {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -284,9 +278,7 @@ button {
   line-height: 1.4;
 }
 
-/* ── Auth ── */
 .auth-box {
-  /* inherits sidebar-section card styles */
 }
 
 .auth-form .buttons {
@@ -305,7 +297,6 @@ button {
   margin: 0 0 8px;
 }
 
-/* ── Status messages ── */
 .status {
   font-size: 13px;
   color: #374151;
@@ -317,7 +308,6 @@ button {
   color: #6b7280;
 }
 
-/* ── Station list ── */
 .station-list {
   list-style: none;
   margin: 0;
@@ -327,7 +317,6 @@ button {
   gap: 2px;
 }
 
-/* ── Reservation success banner ── */
 .reservation-banner {
   background: #f0fdf4;
   border: 1px solid #86efac;
@@ -342,7 +331,6 @@ button {
   color: #dc2626;
 }
 
-/* ── Reserve section ── */
 .selected-station-name {
   font-weight: 600;
   color: #1e3a8a;
@@ -356,7 +344,6 @@ button {
   color: #374151;
 }
 
-/* ── Slot list ── */
 .slot-list {
   list-style: none;
   margin: 0;
@@ -392,7 +379,6 @@ button {
   background: #dbeafe;
 }
 
-/* ── Vehicle list ── */
 .vehicle-list {
   list-style: none;
   margin: 6px 0 0;
@@ -402,7 +388,6 @@ button {
   gap: 4px;
 }
 
-/* ── My Reservations ── */
 .my-reservations {
   margin-top: 8px;
 }
@@ -424,7 +409,6 @@ button {
   color: #374151;
 }
 
-/* ── Checkbox ── */
 .checkbox {
   display: flex;
   align-items: center;
@@ -433,14 +417,12 @@ button {
   cursor: pointer;
 }
 
-/* ── Stats note ── */
 .stats-note {
   font-size: 11px;
   color: #6b7280;
   margin: 4px 0;
 }
 
-/* ── Ethics / Stats panels ── */
 .ethics-panel p {
   font-size: 14px;
   line-height: 1.45;
@@ -454,7 +436,6 @@ button {
   margin-top: 16px;
 }
 
-/* ── Stats summary & details ── */
 .stats-summary {
   font-size: 13px;
   line-height: 1.55;

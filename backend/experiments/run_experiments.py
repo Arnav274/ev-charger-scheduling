@@ -85,11 +85,7 @@ def seed_background_schedules(
     stations: list[Station],
     background_reservations_per_station: int = 18,
 ) -> dict[str, dict[str, list[tuple[float, float]]]]:
-    """
-    Deterministic background reservations used as shared 'ground truth' so predictive queueing diverges from static.
-    18 = λ × 24 h = 0.75 × 24, so background density matches the configured arrival rate.
-    Stored as minutes-from-midnight floats in [0, 1440).
-    """
+    """Deterministic background reservations seeded before each scenario run."""
     rnd = random.Random(12345)
     schedules: dict[str, dict[str, list[tuple[float, float]]]] = {
         str(s.id): {str(c.id): [] for c in s.chargers} for s in stations
@@ -168,7 +164,7 @@ def run(n_trials: int = 100) -> Path:
             {"name": "distance_priority", "weights": (0.7, 0.2, 0.1), "load_multiplier": 1.0, "top_k": 1, "lambda_multiplier": 1.0},
             {"name": "queue_stress", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.6, "top_k": 1, "lambda_multiplier": 1.6},
             {"name": "topk_robustness", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.0, "top_k": 3, "lambda_multiplier": 1.0},
-            # Erlang sensitivity sweep — fixed equal weights, varies arrival-rate multiplier only.
+            # Erlang sensitivity sweep: fixed equal weights, arrival-rate multiplier varies.
             {"name": "erlang_sensitivity", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 0.5, "top_k": 1, "lambda_multiplier": 0.5},
             {"name": "erlang_sensitivity", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.0, "top_k": 1, "lambda_multiplier": 1.0},
             {"name": "erlang_sensitivity", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.5, "top_k": 1, "lambda_multiplier": 1.5},
@@ -196,10 +192,6 @@ def run(n_trials: int = 100) -> Path:
                 for _ in range(n_trials):
                     origin_lat = random.uniform(*cfg["lat_range"])
                     origin_lon = random.uniform(*cfg["lon_range"])
-                    # Simulate range-stressed EVs: 8–30 % SOC on a 40 kWh battery
-                    # gives a safe reach of 6–50 km (at 0.2 kWh/km, 2 kWh buffer).
-                    # This ensures RangeAwareStrategy's penalty actually fires for
-                    # distant stations in mixed/highway scenarios.
                     battery_capacity_kwh = 40.0
                     battery_level_percent = random.uniform(8.0, 30.0)
                     context = RecommendationContext(
@@ -225,7 +217,6 @@ def run(n_trials: int = 100) -> Path:
                             str(s.id): (m.distance_km, m.duration_min)
                             for s, m in zip(stations, travel_metrics, strict=False)
                         }
-                    # attach travel metrics for strategy scoring (road-network distance via OSRM when available)
                     context.travel_by_station = travel_by_station  # type: ignore[attr-defined]
 
                     max_distance = max(travel_by_station[str(s.id)][0] for s in stations) or 1.0
@@ -241,9 +232,6 @@ def run(n_trials: int = 100) -> Path:
                     max_vals = {"distance": max_distance, "wait": max_wait, "cost": max_cost}
 
                     for algorithm, strategy in STRATEGIES.items():
-                        # Build predictive context from the algorithm's current reservation schedule:
-                        # a) reserved_parallel in the arrival window (capacity reduction)
-                        # b) starts in window (arrival-rate uplift)
                         request_start = random.uniform(0, 24 * 60)
                         future_reserved_parallel_by_station: dict[str, int] = {}
                         future_reservation_starts_by_station: dict[str, int] = {}
@@ -288,9 +276,6 @@ def run(n_trials: int = 100) -> Path:
                             per_alg_rejections[algorithm] += 1
                         per_alg_loads[algorithm][str(best.id)] += 1
 
-                        # Evaluate the selected station using the same scoring model used online:
-                        # queue_aware uses c_eff (capacity reduced by reserved chargers in window).
-                        # Lambda is always the base rate — no reservation_starts inflation.
                         sid = str(best.id)
                         reserved_parallel = int(future_reserved_parallel_by_station.get(sid, 0))
                         c = max(1, len(best.chargers))

@@ -10,6 +10,9 @@ import {
   Legend,
 } from "recharts";
 
+
+
+
 const VARIANT_OPTIONS = ["baseline_equal", "distance_priority", "queue_stress", "topk_robustness"];
 const SCENARIO_OPTIONS = ["urban", "mixed", "highway"];
 
@@ -40,6 +43,9 @@ export default function StatsDashboard({ rows, loadError }) {
     );
   }
 
+
+
+  
   return (
     <div className="stats-wrap">
       <div className="field">

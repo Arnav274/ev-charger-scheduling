@@ -2,13 +2,18 @@ import json
 import uuid
 from collections import defaultdict
 from pathlib import Path
+
 from typing import Annotated
+
+
 
 import pandas as pd
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import text
+
+
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
@@ -18,6 +23,7 @@ from app.auth_utils import create_access_token, hash_password, verify_password
 from app.database import get_db
 from app.models import Charger, Reservation, Station, User, Vehicle
 from datetime import datetime, timedelta, timezone
+
 
 from app.predictive_queueing import ReservationInterval, arrival_window, count_starts_in_window, ensure_utc, max_overlapping
 from app.queueing import erlang_c_probability_of_delay, erlang_c_wait_minutes
@@ -39,6 +45,8 @@ from app.schemas import (
     VehicleOut,
 )
 
+
+
 app = FastAPI(title="EV Reservation Platform")
 
 app.add_middleware(
@@ -51,6 +59,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
 
 
 @app.get("/health")
@@ -88,6 +98,8 @@ def nearby_stations(lat: float, lon: float, radius_km: float = 5.0, db: Session 
     ]
 
 
+
+
 @app.get("/stations/{station_id}", response_model=StationDetailOut)
 def station_detail(station_id: str, db: Session = Depends(get_db)) -> StationDetailOut:
     station = (
@@ -97,6 +109,7 @@ def station_detail(station_id: str, db: Session = Depends(get_db)) -> StationDet
         .first()
     )
     if not station:
+
         raise HTTPException(status_code=404, detail="Station not found")
     return StationDetailOut(
         id=station.id,
@@ -118,6 +131,8 @@ def station_detail(station_id: str, db: Session = Depends(get_db)) -> StationDet
     )
 
 
+
+
 def _next_30min_aligned(dt: datetime) -> datetime:
     """Return the earliest 30-minute-boundary datetime >= dt (seconds/µs stripped)."""
     clean = dt.replace(second=0, microsecond=0)
@@ -135,6 +150,8 @@ def suggest_slot(station_id: str, payload: SlotRequest, db: Session = Depends(ge
         .filter(Station.id == station_id)
         .first()
     )
+
+
     if not station:
         raise HTTPException(status_code=404, detail="Station not found")
 
@@ -147,6 +164,9 @@ def suggest_slot(station_id: str, payload: SlotRequest, db: Session = Depends(ge
         chargers = [c for c in chargers if c.id == payload.charger_id]
 
     rows = db.execute(
+
+
+
         text(
             """
             SELECT r.charger_id, r.start_time, r.end_time
@@ -166,6 +186,7 @@ def suggest_slot(station_id: str, payload: SlotRequest, db: Session = Depends(ge
             (ensure_utc(row.start_time), ensure_utc(row.end_time))
         )
 
+
     suggestions: list[SlotSuggestion] = []
     for charger in chargers:
         cid = str(charger.id)
@@ -173,6 +194,9 @@ def suggest_slot(station_id: str, payload: SlotRequest, db: Session = Depends(ge
         candidate = _next_30min_aligned(desired)
         while candidate + duration <= window_end:
             slot_end = candidate + duration
+
+
+
             if not any(r_start < slot_end and r_end > candidate for r_start, r_end in existing):
                 wait_min = (candidate - desired).total_seconds() / 60.0
                 suggestions.append(
@@ -183,11 +207,16 @@ def suggest_slot(station_id: str, payload: SlotRequest, db: Session = Depends(ge
                         wait_from_desired_minutes=wait_min,
                     )
                 )
+
                 break
             candidate += timedelta(minutes=30)
 
+
+
     suggestions.sort(key=lambda s: s.wait_from_desired_minutes)
     return suggestions
+
+
 
 
 @app.post("/auth/register", response_model=Token, status_code=201)
@@ -201,6 +230,8 @@ def register_user(body: UserRegister, db: Session = Depends(get_db)) -> Token:
     return Token(access_token=create_access_token(user.id))
 
 
+
+
 @app.post("/auth/login", response_model=Token)
 def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
@@ -210,6 +241,8 @@ def login_for_access_token(
     if not user or not user.password_hash or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Incorrect email or password")
     return Token(access_token=create_access_token(user.id))
+
+
 
 
 @app.post("/vehicles", response_model=VehicleOut, status_code=201)
@@ -225,6 +258,8 @@ def create_vehicle(
     return VehicleOut(id=vehicle.id, make_model=vehicle.make_model, battery_kwh=vehicle.battery_kwh)
 
 
+
+
 @app.get("/vehicles", response_model=list[VehicleOut])
 def list_vehicles(
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
@@ -237,6 +272,8 @@ def list_vehicles(
 EXPERIMENT_OUT = Path(__file__).resolve().parent.parent / "experiments" / "outputs"
 
 
+
+
 @app.get("/stats/experiment-summary", response_model=ExperimentSummaryResponse)
 def experiment_summary_csv() -> ExperimentSummaryResponse:
     path = EXPERIMENT_OUT / "summary_ci.csv"
@@ -247,6 +284,8 @@ def experiment_summary_csv() -> ExperimentSummaryResponse:
     return ExperimentSummaryResponse(rows=records)
 
 
+
+
 @app.post("/reservations", response_model=ReservationOut, status_code=201)
 def create_reservation(
     payload: ReservationCreate,
@@ -255,6 +294,8 @@ def create_reservation(
 ) -> ReservationOut:
     if payload.end_time <= payload.start_time:
         raise HTTPException(status_code=400, detail="end_time must be after start_time")
+
+
 
     reservation = Reservation(
         charger_id=payload.charger_id,
@@ -278,6 +319,8 @@ def create_reservation(
         start_time=reservation.start_time,
         end_time=reservation.end_time,
     )
+
+
 
 
 @app.get("/reservations/mine", response_model=list[ReservationDetailOut])
@@ -313,6 +356,8 @@ def get_my_reservations(
     ]
 
 
+
+
 @app.post("/recommendations", response_model=list[RecommendationOut])
 def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> list[RecommendationOut]:
     strategy = STRATEGIES.get(payload.algorithm)
@@ -334,9 +379,11 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
     ]
     candidates = in_radius if in_radius else stations
 
+
+
     departure_time = ensure_utc(payload.departure_time) if payload.departure_time else datetime.now(timezone.utc)
 
-    # Routing: one origin -> many stations (OSRM table). Fallback to haversine if OSRM unavailable.
+    # Routing one origin  many stations (OSRM table). Fallback to haversine if OSRM unavailable.
     travel_metrics = route_one_to_many(
         origin_lat=payload.origin_lat,
         origin_lon=payload.origin_lon,
@@ -347,15 +394,20 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
         for s in candidates:
             d_km = haversine_km(payload.origin_lat, payload.origin_lon, s.lat, s.lon)
             # Conservative fallback (used only when OSRM unreachable)
+
+
+        
             t_min = (d_km / 25.0) * 60.0
             travel_by_station[str(s.id)] = (d_km, t_min)
     else:
         for s, m in zip(candidates, travel_metrics, strict=False):
             travel_by_station[str(s.id)] = (m.distance_km, m.duration_min)
 
-    # Query future reservations for each station in the user's arrival window and derive future congestion deltas.
+    # Query future reservations for each station in the arrival 
     future_reserved_parallel_by_station: dict[str, int] = {}
     future_reservation_starts_by_station: dict[str, int] = {}
+
+
 
     for s in candidates:
         distance_km, travel_time_min = travel_by_station[str(s.id)]
@@ -364,6 +416,7 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
             travel_time_min=travel_time_min,
             arrival_window_minutes=payload.arrival_window_minutes,
         )
+
         if payload.arrival_time_target is not None:
             arrival_est = ensure_utc(payload.arrival_time_target)
             window_start = arrival_est
@@ -380,6 +433,8 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
                   AND r.end_time > :window_start
                 """
             ),
+
+
             {"station_id": str(s.id), "window_start": window_start, "window_end": window_end},
         ).all()
 
@@ -388,6 +443,8 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
         future_reservation_starts_by_station[str(s.id)] = count_starts_in_window(
             intervals, window_start=window_start, window_end=window_end
         )
+
+
 
     now_utc = datetime.now(timezone.utc)
     current_occupancy_by_station: dict[str, int] = {}
@@ -403,6 +460,8 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
                   AND r.end_time > :now
                 """
             ),
+
+
             {"station_id": str(s.id), "now": now_utc},
         ).one()
         current_occupancy_by_station[str(s.id)] = int(row.occupancy)
@@ -421,6 +480,8 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
         or 1.0
     )
 
+
+
     max_wait_predictive = (
         max(
             erlang_c_wait_minutes(
@@ -437,6 +498,7 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
         )
         or 1.0
     )
+
 
     _predictive_algorithms = {"queue_aware"}
     max_wait = max_wait_predictive if payload.algorithm in _predictive_algorithms else max_wait_static
@@ -455,6 +517,8 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
         battery_level_percent=payload.battery_level_percent,
         battery_capacity_kwh=payload.battery_capacity_kwh,
     )
+
+
 
     pre_computed_dijkstra: dict[str, float] | None = None
     if isinstance(strategy, DijkstraStrategy):
@@ -482,6 +546,8 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
                     arrival_window_minutes=payload.arrival_window_minutes,
                 )[0]
             ),
+
+
             predicted_wait_min=(
                 erlang_c_wait_minutes(
                     arrival_rate_per_hour=s.arrival_rate_per_hour,
@@ -492,6 +558,7 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
                         - future_reserved_parallel_by_station.get(str(s.id), 0),
                     ),
                 )
+
                 if payload.algorithm == "queue_aware"
                 else erlang_c_wait_minutes(s.arrival_rate_per_hour, s.mean_service_minutes, max(1, len(s.chargers)))
             ),
@@ -511,6 +578,8 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
                     service_rate_per_hour=60.0 / s.mean_service_minutes,
                     c=max(1, len(s.chargers)),
                 )
+
+                
             ),
             price_pence_per_kwh=s.price_pence_per_kwh,
             current_occupancy=current_occupancy_by_station.get(str(s.id), 0),

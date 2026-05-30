@@ -1,9 +1,4 @@
-"""
-Seed deterministic future reservations to create a reproducible 'hotspot' for demos and screenshots.
-
-This is intentionally simple: it creates many overlapping reservations across multiple chargers
-at a small number of stations, so `queue_aware` (predictive) diverges clearly from `static_queue`.
-"""
+"""Seed deterministic future reservations to create a hotspot for demos."""
 
 from __future__ import annotations
 
@@ -35,6 +30,10 @@ def main() -> None:
                 f"Demo user not found ({DEMO_USER_EMAIL}). Run `python -m scripts.seed_demo` first."
             )
 
+
+
+
+
         # Pick a small set of stations with the most chargers to make the hotspot visually obvious.
         station_rows = db.execute(
             text(
@@ -47,6 +46,10 @@ def main() -> None:
                 LIMIT 3
                 """
             )
+
+
+
+
         ).all()
         if not station_rows:
             raise RuntimeError("No stations/chargers found. Run ingestion first.")
@@ -66,6 +69,9 @@ def main() -> None:
             {"station_ids": station_ids},
         ).all()
 
+
+
+
         # Clear prior demo hotspot reservations for determinism.
         db.execute(
             text(
@@ -80,9 +86,12 @@ def main() -> None:
             {"user_id": user_id, "station_ids": station_ids},
         )
 
+
+
+
         anchor = next_full_hour_utc(datetime.now(timezone.utc))
-        # Create heavy overlap for ~90 minutes, with multiple starts inside the arrival window.
-        # This increases both reserved_parallel and reservation_starts.
+        # Create heavy overlap for 90
+        # This increases both 
         for idx, row in enumerate(charger_rows):
             charger_id = str(row.id)
             # Stagger starts slightly across chargers to create starts within windows too.
@@ -122,6 +131,10 @@ def main() -> None:
                 "algorithm": "queue_aware",
             }
         )
+
+
+
+
         print("Compare with algorithm='static_queue' to show divergence.")
     finally:
         db.close()

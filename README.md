@@ -1,241 +1,73 @@
-# EV Charging Reservation System (Westminster + Camden)
+# EV charging reservation (dissertation project)
 
-Three-tier project for the CMP final-year portfolio:
-- **Backend**: FastAPI + SQLAlchemy + Alembic
-- **Database**: PostgreSQL + PostGIS
-- **Frontend**: React + Leaflet (OpenStreetMap tiles)
+Find chargers on a map, pick a scheduling algorithm, book a slot. London station data. Needs Docker.
 
-## What is implemented
+## Run it
 
-- Dockerized stack via `docker-compose.yml`
-- PostGIS schema with tables: `users`, `vehicles`, `stations`, `chargers`, `reservations`
-- Spatial endpoint using `ST_DWithin`:
-  - `GET /stations/nearby?lat=&lon=&radius_km=`
-- JWT-backed accounts (`POST /auth/register`, `POST /auth/login`) with bcrypt password hashes (`users.password_hash`).
-- Reservation API with overlap blocking (requires `Authorization: Bearer <jwt>`):
-  - `POST /reservations` (returns `409` on overlap via exclusion constraint)
-- Strategy-based recommendation endpoint:
-  - `POST /recommendations` with `nearest`, `cost_optimized`, `static_queue` (baseline), `queue_aware` (predictive, now incorporating live occupancy from active sessions), `dijkstra` (pure-Python Dijkstra on a haversine graph — graph-theory baseline for dissertation comparison), `range_aware` (penalises distant stations when battery level is low)
-- Vehicle management API (requires JWT):
-  - `POST /vehicles` — register a vehicle (make/model + battery capacity)
-  - `GET /vehicles` — list vehicles for the authenticated user
-  - The frontend **Range** panel reads the logged-in user's saved vehicle battery capacity and passes it to the `range_aware` algorithm automatically
-- Slot suggestion endpoint:
-  - `POST /stations/{station_id}/suggest-slot` — returns the earliest free 30-minute-aligned slot per charger within a 4-hour window, given a desired arrival time and session duration
-- Erlang-C queueing module:
-  - Probability of delay and expected waiting time
-- OpenChargeMap ingestion script for Westminster+Camden:
-  - cached offline sample included
-- `GET /stats/experiment-summary` serialises frozen `experiments/outputs/summary_ci.csv` for the React **Stats** tab.
-- Experiment runner + analysis scripts:
-  - repeated trials, sensitivity variants, bootstrap CIs, ANOVA, boxplot, Pareto-style plot
-- Pytest suite for queueing math, API health, and reservation overlap integration
-  - includes endpoint-level API behavior coverage
-
-## Folder structure
-
-- `backend/` FastAPI app, migrations, scripts, tests, experiments
-- `frontend/` React Leaflet UI
-- `docker-compose.yml` orchestrates db/backend/frontend
-
-## Local run
-
-**Day-to-day restart (PowerShell, after reboot, code changes):** [docs/DAILY_DEV_GUIDE.md](docs/DAILY_DEV_GUIDE.md).
-
-### 0) Optional: set local API key env var (recommended for live station data)
-
-Copy `.env.example` to `.env` and fill `OPENCHARGEMAP_API_KEY`.
-
-```bash
-cp .env.example .env
-```
-
-Do **not** commit `.env`.
-
-### 1) Start services
+From the project folder:
 
 ```bash
 docker compose up --build
 ```
 
-First run note: `osrm-prep` downloads and preprocesses the Greater London OpenStreetMap extract into the `osrmdata` volume. This can take several minutes; subsequent runs reuse the volume.
-
-### 2) Run database migration
+First time only (wait until containers are up; OSRM download can take a few minutes):
 
 ```bash
 docker compose exec backend alembic upgrade head
-```
-
-### 3) Seed demo data
-
-```bash
 docker compose exec backend python -m scripts.seed_demo
 docker compose exec backend python -m scripts.ingest_openchargemap
 ```
 
-Optional but recommended (creates a deterministic hotspot so `queue_aware` visibly diverges from `static_queue`):
+Optional — more booked slots so `queue_aware` looks different from `static_queue`:
 
 ```bash
 docker compose exec backend python -m scripts.seed_background_reservations
 ```
 
-After pulling new npm dependencies:
+Open:
 
-```bash
-docker compose exec frontend npm install
-```
+- App: http://localhost:5173
+- API docs: http://localhost:8000/docs
 
-Use `--live` to fetch real OpenChargeMap data:
+Demo login: `demo.user@example.com` / `DemoPass123!`
 
-```bash
-docker compose exec backend python -m scripts.ingest_openchargemap --live
-```
+## Algorithms
 
-Use a custom area for live ingestion (examples):
+In the app dropdown or in `POST /recommendations` as `"algorithm"`:
 
-```bash
-# Westminster/Camden-like central London fetch
-docker compose exec backend python -m scripts.ingest_openchargemap --live --latitude 51.52 --longitude -0.13 --distance-km 10 --max-results 300
+`nearest`, `dijkstra`, `static_queue`, `queue_aware`, `cost_optimized`, `range_aware`
 
-# Norwich fetch
-docker compose exec backend python -m scripts.ingest_openchargemap --live --latitude 52.6309 --longitude 1.2974 --distance-km 15 --max-results 300
-```
+Code: `backend/app/algorithms.py`
 
-If live fetch returns 403, verify `OPENCHARGEMAP_API_KEY` is set in your shell / `.env`.
-
-`scripts.seed_demo` resets `demo.user@example.com` to a bcrypt hash (`DEMO_PASSWORD` env overrides default `DemoPass123!`) at fixed UUID `a0000001-0000-4000-8000-000000000001`; it deletes prior demo-linked reservations first.
-
-### 4) Open apps
-
-- Frontend: <http://localhost:5173>
-- Backend docs: <http://localhost:8000/docs>
-
-## API quick examples
-
-Authenticate (returns JWT):
-
-```bash
-curl -X POST "http://localhost:8000/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{"email":"researcher@uea.invalid","password":"LongPassword1"}'
-```
-
-```bash
-curl -X POST "http://localhost:8000/auth/login" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=demo.user@example.com&password=DemoPass123!"
-```
-
-Reserve a charger (paste token):
-
-```bash
-curl -X POST "http://localhost:8000/reservations" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_HERE" \
-  -d '{"charger_id":"CHARGER_UUID","start_time":"2026-05-10T10:00:00Z","end_time":"2026-05-10T11:30:00Z"}'
-```
-
-```bash
-curl "http://localhost:8000/stations/nearby?lat=51.5074&lon=-0.1278&radius_km=5"
-```
-
-```bash
-curl -X POST "http://localhost:8000/recommendations" \
-  -H "Content-Type: application/json" \
-  -d "{\"origin_lat\":51.5074,\"origin_lon\":-0.1278,\"algorithm\":\"queue_aware\",\"radius_km\":5,\"top_k\":5}"
-```
-
-Register a vehicle and use it with the range-aware algorithm:
-
-```bash
-curl -X POST "http://localhost:8000/vehicles" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_HERE" \
-  -d '{"make_model":"Tesla Model 3","battery_kwh":75.0}'
-```
-
-```bash
-curl -X POST "http://localhost:8000/recommendations" \
-  -H "Content-Type: application/json" \
-  -d '{"origin_lat":51.5074,"origin_lon":-0.1278,"algorithm":"range_aware","radius_km":5,"top_k":5,"battery_level_percent":20,"battery_capacity_kwh":75.0}'
-```
-
-Find the earliest free charging slot at a station (replace `STATION_UUID` with a real ID from `/stations/nearby`):
-
-```bash
-curl -X POST "http://localhost:8000/stations/STATION_UUID/suggest-slot" \
-  -H "Content-Type: application/json" \
-  -d '{"desired_arrival":"2026-05-17T09:00:00Z","duration_minutes":60}'
-```
-
-## Testing
-
-Run unit tests in backend container:
+## Tests
 
 ```bash
 docker compose exec backend pytest -q
 ```
 
-The reservation overlap test is integration-level and expects a running migrated Postgres instance.
+## Experiments (already run for the report)
 
-Run frontend tests:
+Results are in `backend/experiments/outputs/`.
 
-```bash
-cd frontend
-npm test
-```
-
-Coverage artifact command:
-
-```bash
-docker compose exec backend pytest --cov=. --cov-report=xml --cov-report=term-missing
-```
-
-## Reproducible experiments
+To run again:
 
 ```bash
 docker compose exec backend python -m experiments.run_experiments
 docker compose exec backend python -m experiments.analyse_results
 ```
 
-One-command freeze cycle (recommended before writing final report claims):
+## Folders
+
+- `backend/` — API, database, algorithms, experiments
+- `frontend/` — map UI
+- `docs/` — report notes (not needed to run the app)
+
+## Live station data (optional)
+
+Copy `.env.example` to `.env`, add `OPENCHARGEMAP_API_KEY`, then:
 
 ```bash
-python tools/freeze_cycle.py
+docker compose exec backend python -m scripts.ingest_openchargemap --live
 ```
 
-`freeze_run_metadata.json` records branch, short SHA, and worktree cleanliness when available. If no commits exist yet, commit fields are set to `unknown`.
-
-Generated artifacts:
-- `backend/experiments/outputs/experiment_results.csv`
-- `backend/experiments/outputs/experiment_summary_metrics.csv`
-- `backend/experiments/outputs/summary_ci.csv`
-- `backend/experiments/outputs/anova.txt`
-- `backend/experiments/outputs/anova_pdelay.txt` (if `probability_of_delay` is present)
-- `backend/experiments/outputs/posthoc_wait.csv`
-- `backend/experiments/outputs/analysis_notes.md`
-- `backend/experiments/outputs/sensitivity_summary.csv`
-- `backend/experiments/outputs/freeze_run_metadata.json`
-- `backend/experiments/outputs/boxplot_wait_time.png`
-- `backend/experiments/outputs/pareto_distance_wait.png`
-
-Submission and report-traceability guides:
-- `docs/evidence_for_dissertation/EVALUATION_ARTIFACTS.md` — verbatim stats / figure checklist
-- `docs/evidence_for_dissertation/STACK_CHOICE_AND_PREPARATION.md` — preparation narrative
-- `docs/threat_model_and_ethics_scope.md` — LO5 / security scope
-- `docs/privacy_and_ethics_ui_copy.md` — mirrors UI privacy tab
-- `docs/submission_pack.md`
-- `docs/report_alignment_checklist.md`
-- `docs/VERIFICATION_RUN.md` — automated test / freeze log (refresh after major changes)
-- `docs/E2E_USER_JOURNEYS.md` — demo and screenshot walkthrough
-- `docs/ONEDRIVE_PACKAGING_CHECKLIST.md` — assemble OneDrive submission folder
-
-Presentation rehearsal pack (`presentation/`):
-- `DEMO_SCRIPT.md`, `OFFLINE_FALLBACK.md`, `SCREENSHOT_CAPTURE_CHECKLIST.md`, `captures/`
-
-## Notes for portfolio evidence
-
-- **City map requirement**: satisfied by PostGIS + nearby station endpoint + map UI.
-- **Scheduling algorithms requirement**: six swappable algorithms implemented (`nearest`, `cost_optimized`, `static_queue`, `queue_aware`, `dijkstra`, `range_aware`).
-- **Algorithm comparison requirement**: experiment runner + ANOVA + CIs + plots.
-- **Reservation platform requirement**: full station browse + charger reservation workflow with conflict rejection.
+Default ingest uses a cached sample — no key needed.

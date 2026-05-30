@@ -9,6 +9,7 @@ def test_password_hash_roundtrip() -> None:
     assert not verify_password("wrong", h)
 
 
+
 def test_jwt_roundtrip_subject() -> None:
     uid = uuid.uuid4()
     tok = create_access_token(uid)

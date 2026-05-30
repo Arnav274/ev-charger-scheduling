@@ -44,7 +44,7 @@ services:
       - osrmdata:/data
     command: >
       sh -lc "
-      if [ ! -f /data/london.osrm ]; then
+      if [ ! -f /data/london.osrm.mldgr ]; then
         echo 'Downloading London OSM extract...';
         wget -q -O /data/london.osm.pbf https://download.geofabrik.de/europe/united-kingdom/england/greater-london-latest.osm.pbf;
         echo 'Extracting...';

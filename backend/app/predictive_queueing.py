@@ -10,10 +10,14 @@ class ReservationInterval:
     end_time: datetime
 
 
+
+
 def ensure_utc(dt: datetime) -> datetime:
     if dt.tzinfo is None:
         return dt.replace(tzinfo=timezone.utc)
     return dt.astimezone(timezone.utc)
+
+
 
 
 def arrival_window(
@@ -27,6 +31,8 @@ def arrival_window(
     window_start = arrival_est
     window_end = arrival_est + timedelta(minutes=int(arrival_window_minutes))
     return arrival_est, window_start, window_end
+
+
 
 
 def max_overlapping(intervals: list[ReservationInterval]) -> int:
@@ -44,7 +50,7 @@ def max_overlapping(intervals: list[ReservationInterval]) -> int:
     if not events:
         return 0
 
-    # End event before start event at same timestamp to avoid overcounting.
+    # End event before start event 
     events.sort(key=lambda x: (x[0], x[1]))
     current = 0
     best = 0
@@ -53,6 +59,7 @@ def max_overlapping(intervals: list[ReservationInterval]) -> int:
         if current > best:
             best = current
     return best
+
 
 
 def count_starts_in_window(

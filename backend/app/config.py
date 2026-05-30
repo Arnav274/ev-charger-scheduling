@@ -1,26 +1,11 @@
 import os
 
-# ---------------------------------------------------------------------------
-# Model parameters — values used as defaults in seeding and strategies.
-# See docs/parameter_justification.md for full citations and sensitivity notes.
-# ---------------------------------------------------------------------------
+# Model parameters, defaults used in seeding and strategies.
+# Full citations in docs/parameter_justification.md.
 
-# Hecht, C., Figgener, J., & Sauer, D.U. (2022). Analysis of electric vehicle
-# charging station usage and profitability in Germany based on empirical data.
-# iScience, 25(12), 105634. https://doi.org/10.1016/j.isci.2022.105634
-ARRIVAL_RATE_PER_HOUR_DEFAULT: float = 0.75
-
-# U.S. Department of Energy, EERE. (2023, December 4). FOTW #1319: EV Charging
-# at Paid DC Fast Charging Stations Average 42 Minutes per Session (2.4 M
-# sessions, Energetics/EVWATTS Dashboard).
-# https://www.energy.gov/eere/vehicles/articles/fotw-1319-december-4-2023-ev-charging-paid-dc-fast-charging-stations-average
-MEAN_SERVICE_MINUTES_DEFAULT: float = 40.0
-
-# Weiss, M., Winbush, T., Newman, A., & Helmers, E. (2024). Energy Consumption
-# of Electric Vehicles in Europe. Sustainability, 16(17), 7529.
-# https://doi.org/10.3390/su16177529  (real-world fleet average: 21 kWh/100 km;
-# 0.20 kWh/km adopted as a conservative rounded figure)
-ENERGY_CONSUMPTION_KWH_PER_KM: float = 0.2
+ARRIVAL_RATE_PER_HOUR_DEFAULT: float = 0.75   # Hecht et al. (2022)
+MEAN_SERVICE_MINUTES_DEFAULT: float = 40.0    # DoE EERE FOTW #1319 (2023)
+ENERGY_CONSUMPTION_KWH_PER_KM: float = 0.2   # Weiss et al. (2024)
 
 
 class Settings:

@@ -13,6 +13,9 @@ vi.mock("react-leaflet", () => ({
   useMap: () => ({ fitBounds: vi.fn() }),
 }));
 
+
+
+
 vi.mock("recharts", () => {
   const Stub = ({ children }) => <div data-testid="chart-stub">{children}</div>;
   return {
@@ -26,6 +29,9 @@ vi.mock("recharts", () => {
     Legend: () => null,
   };
 });
+
+
+
 
 describe("App", () => {
   beforeEach(() => {
@@ -62,6 +68,8 @@ describe("App", () => {
     await waitFor(() => expect(api.fetchNearbyStations).toHaveBeenCalled());
     await userEvent.click(await screen.findByRole("button", { name: "Nearest" }));
 
+
+
     expect(await screen.findByText(/Station 1 \| 1\.20 km \| 8\.0 min travel \| 5\.40 min wait/)).toBeInTheDocument();
   });
 
@@ -81,6 +89,8 @@ describe("App", () => {
     render(<App />);
     await waitFor(() => expect(api.fetchNearbyStations).toHaveBeenCalled());
 
+
+    
     const stationSelect = await screen.findByRole("combobox");
     await userEvent.selectOptions(stationSelect, "s1");
     const datetimeInputs = document.querySelectorAll('input[type="datetime-local"]');

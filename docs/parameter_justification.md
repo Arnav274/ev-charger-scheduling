@@ -89,8 +89,8 @@ Used in `erlang_c_wait_minutes` and `erlang_c_probability_of_delay`.
 > (2023, December 4). *FOTW #1319: EV Charging at Paid DC Fast Charging Stations Average
 > 42 Minutes per Session*. Energetics / EVWATTS Dashboard, 2.4 million charging sessions,
 > June 2020 – June 2023.
-> https://www.energy.gov/eere/vehicles/articles/fotw-1319-december-4-2023-ev-charging-paid-dc-fast-charging-stations-average
-> [Accessed: January 2026]
+> https://www.energy.gov/cmei/vehicles/transportation-fact-week-2023-archive
+> [Accessed: January 2026; original EERE URL broken, DOE archive confirmed May 2026]
 The DoE dataset of 2.4 million sessions found a mean of **42 minutes** for paid DC fast
 charging. Level 2 AC sessions have longer *connection* times (drivers leave vehicles
 plugged in after charging completes), but empirical *active charging* durations for 7–22 kW

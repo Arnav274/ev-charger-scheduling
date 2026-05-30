@@ -1,5 +1,4 @@
-"""M/M/c (Erlang-C) steady-state queueing model (Kleinrock, 1975). Poisson-arrival and
-exponential-service assumptions are justified in the dissertation methodology section."""
+"""Erlang-C (M/M/c) queueing formulae for predicting wait time at charging stations."""
 
 import math
 
@@ -17,10 +16,14 @@ def erlang_c_probability_of_delay(arrival_rate_per_hour: float, service_rate_per
     if rho >= 1:
         return 1.0
 
+
+
     c_rho = arrival_rate_per_hour / service_rate_per_hour
     series = sum((c_rho**k) / math.factorial(k) for k in range(c))
     tail = (c_rho**c) / math.factorial(c) * (1 / (1 - rho))
     return tail / (series + tail)
+
+
 
 
 def erlang_c_wait_minutes(arrival_rate_per_hour: float, mean_service_minutes: float, c: int) -> float:

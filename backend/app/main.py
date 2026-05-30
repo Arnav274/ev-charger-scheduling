@@ -403,7 +403,11 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
         for s, m in zip(candidates, travel_metrics, strict=False):
             travel_by_station[str(s.id)] = (m.distance_km, m.duration_min)
 
-    # Query future reservations for each station in the arrival 
+    # For each candidate station, query reservations that overlap the user's
+    # expected arrival window. max_overlapping gives the peak concurrent count
+    # (used by QueueAwareStrategy as c_eff = c - reserved_parallel).
+    # count_starts_in_window counts demand arriving in that window (computed
+    # for completeness; not consumed by current strategies).
     future_reserved_parallel_by_station: dict[str, int] = {}
     future_reservation_starts_by_station: dict[str, int] = {}
 
@@ -468,6 +472,9 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
 
     max_distance = max(travel_by_station[str(s.id)][0] for s in candidates) or 1.0
 
+    # max_wait_static: worst-case wait using only station parameters (no
+    # reservation lookahead). Used to normalise scores for all non-predictive
+    # algorithms so their 0–1 scale is internally consistent.
     max_wait_static = (
         max(
             erlang_c_wait_minutes(
@@ -480,8 +487,10 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
         or 1.0
     )
 
-
-
+    # max_wait_predictive: worst-case wait after subtracting current occupancy
+    # and upcoming reservations from available chargers. QueueAwareStrategy
+    # must normalise against this value — using max_wait_static would compress
+    # its scores into a misleadingly narrow band.
     max_wait_predictive = (
         max(
             erlang_c_wait_minutes(
@@ -498,7 +507,6 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
         )
         or 1.0
     )
-
 
     _predictive_algorithms = {"queue_aware"}
     max_wait = max_wait_predictive if payload.algorithm in _predictive_algorithms else max_wait_static
@@ -548,6 +556,8 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
             ),
 
 
+            # Show the wait that matches what the algorithm actually optimised.
+            # queue_aware accounts for future reservations; others use raw charger count.
             predicted_wait_min=(
                 erlang_c_wait_minutes(
                     arrival_rate_per_hour=s.arrival_rate_per_hour,
@@ -558,7 +568,6 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
                         - future_reserved_parallel_by_station.get(str(s.id), 0),
                     ),
                 )
-
                 if payload.algorithm == "queue_aware"
                 else erlang_c_wait_minutes(s.arrival_rate_per_hour, s.mean_service_minutes, max(1, len(s.chargers)))
             ),

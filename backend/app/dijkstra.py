@@ -24,7 +24,7 @@ class Station:
 class RouteResult:
     station_id: str
     distance_km: float
-    path_nodes: List[int] = field(default_factory=list)
+    path_nodes: List[int] = field(default_factory=list)  # sequence of node indices; 0 = origin, 1..N = stations
 
 
 
@@ -53,7 +53,13 @@ def _build_graph(
     origin_lon: float,
     stations: List[Station],
 ) -> Tuple[List[Tuple[float, float]], List[List[Tuple[int, float]]]]:
-    """Build a complete weighted undirected adjacency list. Node 0 is the origin."""
+    """Build a complete weighted undirected adjacency list. Node 0 is the origin.
+
+    Every pair of nodes gets a Haversine edge, so Dijkstra finds the shortest
+    chain of hops rather than a direct straight line — a simple approximation
+    of road distance. For real road distances the app uses OSRM instead
+    (see routing_osrm.py); this graph is the fallback for the Dijkstra strategy.
+    """
     coords: List[Tuple[float, float]] = [(origin_lat, origin_lon)]
     for s in stations:
         coords.append((s.lat, s.lon))
@@ -94,6 +100,8 @@ def _dijkstra(
 
 
 
+        # Lazy deletion: if a shorter path to u was found after this heap entry
+        # was pushed, skip it — the node has already been finalised.
         if d_u > dist[u]:
             continue
 
@@ -118,7 +126,9 @@ def _reconstruct_path(prev: List[Optional[int]], target: int) -> List[int]:
         path.append(node)
         node = prev[node]
     path.reverse()
-    # If the path does not start at a node 
+    # Guard against disconnected graphs: a valid path from the source (node 0)
+    # must start at a node with no predecessor. In practice, the complete
+    # Haversine graph is always fully connected so this never triggers.
     if not path or prev[path[0]] is not None and len(path) == 1:
         return []
     return path
@@ -156,7 +166,7 @@ def shortest_paths_to_stations(
 
     results: Dict[str, RouteResult] = {}
     for idx, station in enumerate(stations):
-        node_idx = idx + 1  # node 0 is origin
+        node_idx = idx + 1  # stations are 1-indexed; node 0 is the origin
         path = _reconstruct_path(prev, node_idx)
         results[station.station_id] = RouteResult(
             station_id=station.station_id,

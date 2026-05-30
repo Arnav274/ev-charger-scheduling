@@ -69,9 +69,9 @@ docker compose exec backend python -m scripts.seed_demo
 *(adds the demo user account)*
 
 ```bash
-docker compose exec backend python scripts/ingest_openchargemap.py
+docker compose exec backend python scripts/ingest_openchargemap.py --live
 ```
-*(downloads real London EV charging station data — requires the API key from step 2)*
+*(downloads real London EV charging station data from the API — requires the API key from step 2)*
 
 ```bash
 docker compose exec backend python -m scripts.seed_background_reservations

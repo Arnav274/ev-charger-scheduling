@@ -11,8 +11,7 @@ useful content/
 # Build artifacts
 frontend/dist/
 
-# Experiment outputs (reproducible; avoid committing generated data)
-backend/experiments/outputs/
+# Experiment outputs intentionally tracked — these are the final dissertation results
 
 # Coverage artifacts
 **/.coverage

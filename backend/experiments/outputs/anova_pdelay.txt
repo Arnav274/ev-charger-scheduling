@@ -1,0 +1,4 @@
+One-way ANOVA probability_of_delay (baseline_equal)
+F=283.9537
+p=0.00000000
+eta_squared=0.441777

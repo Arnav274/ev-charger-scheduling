@@ -626,7 +626,7 @@ function App() {
                   </button>
                 </div>
                 <p className="algo-tip">
-                  Tip: Queue-aware and Static queue may recommend a further station to avoid congestion — this is intentional.
+                  Queue-aware and Static queue may recommend a station that is not the nearest one. This is intentional: they are avoiding stations with predicted queues.
                 </p>
               </div>
             </details>
@@ -640,7 +640,7 @@ function App() {
               <h3 className="recommendations-label">Results: {activeAlgorithm}</h3>
               <ol className="recommendations-list">
                 {recommendations.map((r) => (
-                  <li key={r.station_id}>
+                  <li key={r.station_id} onClick={() => onSelectStation(r.station_id)} style={{ cursor: "pointer" }}>
                     {r.station_name} | {Number(r.travel_distance_km).toFixed(2)} km |{" "}
                     {Number(r.travel_time_min).toFixed(1)} min travel |{" "}
                     {Number(r.predicted_wait_min).toFixed(2)} min wait | P(delay){" "}

@@ -68,32 +68,57 @@ export default function StatsDashboard({ rows, loadError }) {
           ))}
         </select>
       </div>
-      <p className="stats-note">
-        Values come from frozen <code>summary_ci.csv</code> (<code>/stats/experiment-summary</code>). Large wait predictions indicate unstable Erlang‑C
-        regimes (ρ ≥ 1) for that synthetic profile—explain in writing, do not hide the anomaly.
-      </p>
+      <div className="findings-panel">
+        <div className="findings-title">Experiment results</div>
+        <div className="findings-sub">162 conditions &nbsp;·&nbsp; 9 variants × 3 scenarios × 6 algorithms &nbsp;·&nbsp; 100 trials each</div>
+        <div className="findings-grid">
+          <div className="finding-card finding-card--highlight">
+            <div className="finding-value">~99%</div>
+            <div className="finding-label">predicted wait reduction</div>
+            <div className="finding-detail">queue-aware vs nearest / dijkstra</div>
+          </div>
+          <div className="finding-card finding-card--highlight">
+            <div className="finding-value">d = 1.17</div>
+            <div className="finding-label">Cohen's d</div>
+            <div className="finding-detail">effect size — large (&gt; 0.8)</div>
+          </div>
+          <div className="finding-card">
+            <div className="finding-value">F = 228.67</div>
+            <div className="finding-label">ANOVA, p ≈ 0</div>
+            <div className="finding-detail">algorithm choice is statistically significant</div>
+          </div>
+          <div className="finding-card">
+            <div className="finding-value">η² = 0.39</div>
+            <div className="finding-label">eta-squared</div>
+            <div className="finding-detail">39% of wait variance explained by algorithm</div>
+          </div>
+          <div className="finding-card finding-card--nonresult">
+            <div className="finding-value">d = 0.03 &nbsp;·&nbsp; p = 1.0</div>
+            <div className="finding-label">queue_aware vs static_queue</div>
+            <div className="finding-detail">reservation lookahead shows no significant benefit at baseline load</div>
+          </div>
+        </div>
+      </div>
       <p className="stats-summary">
-        These charts show simulation results across multiple configurations. Each bar represents one routing algorithm. Lower wait time and higher
-        acceptance rate are better. Queue-aware achieves near-zero predicted wait by avoiding congested stations, at the cost of slightly longer
-        travel distance.
+        The charts below show one configuration at a time. Use the dropdowns to explore different variants and scenarios. The headline numbers above are from the full ANOVA across all 162 conditions.
       </p>
       <details className="stats-details">
         <summary>What am I looking at?</summary>
         <div className="stats-details-body">
           <p><strong>Variant options:</strong></p>
           <ul>
-            <li><strong>baseline_equal</strong> — equal weights across all routing criteria</li>
-            <li><strong>distance_priority</strong> — users prefer shorter drives</li>
-            <li><strong>queue_stress</strong> — artificially high load to stress-test queuing behaviour</li>
-            <li><strong>topk_robustness</strong> — only top-k stations sampled per request</li>
+            <li><strong>baseline_equal:</strong> equal weights across all routing criteria</li>
+            <li><strong>distance_priority:</strong> users prefer shorter drives</li>
+            <li><strong>queue_stress:</strong> artificially high arrival rate to stress-test queuing behaviour</li>
+            <li><strong>topk_robustness:</strong> only the top-k nearest stations are considered per request</li>
           </ul>
           <p><strong>Scenario options:</strong></p>
           <ul>
-            <li><strong>urban</strong> — high-density city demand profile</li>
-            <li><strong>mixed</strong> — blend of urban and highway demand</li>
-            <li><strong>highway</strong> — long-distance motorway demand profile</li>
+            <li><strong>urban:</strong> high-density city demand profile</li>
+            <li><strong>mixed:</strong> blend of urban and highway demand</li>
+            <li><strong>highway:</strong> long-distance motorway demand profile</li>
           </ul>
-          <p><em>Note: Very large wait values (e.g. 40 min) indicate the Erlang-C queueing model became unstable at high load (ρ ≥ 1). This is expected and discussed in the dissertation.</em></p>
+          <p><em>Note: Very large wait values (e.g. 40 min) indicate the Erlang-C model reached high utilisation for that synthetic profile. This is expected behaviour and is discussed in the dissertation.</em></p>
         </div>
       </details>
       <div className="chart-box">

@@ -68,7 +68,7 @@ def fetch_openchargemap(
     if response.status_code == 403:
         raise RuntimeError(
             "OpenChargeMap returned 403 Forbidden with X-API-Key set. "
-            "Check the key is valid at https://openchargemap.org/site/developerinfo — "
+            "Check the key is valid at https://openchargemap.org/site/developerinfo, "
             "or run without --live to use the cached sample dataset."
         )
     response.raise_for_status()

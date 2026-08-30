@@ -1,171 +1,161 @@
-# EV Charging Reservation System
+# EV Charger Scheduling
 
-A full-stack web application that lets electric vehicle drivers find, compare, and book charging stations across London. Built as a university final-year project.
+A full-stack system that recommends London EV charging stations, and a controlled experiment
+measuring whether it is worth modelling the queue at each one.
 
-The system uses real London charging station data and implements six different scheduling algorithms to recommend the best station based on distance, predicted wait time, price, or battery range.
+Six scheduling strategies compete on the same simulated demand. The finding is that routing people
+to the nearest charger, the obvious thing to do, is close to the worst thing you can do.
 
----
+## The result
 
-## What you need before starting
+Across 300 simulated bookings per algorithm, 100 in each of three scenario profiles (urban, mixed,
+highway), with a fixed random seed:
 
-1. **Docker Desktop** — download and install from https://www.docker.com/products/docker-desktop/
-   - Make sure Docker Desktop is **running** (you should see the whale icon in your taskbar) before proceeding
-   - Windows users: Docker Desktop requires WSL 2 to be enabled — the installer will prompt you if needed
+| Algorithm | Mean wait | Mean distance | Bookings accepted |
+|---|---|---|---|
+| `dijkstra` | 21.3 min | 3.56 km | 66% |
+| `nearest` | 15.5 min | 3.38 km | 69% |
+| `cost_optimized` | 0.49 min | 3.61 km | 96% |
+| `static_queue` | 0.06 min | 3.71 km | 99% |
+| `queue_aware` | 0.06 min | 3.83 km | 100% |
+| `range_aware` | 0.02 min | 5.83 km | 100% |
 
-2. **Git** — to clone the repository (you probably already have this)
+![Mean wait time by algorithm, grouped by scenario. Dijkstra and nearest sit between 9 and 24 minutes; the three queue aware strategies are indistinguishable from zero.](backend/experiments/outputs/algorithm_comparison_bar.png)
 
-3. ~**500 MB free disk space** for the London map data
+Adding a queueing model takes mean wait from roughly 15 to 21 minutes down to under four seconds,
+and costs about 300 metres of extra driving. Acceptance rate goes from two thirds to essentially all.
 
----
+The counterintuitive part is that `dijkstra` is the worst of the six. It computes a genuinely
+shorter path than `nearest` does, and it is punished for it: better routing concentrates drivers on
+the same few well placed chargers, so they queue. Shortest path is the right answer to the wrong
+question. Nothing about the road network tells you how busy the destination is.
 
-## First-time setup (takes ~5–10 minutes)
+Confidence intervals for every cell above are in
+[`comparison_table.md`](backend/experiments/outputs/comparison_table.md). The gap between the
+queue aware group and the distance only group is far larger than any interval, so the ranking is not
+a sampling artefact.
 
-### 1. Clone the repository
+## Method
+
+The comparison is an experiment rather than a demo, so it is set up to be re-run and checked.
+
+- **Fixed seed.** `run_experiments.py` seeds at 42. Re-running reproduces the table above.
+- **Three scenario profiles.** Urban, mixed and highway differ in geographic origin spread and
+  session duration, so a result cannot come from one convenient demand pattern.
+- **Significance testing.** One-way ANOVA with eta squared for effect size, then pairwise Welch
+  t-tests with Bonferroni correction and Cohen's d. Raw output in
+  [`anova.txt`](backend/experiments/outputs/anova.txt) and
+  [`posthoc_wait.csv`](backend/experiments/outputs/posthoc_wait.csv).
+- **Sensitivity analysis.** Distance-priority weighting, a load stress multiplier and top-k
+  robustness sampling, in [`sensitivity_summary.csv`](backend/experiments/outputs/sensitivity_summary.csv).
+- **Parameter provenance.** The numeric constants in the queueing model are justified against
+  published sources in [`docs/parameter_justification.md`](docs/parameter_justification.md), with the
+  sensitivity range each one was exercised over. None of them is a number that seemed about right.
+
+One modelling decision worth stating plainly: when utilisation reaches or exceeds 1, the M/M/c
+assumptions behind Erlang-C break down and expected wait is unbounded. Rather than let that produce
+a misleading finite number, `erlang_c_wait_minutes` returns a capped penalty representing infeasible
+congestion. That cap is why the distance-only strategies show low acceptance rates rather than
+absurd wait times.
+
+## The six strategies
+
+| Strategy | Optimises for |
+|---|---|
+| `nearest` | Straight road distance |
+| `dijkstra` | Shortest path over a simplified road graph |
+| `static_queue` | Distance plus Erlang-C predicted wait |
+| `queue_aware` | As above, but counting bookings already made in your arrival window |
+| `cost_optimized` | Weighted distance, wait and price |
+| `range_aware` | Reachability on current battery, then lowest wait |
+
+## How it is built
+
+FastAPI and Python on the backend, Postgres with PostGIS for spatial queries, OSRM for real road
+network routing, React with Leaflet for the map, all orchestrated by Docker Compose. Alembic handles
+migrations. Station data is ingested live from the OpenChargeMap API rather than fixtures.
+
+```
+backend/
+  app/
+    algorithms.py           the six strategies
+    dijkstra.py             shortest path over the station graph
+    queueing.py             Erlang-C
+    predictive_queueing.py  arrival-window aware variant
+  experiments/              experiment runner, analysis, and committed results
+  tests/                    backend test suite
+frontend/src/               React and Leaflet UI
+```
+
+## Running it
+
+You need Docker Desktop running, and an OpenChargeMap API key (free from
+https://openchargemap.org/site/develop/api).
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/REPO_NAME.git
-cd REPO_NAME
-```
-
-### 2. Add your API key
-
-Copy the example env file and add your OpenChargeMap API key (free at https://openchargemap.org/site/develop/api):
-
-```bash
-cp .env.example .env
-```
-
-Open `.env` and fill in your key:
-```
-OPENCHARGEMAP_API_KEY=your_key_here
-```
-
-### 3. Start all services
-
-```bash
+git clone https://github.com/Arnav274/ev-charger-scheduling.git
+cd ev-charger-scheduling
+cp .env.example .env      # then put your key in OPENCHARGEMAP_API_KEY
 docker compose up --build
 ```
 
-This starts four services: the database, the routing engine (OSRM), the backend API, and the frontend. **The first run downloads and processes the London street map — this takes 5–10 minutes.** You'll see a lot of log output; that's normal.
+The first run downloads and processes the London street map for OSRM, which takes 5 to 10 minutes
+and about 500 MB. Wait for `Application startup complete`.
 
-Wait until you see something like:
-```
-backend-1  | INFO:     Application startup complete.
-frontend-1 | VITE ready in ...ms
-```
-
-### 4. Set up the database (first time only)
-
-Open a **second terminal** in the same folder and run these four commands one at a time:
+Then, in a second terminal, four one-time setup commands:
 
 ```bash
-docker compose exec backend alembic upgrade head
-```
-*(creates the database tables)*
-
-```bash
-docker compose exec backend python -m scripts.seed_demo
-```
-*(adds the demo user account)*
-
-```bash
-docker compose exec backend python scripts/ingest_openchargemap.py --live
-```
-*(downloads real London EV charging station data from the API — requires the API key from step 2)*
-
-```bash
-docker compose exec backend python -m scripts.seed_background_reservations
-```
-*(adds background bookings so the queue algorithms have realistic data to work with)*
-
----
-
-## Running it (after the first setup)
-
-Next time you want to start the app, just run:
-
-```bash
-docker compose up
+docker compose exec backend alembic upgrade head                            # create tables
+docker compose exec backend python -m scripts.seed_demo                     # demo user
+docker compose exec backend python scripts/ingest_openchargemap.py --live   # real station data
+docker compose exec backend python -m scripts.seed_background_reservations  # background load
 ```
 
-No `--build` needed, and no need to re-run the setup commands. It will start in under a minute.
+After that, `docker compose up` alone starts it in under a minute.
 
-To stop everything:
+- App: http://localhost:5173
+- API docs: http://localhost:8000/docs
+- Demo login: `demo.user@example.com` / `DemoPass123!`
 
-```bash
-docker compose down
-```
+Pick a strategy from the dropdown, and the ranked recommendations update. Click one to book a slot.
 
----
-
-## Opening the app
-
-Once running, open your browser and go to:
-
-- **App:** http://localhost:5173
-- **API documentation:** http://localhost:8000/docs
-
-**Demo login credentials:**
-- Email: `demo.user@example.com`
-- Password: `DemoPass123!`
-
----
-
-## What to do in the app
-
-1. Log in with the demo credentials above
-2. You'll see a map of London with charging station markers
-3. The app will ask for your current location — allow it, or it defaults to central London
-4. Select a **scheduling algorithm** from the dropdown:
-   - **Nearest** — picks the closest station by road distance
-   - **Dijkstra** — shortest path on a simplified road graph
-   - **Static Queue** — factors in predicted queue wait time (Erlang-C formula)
-   - **Queue Aware** — same as above but accounts for upcoming bookings in your arrival window
-   - **Cost Optimised** — balances distance, wait time, and price
-   - **Range Aware** — only shows stations reachable on your current battery level
-5. The top recommendations appear ranked — click one to see details and book a slot
-
----
-
-## Project structure
-
-```
-backend/          FastAPI backend (Python)
-  app/
-    algorithms.py   All six scheduling algorithms
-    main.py         API routes
-    models.py       Database models
-  experiments/      Statistical experiment scripts + results (CSVs)
-  tests/            Unit and integration tests
-
-frontend/         React + Leaflet map UI
-  src/
-    App.jsx         Main app component
-    api.js          API client
-
-docker-compose.yml  Orchestrates all services
-```
-
----
-
-## Running the tests
+## Tests
 
 ```bash
 docker compose exec backend pytest -q
 ```
 
----
+53 test functions across 9 backend files, plus a small frontend suite under Vitest. The ones worth
+reading are `test_erlang_c.py`, which pins the queueing maths, and `test_dijkstra.py`, which covers
+the path finding including disconnected graphs and unreachable targets.
 
 ## Troubleshooting
 
-**"Port already in use" error:**
-Something else is using port 5173, 8000, or 5432. Stop other Docker containers or services on those ports, then try again.
+**Port already in use.** Something else holds 5173, 8000 or 5432. Stop it and retry.
 
-**Containers crash immediately:**
-Make sure Docker Desktop is open and running before you run `docker compose up`.
+**Containers exit immediately.** Docker Desktop is not running.
 
-**Map loads but no stations appear:**
-The seed step may not have run. Run the four setup commands from Step 4 again.
+**Map loads but no stations appear.** The ingest step did not complete. Re-run the four setup
+commands above.
 
-**OSRM keeps re-downloading:**
-This was a known bug — it has been fixed. If you pulled an older version, update with `git pull` and try again.
+## Limitations
+
+These are real, not hedging.
+
+**Demand is simulated, not observed.** Arrival rates are drawn from published DfT and Zapmap figures
+rather than measured London charger telemetry, which is not publicly available at the resolution
+this needs. The relative ranking of the six strategies is the defensible result. The absolute wait
+times are only as good as that arrival rate assumption, which is why it gets its own sensitivity
+range in the parameter justification.
+
+**The road graph is simplified.** OSRM gives real routing for travel time, but the Dijkstra strategy
+runs over a reduced station-to-station graph rather than the full network, so this is a comparison
+of scheduling policy rather than a production routing engine.
+
+**No live occupancy feed.** Predicted wait comes from the queueing model plus reservations held in
+this system. A deployment would need real time connector status from the operators, which would
+change how much work the prediction is doing.
+
+**Single region.** Everything is fitted to London. Station density elsewhere would shift the
+distance and wait trade-off, and the range aware strategy in particular depends on there being a
+reachable alternative.

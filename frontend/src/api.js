@@ -77,7 +77,7 @@ export async function fetchNearbyStations(lat, lon, radiusKm = 5) {
   try {
     res = await fetch(url);
   } catch {
-    throw new Error("Backend offline — run docker compose up to load stations");
+    throw new Error("Backend offline, run docker compose up to load stations");
   }
 
   if (!res.ok) {

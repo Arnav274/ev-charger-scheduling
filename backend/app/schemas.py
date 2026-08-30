@@ -67,7 +67,7 @@ class RecommendationRequest(BaseModel):
     departure_time: datetime | None = None
     arrival_time_target: datetime | None = None
     arrival_window_minutes: int = Field(default=15, ge=1, le=240)
-    battery_level_percent: float | None = None  # 0–100
+    battery_level_percent: float | None = None  # 0-100
     battery_capacity_kwh: float | None = None
 
 

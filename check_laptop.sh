@@ -33,7 +33,7 @@ done
 echo ""
 echo "=== Backend API ==="
 health=$(curl -s http://localhost:8000/health 2>/dev/null)
-echo "$health" | grep -q "ok" && ok "Health endpoint" || bad "Health endpoint — backend not responding"
+echo "$health" | grep -q "ok" && ok "Health endpoint" || bad "Health endpoint, backend not responding"
 
 count=$(curl -s "http://localhost:8000/stations/nearby?lat=51.5074&lon=-0.1278&radius_km=5" 2>/dev/null | python3 -c "import json,sys;d=json.load(sys.stdin);print(len(d))" 2>/dev/null)
 [ "$count" -ge 50 ] 2>/dev/null && ok "Stations loaded: $count" || bad "Stations: got '$count' (need 50+)"

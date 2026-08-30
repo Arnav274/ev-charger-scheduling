@@ -474,7 +474,7 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
 
     # max_wait_static: worst-case wait using only station parameters (no
     # reservation lookahead). Used to normalise scores for all non-predictive
-    # algorithms so their 0–1 scale is internally consistent.
+    # algorithms so their 0-1 scale is internally consistent.
     max_wait_static = (
         max(
             erlang_c_wait_minutes(
@@ -489,7 +489,7 @@ def recommend(payload: RecommendationRequest, db: Session = Depends(get_db)) -> 
 
     # max_wait_predictive: worst-case wait after subtracting current occupancy
     # and upcoming reservations from available chargers. QueueAwareStrategy
-    # must normalise against this value — using max_wait_static would compress
+    # must normalise against this value, using max_wait_static would compress
     # its scores into a misleadingly narrow band.
     max_wait_predictive = (
         max(

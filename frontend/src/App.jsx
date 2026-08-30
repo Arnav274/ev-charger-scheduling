@@ -176,7 +176,7 @@ function App() {
         const DELAY = 5;
         for (let i = DELAY; i > 0; i--) {
           if (cancelled) return;
-          setStatus(`Backend starting — retrying in ${i}s… (or click Find nearby stations)`);
+          setStatus(`Backend starting, retrying in ${i}s… (or click Find nearby stations)`);
           await new Promise((r) => { const t = setTimeout(r, 1000); timers.push(t); });
         }
         if (!cancelled) loadNearby();
@@ -314,14 +314,14 @@ function App() {
         const { latitude: lat, longitude: lon } = pos.coords;
         setCenter({ lat, lon });
         setLocating(false);
-        setStatus("Location found — loading nearby stations.");
+        setStatus("Location found, loading nearby stations.");
         fetchNearbyStations(lat, lon, radiusKm)
           .then((data) => { setStations(data); setStatus(`Loaded ${data.length} stations.`); })
           .catch((err) => setStatus(err.message));
       },
       () => {
         setLocating(false);
-        setStatus("Location access denied — using default London centre");
+        setStatus("Location access denied, using default London centre");
       },
     );
   }
@@ -559,7 +559,7 @@ function App() {
                       defaultValue=""
                       onChange={(e) => e.target.value && onSelectStation(e.target.value)}
                     >
-                      <option value="" disabled>— choose a station —</option>
+                      <option value="" disabled>choose a station</option>
                       {stations
                         .filter((s) =>
                           s.name.toLowerCase().includes(stationFilter.toLowerCase())
@@ -598,7 +598,7 @@ function App() {
                   </button>
                   <button
                     className={`btn-algo${activeAlgorithm === ALGO_LABELS.queue_aware ? " active" : ""}`}
-                    title="Predicts queue using Erlang-C + reservation lookahead — avoids congested stations"
+                    title="Predicts queue using Erlang-C + reservation lookahead, avoids congested stations"
                     onClick={() => handleAlgoClick("queue_aware")}
                   >
                     Queue-aware
@@ -619,7 +619,7 @@ function App() {
                   </button>
                   <button
                     className={`btn-algo${activeAlgorithm === ALGO_LABELS.range_aware ? " active" : ""}`}
-                    title="Adds battery safety penalty for low-battery EVs — fill in battery fields first"
+                    title="Adds battery safety penalty for low-battery EVs, fill in battery fields first"
                     onClick={handleRangeAwareClick}
                   >
                     Range-aware
@@ -632,7 +632,7 @@ function App() {
             </details>
 
 
-            {/* Recommendations — hidden until results exist */}
+            {/* Recommendations, hidden until results exist */}
             <div
               ref={recommendationsRef}
               className={`sidebar-section recommendations-section${recommendations.length === 0 ? " hidden" : ""}`}
@@ -690,7 +690,7 @@ function App() {
 
 
 
-            {/* 4. Reserve / Book — only when a station is selected */}
+            {/* 4. Reserve / Book, only when a station is selected */}
             {selectedStation && (
               <details open className="sidebar-section" ref={reserveSectionRef}>
                 <summary className="section-summary">Reserve / Book</summary>
@@ -780,7 +780,7 @@ function App() {
                         return (
                           <li key={s.charger_id} className="slot-item">
                             <strong>{chargerLabel}</strong>:{" "}
-                            {start.toLocaleString()} – {end.toLocaleString()}{" "}
+                            {start.toLocaleString()} - {end.toLocaleString()}{" "}
                             {s.wait_from_desired_minutes > 0
                               ? `(wait ${Math.round(s.wait_from_desired_minutes)} min)`
                               : "(no wait)"}
@@ -916,7 +916,7 @@ function App() {
                         };
                         return (
                           <li key={r.id} className="reservation-item">
-                            <strong>{r.station_name}</strong> — {r.charger_name}
+                            <strong>{r.station_name}</strong>, {r.charger_name}
                             <br />
                             {fmt(r.start_time)} → {fmt(r.end_time)}
                           </li>

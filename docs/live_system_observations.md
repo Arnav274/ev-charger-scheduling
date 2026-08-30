@@ -1,20 +1,20 @@
-\# Live System Observations — localhost:8000
+# Live System Observations - localhost:8000
 
-\# Date: 17 May 2026
+# Date: 17 May 2026
 
-\# Environment: Docker, FastAPI backend, PostgreSQL/PostGIS, OSRM routing
+# Environment: Docker, FastAPI backend, PostgreSQL/PostGIS, OSRM routing
 
 
 
-\## GET /stations/nearby
+## GET /stations/nearby
 
-Request: lat=51.5074, lon=-0.1278, radius\_km=1
+Request: lat=51.5074, lon=-0.1278, radius_km=1
 
 Result: 36 stations returned
 
 All in Westminster borough
 
-Sorted by distance\_m ascending
+Sorted by distance_m ascending
 
 Closest: BMM-CP-000504 at 6.18m
 
@@ -22,13 +22,13 @@ Furthest in result: Almacantar at 998.34m
 
 All stations have: id (UUID), name, borough, lat, lon,
 
-price\_pence\_per\_kwh (all 55.0), distance\_m
+price_pence_per_kwh (all 55.0), distance_m
 
 
 
-\## POST /recommendations — algorithm: nearest
+## POST /recommendations - algorithm: nearest
 
-Request: origin\_lat=51.5074, origin\_lon=-0.1278, radius\_km=1
+Request: origin_lat=51.5074, origin_lon=-0.1278, radius_km=1
 
 Top 5 results in order:
 
@@ -44,9 +44,9 @@ Top 5 results in order:
 
 
 
-\## POST /recommendations — algorithm: queue\_aware
+## POST /recommendations - algorithm: queue_aware
 
-Request: origin\_lat=51.5074, origin\_lon=-0.1278, radius\_km=1
+Request: origin_lat=51.5074, origin_lon=-0.1278, radius_km=1
 
 Top 5 results in order:
 
@@ -62,35 +62,35 @@ Top 5 results in order:
 
 
 
-\## POST /recommendations — unknown algorithm
+## POST /recommendations - unknown algorithm
 
 Request: algorithm="algorithm"
 
-Response: 400 Bad Request — "Unknown algorithm 'algorithm'"
+Response: 400 Bad Request - "Unknown algorithm 'algorithm'"
 
 
 
-\## Observations (factual only, no interpretation)
+## Observations (factual only, no interpretation)
 
-\- nearest and queue\_aware return different station orderings
+\- nearest and queue_aware return different station orderings
 
-\- BMM-CP-000504 is rank 1 for nearest, absent from queue\_aware top 5
+\- BMM-CP-000504 is rank 1 for nearest, absent from queue_aware top 5
 
-\- Q-Park Leicester Square is rank 5 for nearest, rank 1 for queue\_aware
+\- Q-Park Leicester Square is rank 5 for nearest, rank 1 for queue_aware
 
 \- Both algorithms return 200 status with valid JSON
 
 \- OSRM travel times present in all results (not haversine fallback)
 
-\- All predicted\_wait\_min values are non-negative
+\- All predicted_wait_min values are non-negative
 
-\- All probability\_of\_delay values are between 0 and 1
+\- All probability_of_delay values are between 0 and 1
 
 \- Invalid algorithm name returns 400 not 500
 
-## POST /recommendations — all 6 algorithms (top result only)
+## POST /recommendations - all 6 algorithms (top result only)
 
-Origin: 51.5074, -0.1278, radius\_km=1
+Origin: 51.5074, -0.1278, radius_km=1
 
 
 
@@ -98,31 +98,31 @@ nearest:      BMM-CP-000504        | dist=0.14km | wait=40.00min | P(delay)=0.50
 
 dijkstra:     BMM-CP-000504        | dist=0.14km | wait=40.00min | P(delay)=0.50 | score=0.0062
 
-static\_queue: Q-Park Leicester Sq  | dist=0.50km | wait=0.02min  | P(delay)=0.002 | score=0.4111
+static_queue: Q-Park Leicester Sq  | dist=0.50km | wait=0.02min  | P(delay)=0.002 | score=0.4111
 
-queue\_aware:  Q-Park Leicester Sq  | dist=0.50km | wait=0.02min  | P(delay)=0.002 | score=0.0354
+queue_aware:  Q-Park Leicester Sq  | dist=0.50km | wait=0.02min  | P(delay)=0.002 | score=0.0354
 
-cost\_optimized: \[paste your result]
+cost_optimized: [paste your result]
 
-range\_aware:  BMM-CP-000504        | dist=0.14km | wait=40.00min | P(delay)=0.50 | score=0.1373
+range_aware:  BMM-CP-000504        | dist=0.14km | wait=40.00min | P(delay)=0.50 | score=0.1373
 
 
 
-\## POST /stations/{id}/suggest-slot
+## POST /stations/{id}/suggest-slot
 
 Station: Q-Park Leicester Square (6fe1a1aa)
 
-Request: desired\_arrival=2026-05-17T11:48:36, duration\_minutes=1, 
+Request: desired_arrival=2026-05-17T11:48:36, duration_minutes=1, 
 
-&#x20;        charger\_id=3fa85f64 (fake docs UUID)
+&#x20;        charger_id=3fa85f64 (fake docs UUID)
 
-Response: \[] (empty — correct, charger\_id did not exist)
+Response: [] (empty - correct, charger_id did not exist)
 
 Note: empty list returned correctly when charger not found
 
 
 
-\## Stats tab
+## Stats tab
 
 Status: "Could not load experiment summary: Failed to fetch"
 

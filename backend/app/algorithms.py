@@ -17,13 +17,13 @@ class RecommendationContext:
     weights: tuple[float, float, float]           # (w_distance, w_wait, w_cost) for CostOptimized
     arrival_window_minutes: int = 15
     # Counts how many chargers at each station are reserved in parallel during
-    # the user's estimated arrival window — used by QueueAwareStrategy to
+    # the user's estimated arrival window, used by QueueAwareStrategy to
     # reduce the effective server count (c_eff) fed into Erlang-C.
     future_reserved_parallel_by_station: dict[str, int] | None = None
     future_reservation_starts_by_station: dict[str, int] | None = None
     travel_by_station: dict[str, tuple[float, float]] | None = None  # station_id -> (distance_km, duration_min)
     current_occupancy_by_station: dict[str, int] | None = None
-    battery_level_percent: float | None = None  # 0–100
+    battery_level_percent: float | None = None  # 0-100
     battery_capacity_kwh: float | None = None
 
 
@@ -71,7 +71,7 @@ class CostOptimizedStrategy(SelectionStrategy):
         cost = station.price_pence_per_kwh
         w_d, w_q, w_c = context.weights
         # Weighted linear sum of three normalised objectives: distance, queue
-        # wait, and price. Each term is 0–1 relative to the worst candidate in
+        # wait, and price. Each term is 0-1 relative to the worst candidate in
         # the set. Weights allow the user to express a preference (e.g. cheaper
         # vs faster). Default weights are set in config.py.
         return (
@@ -176,7 +176,7 @@ class RangeAwareStrategy(SelectionStrategy):
     """Erlang-C wait scoring with a large penalty for stations outside battery range."""
 
     _CONSUMPTION_KWH_PER_KM = ENERGY_CONSUMPTION_KWH_PER_KM  # ~0.2 kWh/km (see config.py)
-    _SAFETY_BUFFER_KWH = 2.0     # Minimum reserve after arriving — prevents routing to a station the car can barely reach
+    _SAFETY_BUFFER_KWH = 2.0     # Minimum reserve after arriving, prevents routing to a station the car can barely reach
     _RANGE_PENALTY = 1e6         # Score penalty large enough to push unreachable stations to last place
 
     def score(self, station: Station, context: RecommendationContext, max_vals: dict[str, float]) -> float:

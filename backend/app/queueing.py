@@ -44,7 +44,7 @@ def erlang_c_wait_minutes(arrival_rate_per_hour: float, mean_service_minutes: fl
         return 1e6
 
     pw = erlang_c_probability_of_delay(arrival_rate_per_hour, service_rate_per_hour, c)
-    # Wq = P(W>0) / (c·μ·(1-ρ)) — expected time waiting in queue (hours).
+    # Wq = P(W>0) / (c·μ·(1-ρ)), expected time waiting in queue (hours).
     # Multiply by 60 to convert to minutes. Returns 1e6 (sentinel) for
     # saturated queues so callers can treat it as "effectively infinite wait".
     wq_hours = pw / (c * service_rate_per_hour * (1 - rho))

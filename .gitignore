@@ -11,17 +11,16 @@ useful content/
 # Build artifacts
 frontend/dist/
 
-# Experiment outputs intentionally tracked — these are the final dissertation results
+# Experiment outputs are intentionally tracked: they are the final results
 
 # Coverage artifacts
 **/.coverage
 **/coverage.xml
 
-# Local Claude Code settings and tooling artefacts
+# Local editor and tooling artefacts
 .claude/
+.vscode/
 repomix-output.xml
-
-# Repomix dev tooling
 repomix.config.json
 .repomixignore
 repomix-output.txt

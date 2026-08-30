@@ -60,7 +60,7 @@ def max_overlapping(intervals: list[ReservationInterval]) -> int:
         return 0
 
     # Sweep-line: sort events by time, breaking ties so -1 (end) sorts before
-    # +1 (start) at the same instant — avoids counting a departing and arriving
+    # +1 (start) at the same instant, avoids counting a departing and arriving
     # car simultaneously as two occupied chargers.
     events.sort(key=lambda x: (x[0], x[1]))
     current = 0

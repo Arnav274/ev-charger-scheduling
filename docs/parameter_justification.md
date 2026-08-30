@@ -23,8 +23,8 @@ Setting λ = 0.75 gives a utilisation ratio of:
 
 > ρ = λ / (c · μ) = 0.75 / 1.5 = **0.50**
 
-A value of ρ = 0.5 represents a moderately loaded system — chargers are busy half the
-time on average — and yields finite, meaningful Erlang-C wait times rather than the
+A value of ρ = 0.5 represents a moderately loaded system (chargers are busy half the
+time on average) and yields finite, meaningful Erlang-C wait times rather than the
 saturation penalty returned when ρ ≥ 1.
 
 **Empirical source:**
@@ -36,7 +36,7 @@ saturation penalty returned when ρ ≥ 1.
 This study analysed 22,200 public charging stations across Germany and reported that most
 AC charging stations operate well below full capacity, with many stations seeing fewer than
 1 session per hour during off-peak periods. The figure of 0.75 arrivals/hour is consistent
-with a typical urban AC charge point under moderate demand — below the empirical peak but
+with a typical urban AC charge point under moderate demand, below the empirical peak but
 above the near-idle off-peak rate, making it a representative baseline for algorithm
 comparison. UK public EVSE utilisation data compiled by Zapmap for the Department for Transport
 confirms that average sessions per point per day remain well below saturation for most
@@ -53,13 +53,13 @@ is a realistic busy-hour figure rather than an unreachable extreme.
 
 | Variant | `load_multiplier` | Effective λ (arrivals/hr) | ρ (c = 1) | Queue state |
 |---|---|---|---|---|
-| `baseline_equal`, `distance_priority`, `topk_robustness` | 1.0 | 0.75 | 0.50 | Stable — baseline |
-| `queue_stress` | 1.6 | 1.20 | 0.80 | Stable — peak demand |
-| `erlang_sensitivity` × 0.5 | 0.5 | 0.375 | 0.25 | Stable — light load |
-| `erlang_sensitivity` × 1.0 | 1.0 | 0.75 | 0.50 | Stable — baseline |
-| `erlang_sensitivity` × 1.5 | 1.5 | 1.125 | 0.75 | Stable — moderate load |
-| `erlang_sensitivity` × 2.0 | 2.0 | 1.50 | 1.00 | Boundary — saturation onset |
-| `erlang_sensitivity` × 3.0 | 3.0 | 2.25 | 1.50 | Unstable — penalty region |
+| `baseline_equal`, `distance_priority`, `topk_robustness` | 1.0 | 0.75 | 0.50 | Stable, baseline |
+| `queue_stress` | 1.6 | 1.20 | 0.80 | Stable, peak demand |
+| `erlang_sensitivity` × 0.5 | 0.5 | 0.375 | 0.25 | Stable, light load |
+| `erlang_sensitivity` × 1.0 | 1.0 | 0.75 | 0.50 | Stable, baseline |
+| `erlang_sensitivity` × 1.5 | 1.5 | 1.125 | 0.75 | Stable, moderate load |
+| `erlang_sensitivity` × 2.0 | 2.0 | 1.50 | 1.00 | Boundary, saturation onset |
+| `erlang_sensitivity` × 3.0 | 3.0 | 2.25 | 1.50 | Unstable, penalty region |
 
 The `queue_stress` variant (λ = 1.2/hr, ρ = 0.8) models congested peak demand while
 remaining stable, allowing the Erlang-C model to produce finite wait predictions.
@@ -88,16 +88,16 @@ Used in `erlang_c_wait_minutes` and `erlang_c_probability_of_delay`.
 > U.S. Department of Energy, Office of Energy Efficiency and Renewable Energy (EERE).
 > (2023, December 4). *FOTW #1319: EV Charging at Paid DC Fast Charging Stations Average
 > 42 Minutes per Session*. Energetics / EVWATTS Dashboard, 2.4 million charging sessions,
-> June 2020 – June 2023.
+> June 2020 - June 2023.
 > https://www.energy.gov/cmei/vehicles/transportation-fact-week-2023-archive
 > [Accessed: January 2026; original EERE URL broken, DOE archive confirmed May 2026]
 The DoE dataset of 2.4 million sessions found a mean of **42 minutes** for paid DC fast
 charging. Level 2 AC sessions have longer *connection* times (drivers leave vehicles
-plugged in after charging completes), but empirical *active charging* durations for 7–22 kW
+plugged in after charging completes), but empirical *active charging* durations for 7-22 kW
 AC chargers in European urban settings are broadly consistent with the 40-minute figure
-adopted here. Wolbertus et al. (2018) (*Energy Policy*, 104, 61–68) report median
-connection times of 1–3 hours for Dutch workplace chargers but note median *charging*
-durations closer to 40–60 minutes for public street chargers. The value of 40 minutes is
+adopted here. Wolbertus et al. (2018) (*Energy Policy*, 104, 61-68) report median
+connection times of 1-3 hours for Dutch workplace chargers but note median *charging*
+durations closer to 40-60 minutes for public street chargers. The value of 40 minutes is
 therefore a conservative lower bound on session duration, which makes the Erlang-C model
 slightly optimistic about capacity (shorter sessions free chargers faster), providing a
 safety margin in wait predictions.
@@ -110,9 +110,9 @@ Background reservations are seeded with uniformly distributed session durations:
 |---|---|
 | Normal stations | U(20, 60) |
 | Hotspot stations | U(35, 65) |
-| Simulated EV requests — urban scenario | U(30, 50) |
-| Simulated EV requests — mixed scenario | U(25, 55) |
-| Simulated EV requests — highway scenario | U(20, 45) |
+| Simulated EV requests, urban scenario | U(30, 50) |
+| Simulated EV requests, mixed scenario | U(25, 55) |
+| Simulated EV requests, highway scenario | U(20, 45) |
 
 The Erlang-C model is evaluated at the fixed default μ = 1/40 min⁻¹ for scoring; the
 random session draws affect only the reservation-slot blocking logic used to test
@@ -138,7 +138,7 @@ determine whether a station is safely reachable from the EV's current state of c
 > https://doi.org/10.3390/su16177529
 
 Analysis of 342 fully electric car models sold in the Netherlands, Germany, and the UK
-(autumn 2023 – summer 2024) found:
+(autumn 2023 - summer 2024) found:
 
 - **Certified consumption (WLTP):** 19 ± 4 kWh/100 km
 - **Real-world consumption:** 21 ± 4 kWh/100 km
@@ -161,7 +161,7 @@ consumption values of 0.15, 0.20, and 0.25 kWh/km to quantify how the penalty th
 urban), ambient temperature (battery efficiency drops ~20 % at 0 °C), and auxiliary load
 (heating, air-conditioning). The 0.20 kWh/km figure is appropriate for mixed urban/suburban
 driving in temperate conditions; applications in cold climates or for highway routing should
-use a higher value (0.25–0.30 kWh/km).
+use a higher value (0.25-0.30 kWh/km).
 
 ---
 
@@ -169,6 +169,6 @@ use a higher value (0.25–0.30 kWh/km).
 
 | Constant | Value | Primary source | Sensitivity range exercised |
 |---|---|---|---|
-| `ARRIVAL_RATE_PER_HOUR_DEFAULT` | 0.75 arr/hr | Hecht et al. (2022) iScience | 0.375–2.25 (×0.5 to ×3.0 load multipliers; ρ 0.25→1.5) |
-| `MEAN_SERVICE_MINUTES_DEFAULT` | 40 min | DoE EERE FOTW #1319 (2023) | 20–65 min (uniform draw in seeding) |
-| `ENERGY_CONSUMPTION_KWH_PER_KM` | 0.2 kWh/km | Weiss et al. (2024) Sustainability | Not yet varied — planned future work |
+| `ARRIVAL_RATE_PER_HOUR_DEFAULT` | 0.75 arr/hr | Hecht et al. (2022) iScience | 0.375-2.25 (×0.5 to ×3.0 load multipliers; ρ 0.25→1.5) |
+| `MEAN_SERVICE_MINUTES_DEFAULT` | 40 min | DoE EERE FOTW #1319 (2023) | 20-65 min (uniform draw in seeding) |
+| `ENERGY_CONSUMPTION_KWH_PER_KM` | 0.2 kWh/km | Weiss et al. (2024) Sustainability | Not yet varied, planned future work |

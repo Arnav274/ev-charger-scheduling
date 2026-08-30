@@ -24,7 +24,7 @@ Set-Location "D:\Projects\Uni\dissertation\ev-3.0-"
 docker compose up --build -d
 ```
 
-**Check everything is up** (especially OSRM — it must not be `Exited`):
+**Check everything is up** (especially OSRM, it must not be `Exited`):
 
 ```powershell
 docker compose ps
@@ -72,7 +72,7 @@ docker compose exec backend python -m scripts.seed_background_reservations
 
 | What you changed | What to do |
 |------------------|------------|
-| **Python** under `backend/` | Usually **nothing** — uvicorn `--reload` picks it up. If behaviour looks stale: `docker compose restart backend`. |
+| **Python** under `backend/` | Usually **nothing**, uvicorn `--reload` picks it up. If behaviour looks stale: `docker compose restart backend`. |
 | **`docker-compose.yml`**, **Dockerfile**, **new pip deps** | `docker compose up --build -d` |
 | **`.env`** (API key, secrets) | `docker compose up -d --force-recreate backend` |
 | **Frontend** under `frontend/` | Vite reloads in dev; if odd: `docker compose restart frontend` or `docker compose exec frontend npm install` |

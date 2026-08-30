@@ -80,7 +80,7 @@ export default function StatsDashboard({ rows, loadError }) {
           <div className="finding-card finding-card--highlight">
             <div className="finding-value">d = 1.17</div>
             <div className="finding-label">Cohen's d</div>
-            <div className="finding-detail">effect size — large (&gt; 0.8)</div>
+            <div className="finding-detail">effect size, large (&gt; 0.8)</div>
           </div>
           <div className="finding-card">
             <div className="finding-value">F = 228.67</div>

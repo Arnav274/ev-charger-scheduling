@@ -56,7 +56,7 @@ def _build_graph(
     """Build a complete weighted undirected adjacency list. Node 0 is the origin.
 
     Every pair of nodes gets a Haversine edge, so Dijkstra finds the shortest
-    chain of hops rather than a direct straight line — a simple approximation
+    chain of hops rather than a direct straight line, a simple approximation
     of road distance. For real road distances the app uses OSRM instead
     (see routing_osrm.py); this graph is the fallback for the Dijkstra strategy.
     """
@@ -101,7 +101,7 @@ def _dijkstra(
 
 
         # Lazy deletion: if a shorter path to u was found after this heap entry
-        # was pushed, skip it — the node has already been finalised.
+        # was pushed, skip it, the node has already been finalised.
         if d_u > dist[u]:
             continue
 

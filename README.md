@@ -35,6 +35,14 @@ Confidence intervals for every cell above are in
 queue aware group and the distance only group is far larger than any interval, so the ranking is not
 a sampling artefact.
 
+The result that did not go my way is worth stating too. `queue_aware` adds reservation lookahead on
+top of `static_queue`, anticipating bookings that will already be in progress when you arrive. At
+baseline load it buys nothing: d = 0.03, p = 1.0. The extra machinery only starts to pay under the
+`queue_stress` variant. The app reports this alongside the favourable numbers rather than quietly
+dropping it.
+
+![Findings panel from the running app: 162 conditions, 99% predicted wait reduction, Cohen's d of 1.17, F of 228.67, eta squared of 0.39, and a highlighted null result for queue aware against static queue.](docs/screenshots/experiment-findings-panel.png)
+
 ## Method
 
 The comparison is an experiment rather than a demo, so it is set up to be re-run and checked.
@@ -68,6 +76,15 @@ absurd wait times.
 | `queue_aware` | As above, but counting bookings already made in your arrival window |
 | `cost_optimized` | Weighted distance, wait and price |
 | `range_aware` | Reachability on current battery, then lowest wait |
+
+## The application
+
+![The app running against live London data. A Leaflet map covered in charging station markers, with a sidebar showing five ranked recommendations, each with distance, travel time, predicted wait, probability of delay and current occupancy.](docs/screenshots/app-map-queue-aware.jpg)
+
+502 stations and 761 chargers ingested from OpenChargeMap, routed with OSRM. Switching strategy
+re-ranks in place, and every recommendation carries the numbers behind it, so you can see why a
+station was chosen rather than being told to trust it. The Stats tab reads the committed experiment
+results directly, which is where the panel above comes from.
 
 ## How it is built
 
@@ -131,7 +148,8 @@ the path finding including disconnected graphs and unreachable targets.
 
 ## Troubleshooting
 
-**Port already in use.** Something else holds 5173, 8000 or 5432. Stop it and retry.
+**Port already in use.** The stack needs 5173, 8000, 5000 and 5433. Postgres is published on 5433
+rather than 5432 precisely because a locally installed Postgres usually holds 5432.
 
 **Containers exit immediately.** Docker Desktop is not running.
 

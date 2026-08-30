@@ -6,7 +6,9 @@ services:
       POSTGRES_USER: evuser
       POSTGRES_PASSWORD: evpass
     ports:
-      - "5432:5432"
+      # 5433 on the host, because a locally installed Postgres usually holds 5432.
+      # The backend reaches the database at db:5432 over the compose network either way.
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

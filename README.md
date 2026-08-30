@@ -146,6 +146,18 @@ docker compose exec backend pytest -q
 `test_erlang_c.py`, which pins the queueing maths, and `test_dijkstra.py`, which covers the path
 finding including disconnected graphs and unreachable targets.
 
+Unit tests do not tell you the stack is actually wired together, so there is a separate end to end
+check:
+
+```bash
+bash scripts/smoke_test.sh
+```
+
+Run against a running stack, it verifies the containers, that the committed experiment outputs are
+present, the health endpoint, that at least 50 stations loaded, that demo login returns a token,
+that the stats endpoint returns all 162 conditions, that OSRM answers a real routing query, that the
+frontend serves, and then runs the test suite. It prints a pass or fail line per check.
+
 ## Troubleshooting
 
 **Port already in use.** The stack needs 5173, 8000, 5000 and 5433. Postgres is published on 5433

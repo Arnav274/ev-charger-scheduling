@@ -1,12 +1,21 @@
 #!/bin/bash
-# Run this on the laptop after git reset --hard origin/main
-# It checks every critical piece of the system and prints PASS or FAIL
+# End-to-end smoke test. Run it against a running stack (docker compose up) to
+# confirm every moving part works: containers, committed experiment outputs, the
+# API, authentication, the stats endpoint, OSRM routing, the frontend and the
+# test suite. Prints PASS or FAIL per check, then a summary.
+
+# Every path and compose command below is relative to the repository root, so
+# work from there regardless of where the script was invoked from.
+cd "$(dirname "$0")/.." || exit 1
 
 PASS=0
 FAIL=0
 
-ok()  { echo "✅ $1"; ((PASS++)); }
-bad() { echo "❌ $1"; ((FAIL++)); }
+# Assign rather than ((n++)): the post-increment form returns exit status 1 when
+# the counter is still 0, which made the first passing check fall through to the
+# `|| bad` branch and report a phantom failure.
+ok()  { echo "✅ $1"; PASS=$((PASS + 1)); }
+bad() { echo "❌ $1"; FAIL=$((FAIL + 1)); }
 
 echo "=== Docker containers ==="
 docker compose ps --format "{{.Name}} {{.Status}}" 2>/dev/null | while read name status; do

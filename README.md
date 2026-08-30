@@ -142,9 +142,9 @@ Pick a strategy from the dropdown, and the ranked recommendations update. Click 
 docker compose exec backend pytest -q
 ```
 
-53 test functions across 9 backend files, plus a small frontend suite under Vitest. The ones worth
-reading are `test_erlang_c.py`, which pins the queueing maths, and `test_dijkstra.py`, which covers
-the path finding including disconnected graphs and unreachable targets.
+56 backend tests across 9 files, plus a frontend suite under Vitest. The ones worth reading are
+`test_erlang_c.py`, which pins the queueing maths, and `test_dijkstra.py`, which covers the path
+finding including disconnected graphs and unreachable targets.
 
 ## Troubleshooting
 

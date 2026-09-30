@@ -129,9 +129,14 @@ describe("App", () => {
 
   it("signs out when the saved token is no longer accepted", async () => {
     localStorage.setItem("ev_access_token", "expired");
-    const unauthorised = Object.assign(new Error("Could not validate credentials"), { status: 401 });
-    api.fetchVehicles.mockRejectedValue(unauthorised);
-    api.getMyReservations.mockRejectedValue(unauthorised);
+    // Go through the real API client so its 401 handling runs.
+    api.fetchVehicles.mockRestore();
+    api.getMyReservations.mockRestore();
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({ detail: "Could not validate credentials" }),
+    });
     render(<App />);
 
     expect(await screen.findByRole("button", { name: "Sign in" })).toBeInTheDocument();
@@ -167,5 +172,31 @@ describe("App", () => {
     await userEvent.type(screen.getByLabelText("Password"), "demo");
     await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
     expect(api.loginUser).toHaveBeenCalledWith("demo@example.com", "demo");
+  });
+
+  it("does not let a slow initial load overwrite the user's own search", async () => {
+    let answerInitialLoad;
+    api.fetchNearbyStations
+      .mockImplementationOnce(() => new Promise((resolve) => (answerInitialLoad = resolve)))
+      .mockResolvedValueOnce([station, { ...station, id: "s2", name: "Second" }]);
+    render(<App />);
+
+    await userEvent.clear(screen.getByLabelText("Radius (km)"));
+    await userEvent.type(screen.getByLabelText("Radius (km)"), "2");
+    await userEvent.click(screen.getByRole("button", { name: "Find nearby stations" }));
+    expect(await screen.findByText("2 stations within 2 km.")).toBeInTheDocument();
+
+    answerInitialLoad([station]);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.getByText("2 stations within 2 km.")).toBeInTheDocument();
+  });
+
+  it("rejects a comma decimal rather than truncating it", async () => {
+    render(<App />);
+    await screen.findByText("1 stations within 5 km.");
+    await userEvent.clear(screen.getByLabelText("Latitude"));
+    await userEvent.type(screen.getByLabelText("Latitude"), "51,5074");
+    await userEvent.click(screen.getByRole("button", { name: "Find nearby stations" }));
+    expect(await screen.findByText("Enter a latitude between -90 and 90.")).toBeInTheDocument();
   });
 });

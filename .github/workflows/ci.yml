@@ -8,6 +8,24 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: evdb
+          POSTGRES_USER: evuser
+          POSTGRES_PASSWORD: evpass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U evuser -d evdb"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql+psycopg2://evuser:evpass@localhost:5432/evdb
+      # Fail rather than skip if the database tests cannot connect.
+      REQUIRE_DB: "1"
     defaults:
       run:
         working-directory: backend

@@ -4,7 +4,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 import bcrypt
-from jose import JWTError, jwt
+import jwt
 
 from app.config import settings
 
@@ -35,5 +35,5 @@ def decode_access_token_subject(token: str) -> uuid.UUID:
     payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
     sub = payload.get("sub")
     if sub is None:
-        raise JWTError("missing subject")
+        raise jwt.InvalidTokenError("missing subject")
     return uuid.UUID(str(sub))

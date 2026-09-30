@@ -23,7 +23,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg2://evuser:evpass@db:5432/evdb
       OSRM_BASE_URL: http://osrm:5000
-      JWT_SECRET_KEY: dev-not-for-production-change-me
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-}
       OPENCHARGEMAP_API_KEY: ${OPENCHARGEMAP_API_KEY:-}
       PYTHONUNBUFFERED: "1"
       PYTHONPATH: /app
@@ -39,29 +39,42 @@ services:
     working_dir: /app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-  osrm-prep:
-    image: ghcr.io/project-osrm/osrm-backend:latest
-    working_dir: /data
+  # Downloads a pinned Greater London OpenStreetMap snapshot once. Pinning keeps
+  # the road network, and so every travel time, identical across machines.
+  # The OSRM image ships without wget or curl, hence a separate container.
+  osm-download:
+    image: curlimages/curl:8.15.0
+    user: root
     volumes:
       - osrmdata:/data
-    command: >
-      sh -lc "
-      if [ ! -f /data/london.osrm.mldgr ]; then
-        echo 'Downloading London OSM extract...';
-        wget -q -O /data/london.osm.pbf https://download.geofabrik.de/europe/united-kingdom/england/greater-london-latest.osm.pbf;
-        echo 'Extracting...';
-        osrm-extract -p /opt/car.lua /data/london.osm.pbf;
-        echo 'Partitioning...';
-        osrm-partition /data/london.osrm;
-        echo 'Customizing...';
-        osrm-customize /data/london.osrm;
-      else
-        echo 'OSRM data already prepared.';
-      fi
-      "
+    command:
+      - sh
+      - -euc
+      - |
+        if [ -f /data/london.osm.pbf ]; then echo "London extract already downloaded."; exit 0; fi
+        echo "Downloading the Greater London OSM extract (about 120 MB)..."
+        curl -fsSL --retry 3 -o /data/london.osm.pbf.part           https://download.geofabrik.de/europe/united-kingdom/england/greater-london-260101.osm.pbf
+        mv /data/london.osm.pbf.part /data/london.osm.pbf
+
+  osrm-prep:
+    image: ghcr.io/project-osrm/osrm-backend:v26.9.0-debian
+    working_dir: /data
+    depends_on:
+      osm-download:
+        condition: service_completed_successfully
+    volumes:
+      - osrmdata:/data
+    command:
+      - sh
+      - -euc
+      - |
+        if [ -f /data/london.osrm.mldgr ]; then echo "OSRM data already prepared."; exit 0; fi
+        osrm-extract -p /opt/car.lua /data/london.osm.pbf
+        osrm-partition /data/london.osrm
+        osrm-customize /data/london.osrm
 
   osrm:
-    image: ghcr.io/project-osrm/osrm-backend:latest
+    image: ghcr.io/project-osrm/osrm-backend:v26.9.0-debian
     working_dir: /data
     depends_on:
       osrm-prep:

@@ -6,10 +6,11 @@ from pathlib import Path
 
 from sqlalchemy.orm import joinedload
 
-from app.algorithms import STRATEGIES, DijkstraStrategy, RecommendationContext, haversine_km
+from app.algorithms import STRATEGIES, RecommendationContext, StationInfo, Travel
 from app.database import SessionLocal
+from app.geo import haversine_km
 from app.models import Station
-from app.queueing import erlang_c_probability_of_delay, erlang_c_wait_minutes
+from app.queueing import predict_wait
 from app.routing_osrm import route_one_to_many
 
 OUT_DIR = Path(__file__).parent / "outputs"
@@ -143,6 +144,8 @@ def run(n_trials: int = 100) -> Path:
         stations = db.query(Station).options(joinedload(Station.chargers)).all()
         if not stations:
             raise RuntimeError("No stations found. Run ingestion first.")
+        station_infos = [StationInfo.from_model(s) for s in stations]
+        station_by_id = {str(s.id): s for s in stations}
 
         rows: list[dict] = []
         scenario_configs = {
@@ -246,88 +249,46 @@ def run(n_trials: int = 100) -> Path:
                     origin_lon = random.uniform(*cfg["lon_range"])
                     battery_capacity_kwh = 40.0
                     battery_level_percent = random.uniform(8.0, 30.0)
-                    context = RecommendationContext(
-                        origin_lat=origin_lat,
-                        origin_lon=origin_lon,
-                        weights=variant["weights"],
-                        arrival_window_minutes=int(ARRIVAL_WINDOW_MIN),
-                        battery_level_percent=battery_level_percent,
-                        battery_capacity_kwh=battery_capacity_kwh,
-                    )
                     travel_metrics = route_one_to_many(
                         origin_lat=origin_lat,
                         origin_lon=origin_lon,
                         destinations=[(s.lat, s.lon) for s in stations],
                     )
                     if travel_metrics is None:
-                        travel_by_station = {
-                            str(s.id): (
-                                haversine_km(origin_lat, origin_lon, s.lat, s.lon),
-                                (haversine_km(origin_lat, origin_lon, s.lat, s.lon) / 25.0) * 60.0,
-                            )
-                            for s in stations
-                        }
+                        travel = {}
+                        for s in station_infos:
+                            km = haversine_km(origin_lat, origin_lon, s.lat, s.lon)
+                            travel[s.id] = Travel(km, km / 25.0 * 60.0)
                     else:
-                        travel_by_station = {
-                            str(s.id): (m.distance_km, m.duration_min)
-                            for s, m in zip(stations, travel_metrics, strict=False)
+                        travel = {
+                            s.id: Travel(m.distance_km, m.duration_min)
+                            for s, m in zip(station_infos, travel_metrics, strict=True)
                         }
-                    context.travel_by_station = travel_by_station  # type: ignore[attr-defined]
-
-                    max_distance = max(travel_by_station[str(s.id)][0] for s in stations) or 1.0
-                    max_wait = (
-                        max(
-                            erlang_c_wait_minutes(
-                                s.arrival_rate_per_hour * variant["load_multiplier"],
-                                s.mean_service_minutes,
-                                max(1, len(s.chargers)),
-                            )
-                            for s in stations
-                        )
-                        or 1.0
-                    )
-                    max_cost = max(s.price_pence_per_kwh for s in stations) or 1.0
-                    max_vals = {"distance": max_distance, "wait": max_wait, "cost": max_cost}
 
                     for algorithm, strategy in STRATEGIES.items():
                         request_start = random.uniform(0, 24 * 60)
                         future_reserved_parallel_by_station: dict[str, int] = {}
-                        future_reservation_starts_by_station: dict[str, int] = {}
-                        for s in stations:
-                            sid = str(s.id)
-                            distance_km, travel_time_min = travel_by_station[sid]
-                            arrival_start = request_start + float(travel_time_min)
-                            window_start = arrival_start
-                            window_end = arrival_start + ARRIVAL_WINDOW_MIN
-                            all_intervals = flatten_station_intervals(per_alg_schedules[algorithm][sid])
-                            future_reserved_parallel_by_station[sid] = max_overlapping_in_window(
-                                all_intervals, window_start=window_start, window_end=window_end
+                        for s in station_infos:
+                            arrival_start = request_start + travel[s.id].duration_min
+                            future_reserved_parallel_by_station[s.id] = max_overlapping_in_window(
+                                flatten_station_intervals(per_alg_schedules[algorithm][s.id]),
+                                window_start=arrival_start,
+                                window_end=arrival_start + ARRIVAL_WINDOW_MIN,
                             )
-                            future_reservation_starts_by_station[sid] = count_starts_in_window(
-                                all_intervals, window_start=window_start, window_end=window_end
-                            )
-                        context.future_reserved_parallel_by_station = future_reserved_parallel_by_station  # type: ignore[attr-defined]
-                        context.future_reservation_starts_by_station = future_reservation_starts_by_station  # type: ignore[attr-defined]
+                        context = RecommendationContext(
+                            origin_lat=origin_lat,
+                            origin_lon=origin_lon,
+                            travel=travel,
+                            reserved_by_station=future_reserved_parallel_by_station,
+                            weights=variant["weights"],
+                            battery_level_percent=battery_level_percent,
+                            battery_capacity_kwh=battery_capacity_kwh,
+                            arrival_rate_scale=variant["load_multiplier"],
+                        )
 
                         t0 = time.perf_counter()
-                        pre_computed_dijkstra: dict[str, float] | None = None
-                        if isinstance(strategy, DijkstraStrategy):
-                            pre_computed_dijkstra = strategy.rank_all(stations, context)
-
-                        def _score(
-                            s: Station,
-                            _strategy=strategy,
-                            _ctx=context,
-                            _mv=max_vals,
-                            _pd=pre_computed_dijkstra,
-                        ) -> float:
-                            if _pd is not None:
-                                return _strategy.score(s, _ctx, _mv, _pd[str(s.id)])
-                            return _strategy.score(s, _ctx, _mv)
-
-                        ranked = sorted(stations, key=_score)
-                        candidate_pool = ranked[: variant["top_k"]]
-                        best = random.choice(candidate_pool)
+                        candidate_pool = strategy.rank(station_infos, context)[: variant["top_k"]]
+                        best = station_by_id[random.choice(candidate_pool).station.id]
                         runtime_ms = (time.perf_counter() - t0) * 1000
                         duration = random.uniform(*cfg["duration_range"])
                         accepted = try_reserve(
@@ -345,19 +306,15 @@ def run(n_trials: int = 100) -> Path:
                         c = max(1, len(best.chargers))
                         c_eff = max(1, c - reserved_parallel) if algorithm == "queue_aware" else c
                         lambda_eval = best.arrival_rate_per_hour * float(variant["load_multiplier"])
-                        wait_min = erlang_c_wait_minutes(lambda_eval, best.mean_service_minutes, c_eff)
-                        p_delay = erlang_c_probability_of_delay(
-                            arrival_rate_per_hour=lambda_eval,
-                            service_rate_per_hour=60.0 / best.mean_service_minutes,
-                            c=c_eff,
-                        )
+                        prediction = predict_wait(lambda_eval, best.mean_service_minutes, c_eff)
+                        wait_min, p_delay = prediction.wait_min, prediction.probability_of_delay
 
                         rows.append(
                             {
                                 "variant": variant["name"],
                                 "scenario": scenario,
                                 "algorithm": algorithm,
-                                "distance_km": travel_by_station[str(best.id)][0],
+                                "distance_km": travel[sid].distance_km,
                                 "wait_min": wait_min,
                                 "probability_of_delay": p_delay,
                                 "reserved_parallel": reserved_parallel if algorithm == "queue_aware" else 0,

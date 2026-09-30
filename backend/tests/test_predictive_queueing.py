@@ -1,6 +1,6 @@
 from datetime import UTC, datetime, timedelta, timezone
 
-from app.predictive_queueing import ReservationInterval, ensure_utc, max_overlapping
+from app.predictive_queueing import ReservationInterval, booked_during_arrival, ensure_utc, max_overlapping
 
 T0 = datetime(2030, 1, 1, 9, 0, tzinfo=UTC)
 
@@ -41,3 +41,11 @@ def test_ensure_utc() -> None:
     assert ensure_utc(naive) == datetime(2030, 1, 1, 12, 0, tzinfo=UTC)
     bst = datetime(2030, 6, 1, 13, 0, tzinfo=timezone(timedelta(hours=1)))
     assert ensure_utc(bst).hour == 12
+
+
+def test_booked_during_arrival_only_counts_the_window() -> None:
+    bookings = [interval(0, 30), interval(10, 40), interval(60, 90)]
+    window = timedelta(minutes=15)
+    assert booked_during_arrival(bookings, T0 + timedelta(minutes=12), window) == 2
+    assert booked_during_arrival(bookings, T0 + timedelta(minutes=45), window) == 0
+    assert booked_during_arrival(bookings, T0 + timedelta(minutes=50), window) == 1

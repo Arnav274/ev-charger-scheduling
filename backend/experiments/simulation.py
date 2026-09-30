@@ -38,7 +38,7 @@ from app.algorithms import (
     StationInfo,
     Travel,
 )
-from app.predictive_queueing import ReservationInterval, max_overlapping
+from app.predictive_queueing import ReservationInterval, booked_during_arrival
 from experiments.config import (
     ARRIVAL_WINDOW_MINUTES,
     BATTERY_CAPACITY_KWH,
@@ -150,6 +150,7 @@ def choose_stations(
     # Bookings made through the app so far, per station, as (arrival, expected departure).
     bookings: dict[int, list[ReservationInterval]] = {}
     range_check = RangeAwareStrategy()
+    window = timedelta(minutes=ARRIVAL_WINDOW_MINUTES)
     choices = []
 
     for driver in day.drivers:
@@ -165,12 +166,8 @@ def choose_stations(
         if algorithm == "queue_aware":
             for i in candidates:
                 if i in bookings:
-                    arrive = driver.depart_min + float(inputs.osrm_min[o, i])
-                    window_start, window_end = _timestamp(arrive), _timestamp(arrive + ARRIVAL_WINDOW_MINUTES)
-                    overlapping = [
-                        b for b in bookings[i] if b.start_time < window_end and b.end_time > window_start
-                    ]
-                    reserved[inputs.stations[i].id] = max_overlapping(overlapping)
+                    arrive = _timestamp(driver.depart_min + float(inputs.osrm_min[o, i]))
+                    reserved[inputs.stations[i].id] = booked_during_arrival(bookings[i], arrive, window)
 
         ctx = RecommendationContext(
             origin_lat=float(inputs.origins[o, 0]),

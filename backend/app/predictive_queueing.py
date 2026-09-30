@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 
 @dataclass(frozen=True)
@@ -43,3 +43,15 @@ def max_overlapping(intervals: Iterable[ReservationInterval]) -> int:
         current += delta
         peak = max(peak, current)
     return peak
+
+
+def booked_during_arrival(
+    bookings: Iterable[ReservationInterval], arrival: datetime, window: timedelta
+) -> int:
+    """Peak number of bookings in progress during [arrival, arrival + window).
+
+    This is what QueueAwareStrategy subtracts from a station's chargers. The API
+    and the experiment both call it, so they model the same lookahead.
+    """
+    end = arrival + window
+    return max_overlapping(b for b in bookings if b.start_time < end and b.end_time > arrival)

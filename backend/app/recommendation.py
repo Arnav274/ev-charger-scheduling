@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.algorithms import STRATEGIES, RecommendationContext, StationInfo, Travel
 from app.geo import haversine_km
 from app.models import Charger, Reservation, Station
-from app.predictive_queueing import ReservationInterval, ensure_utc, max_overlapping
+from app.predictive_queueing import ReservationInterval, booked_during_arrival, ensure_utc
 from app.routing_osrm import route_one_to_many
 from app.schemas import RecommendationOut, RecommendationRequest
 
@@ -127,14 +127,14 @@ def recommend(db: Session, req: RecommendationRequest, now: datetime) -> list[Re
     }
 
     ids = [s.id for s in stations]
-    bookings = reservations_by_station(db, ids, min(arrival_at.values()), max(arrival_at.values()) + window)
     reserved = {}
-    for s in stations:
-        window_start, window_end = arrival_at[s.id], arrival_at[s.id] + window
-        in_window = [
-            b for b in bookings.get(s.id, []) if b.start_time < window_end and b.end_time > window_start
-        ]
-        reserved[s.id] = max_overlapping(in_window)
+    if strategy.uses_reservations:
+        bookings = reservations_by_station(
+            db, ids, min(arrival_at.values()), max(arrival_at.values()) + window
+        )
+        reserved = {
+            s.id: booked_during_arrival(bookings.get(s.id, []), arrival_at[s.id], window) for s in stations
+        }
     occupancy = occupancy_by_station(db, ids, now)
 
     ctx = RecommendationContext(

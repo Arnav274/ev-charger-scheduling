@@ -15,7 +15,8 @@ from app.schemas import ReservationCreate, ReservationDetailOut, ReservationOut
 
 router = APIRouter(prefix="/reservations", tags=["reservations"])
 
-# Limits that stop one account from blocking chargers indefinitely.
+# Limits that stop one account from blocking chargers indefinitely. The booking
+# form mirrors MAX_ADVANCE in frontend/src/components/BookingPanel.jsx.
 MAX_BOOKING = timedelta(hours=12)
 MAX_ADVANCE = timedelta(days=30)
 MAX_UPCOMING_PER_USER = 10
@@ -81,6 +82,9 @@ def cancel_reservation(
     # Someone else's booking is reported as missing, so ids cannot be probed.
     if reservation is None or reservation.user_id != user_id:
         raise HTTPException(status_code=404, detail="Booking not found")
+    # Finished bookings are history, not something to cancel.
+    if ensure_utc(reservation.end_time) <= datetime.now(UTC):
+        raise HTTPException(status_code=409, detail="This booking has already ended")
     db.delete(reservation)
     db.commit()
 

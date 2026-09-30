@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.database import get_db
 from app.models import Charger, Reservation, Station
 from app.predictive_queueing import ensure_utc
+from app.routers.reservations import MAX_ADVANCE
 from app.schemas import ChargerOut, NearbyStationOut, SlotRequest, SlotSuggestion, StationDetailOut
 
 router = APIRouter(prefix="/stations", tags=["stations"])
@@ -83,9 +84,11 @@ def suggest_slot(
         chargers = [c for c in chargers if c.id == payload.charger_id]
 
     desired = ensure_utc(payload.desired_arrival)
-    # Never offer a slot that has already started, whatever time was asked for.
-    earliest = max(desired, datetime.now(UTC))
-    horizon_end = earliest + SLOT_SEARCH_HORIZON
+    now = datetime.now(UTC)
+    # Never offer a slot that has already started, whatever time was asked for,
+    # nor one further ahead than a booking may be made.
+    earliest = max(desired, now)
+    horizon_end = min(earliest + SLOT_SEARCH_HORIZON, now + MAX_ADVANCE)
     duration = timedelta(minutes=payload.duration_minutes)
 
     rows = db.execute(

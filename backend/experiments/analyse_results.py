@@ -328,7 +328,7 @@ def main() -> None:
             "days_per_scenario": REPLICATES,
             "variants": list(VARIANTS),
             # App drivers each strategy routed in the baseline variant.
-            "baseline_app_drivers": int(df.loc[df["variant"] == "baseline", "drivers"].sum() // len(ALGORITHMS)),
+            "baseline_app_drivers": int(df[df["variant"] == "baseline"]["drivers"].sum()) // len(ALGORITHMS),
         },
         "best_strategy": best,
         "vs_nearest": {

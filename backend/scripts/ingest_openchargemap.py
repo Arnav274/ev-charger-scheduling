@@ -38,7 +38,7 @@ PRICE_PENCE_PER_KWH = re.compile(r"(\d+(?:\.\d+)?)\s*p\s*(?:/|per)\s*kwh", re.IG
 def is_usable(record: dict) -> bool:
     """False for test entries and for stations known not to be working."""
     info = record.get("AddressInfo") or {}
-    if info.get("Latitude") is None or info.get("Longitude") is None:
+    if record.get("ID") is None or info.get("Latitude") is None or info.get("Longitude") is None:
         return False
     if any(TEST_ENTRY.search(info.get(field) or "") for field in ("Title", "AddressLine1")):
         return False
@@ -143,7 +143,8 @@ def sync_chargers(db, station_id, wanted: int, power_kw: float) -> None:
 
 
 def ingest(records: list[dict], *, prune: bool, min_stations: int = 0) -> int:
-    usable = [r for r in records if is_usable(r)]
+    # Keyed by ID, so duplicates in a response count once towards the minimum below.
+    usable = list({str(r["ID"]): r for r in records if is_usable(r)}.values())
     # Check before touching the database: pruning against a short or failed
     # response would otherwise delete every station it happened to leave out.
     if len(usable) < min_stations:

@@ -52,6 +52,7 @@ def test_unknown_status_is_kept() -> None:
         {"StatusType": {"IsOperational": False, "Title": "Not Operational"}},
         {"SubmissionStatus": {"IsLive": False}},
         {"AddressInfo": {"Title": "No location"}},
+        {"ID": None},
     ],
 )
 def test_test_entries_and_broken_stations_are_skipped(overrides) -> None:
@@ -85,6 +86,14 @@ def test_max_power_takes_the_fastest_connection() -> None:
     assert max_power_kw({"Connections": [{"PowerKW": 7}, {"PowerKW": 50}, {"PowerKW": None}]}) == 50
     assert max_power_kw({"Connections": []}) == 7.0
     assert max_power_kw({}) == 7.0
+
+
+def test_duplicate_records_count_once_towards_the_minimum(monkeypatch) -> None:
+    import scripts.ingest_openchargemap as module
+
+    monkeypatch.setattr(module, "SessionLocal", lambda: pytest.fail("ingest opened a database session"))
+    with pytest.raises(SystemExit, match="Only 2 usable stations"):
+        ingest([record(ID=1)] * 30 + [record(ID=2)] * 30, prune=True, min_stations=50)
 
 
 def test_a_short_response_is_refused_before_anything_is_written(monkeypatch) -> None:

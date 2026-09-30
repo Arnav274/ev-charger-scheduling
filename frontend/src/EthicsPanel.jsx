@@ -18,9 +18,9 @@ export default function EthicsPanel() {
       <p>
         <strong>Algorithmic fairness.</strong> This system compares six routing algorithms. Each one makes
         different trade-offs between travel distance, waiting time, and cost. Research has shown that
-        different routing policies can affect groups of drivers unevenly. Drivers who live further from city
-        centres, for example, may be penalised by distance-heavy approaches. The Jain fairness index shown in
-        the Stats tab measures how evenly recommendations are spread across stations.
+        different routing policies can affect groups of drivers unevenly, including people who never use the
+        app: a strategy that sends everyone to the same few stations lengthens the queue for local drivers
+        there. The experiment measures this directly as the wait of drivers outside the app.
       </p>
 
       <p>

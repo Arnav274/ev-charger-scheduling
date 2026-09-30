@@ -1,15 +1,13 @@
 """Tests for app.dijkstra."""
 
-import math
 import pytest
 
 from app.dijkstra import (
-    Station,
     RouteResult,
+    Station,
     haversine_km,
     shortest_paths_to_stations,
 )
-
 
 # Helpers
 
@@ -28,6 +26,7 @@ def _station_at_km(station_id: str, km: float) -> Station:
 
 # haversine_km sanity checks
 
+
 class TestHaversine:
     def test_same_point_is_zero(self):
         assert haversine_km(51.0, 0.0, 51.0, 0.0) == pytest.approx(0.0)
@@ -43,15 +42,10 @@ class TestHaversine:
         assert 140.0 < d < 180.0
 
 
-
 # shortest_paths_to_stations
 
 
 class TestShortestPaths:
-
-
-
-
     def test_nearest_station_identified_correctly(self):
         stations = [
             _station_at_km("far", 10.0),
@@ -62,11 +56,6 @@ class TestShortestPaths:
 
         nearest_id = min(results, key=lambda sid: results[sid].distance_km)
         assert nearest_id == "near"
-
-
-
-
-
 
     def test_three_stations_ordering(self):
         stations = [
@@ -86,22 +75,11 @@ class TestShortestPaths:
             _station_at_km("5km", 5.0),
         ]
 
-
-
-
-
-
-
         results = shortest_paths_to_stations(_ORIGIN_LAT, _ORIGIN_LON, stations)
 
         assert results["1km"].distance_km == pytest.approx(1.0, abs=0.05)
         assert results["2km"].distance_km == pytest.approx(2.0, abs=0.05)
         assert results["5km"].distance_km == pytest.approx(5.0, abs=0.05)
-
-
-
-
-
 
     def test_single_station_distance_positive(self):
         stations = [Station(station_id="only", lat=1.0, lon=1.0)]
@@ -118,18 +96,11 @@ class TestShortestPaths:
         ]
         results = shortest_paths_to_stations(_ORIGIN_LAT, _ORIGIN_LON, stations)
 
-
-
-
         for result in results.values():
             assert result.path_nodes, f"path_nodes is empty for {result.station_id}"
             assert result.path_nodes[0] == 0, (
-                f"Path for {result.station_id} starts at node "
-                f"{result.path_nodes[0]}, expected 0"
+                f"Path for {result.station_id} starts at node {result.path_nodes[0]}, expected 0"
             )
-
-
-
 
     def test_path_ends_at_correct_station_node(self):
         stations = [
@@ -138,20 +109,10 @@ class TestShortestPaths:
         ]
         results = shortest_paths_to_stations(_ORIGIN_LAT, _ORIGIN_LON, stations)
 
-
-
         # Stations are indexed 1, 2
         for idx, station in enumerate(stations, start=1):
             path = results[station.station_id].path_nodes
-            assert path[-1] == idx, (
-                f"Path for {station.station_id} ends at node {path[-1]}, expected {idx}"
-            )
-
-
-
-
-
-
+            assert path[-1] == idx, f"Path for {station.station_id} ends at node {path[-1]}, expected {idx}"
 
     def test_returns_all_stations(self):
         stations = [_station_at_km(f"S{i}", float(i)) for i in range(1, 6)]
@@ -162,12 +123,6 @@ class TestShortestPaths:
     def test_empty_stations_raises(self):
         with pytest.raises(ValueError):
             shortest_paths_to_stations(_ORIGIN_LAT, _ORIGIN_LON, [])
-
-
-
-
-
-
 
     def test_route_result_fields(self):
         stations = [_station_at_km("Z", 2.0)]

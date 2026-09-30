@@ -14,7 +14,6 @@ class NearbyStationOut(BaseModel):
     distance_m: float
 
 
-
 class ChargerOut(BaseModel):
     id: UUID
     name: str

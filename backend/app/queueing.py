@@ -3,7 +3,9 @@
 import math
 
 
-def erlang_c_probability_of_delay(arrival_rate_per_hour: float, service_rate_per_hour: float, c: int) -> float:
+def erlang_c_probability_of_delay(
+    arrival_rate_per_hour: float, service_rate_per_hour: float, c: int
+) -> float:
     """
     Return Erlang-C probability of delay P(W>0) for an M/M/c queue.
     """
@@ -27,8 +29,6 @@ def erlang_c_probability_of_delay(arrival_rate_per_hour: float, service_rate_per
     series = sum((c_rho**k) / math.factorial(k) for k in range(c))
     tail = (c_rho**c) / math.factorial(c) * (1 / (1 - rho))
     return tail / (series + tail)
-
-
 
 
 def erlang_c_wait_minutes(arrival_rate_per_hour: float, mean_service_minutes: float, c: int) -> float:

@@ -2,10 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import {
-
-
-
-
   createReservation,
   createVehicle,
   fetchNearbyStations,
@@ -17,12 +13,7 @@ import {
   loginUser,
   registerUser,
   suggestSlot,
-
 } from "./api";
-
-
-
-
 
 import EthicsPanel from "./EthicsPanel";
 import StatsDashboard from "./StatsDashboard";
@@ -35,8 +26,6 @@ const toLocalDatetimeInput = (d) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
-
-
 const ALGO_LABELS = {
   nearest: "Nearest",
   cost_optimized: "Cost-optimised",
@@ -45,7 +34,6 @@ const ALGO_LABELS = {
   dijkstra: "Dijkstra",
   range_aware: "Range-aware",
 };
-
 
 function FitBoundsToStations({ stations }) {
   const map = useMap();
@@ -58,7 +46,6 @@ function FitBoundsToStations({ stations }) {
 
   return null;
 }
-
 
 function App() {
   const [tab, setTab] = useState("map");
@@ -93,38 +80,37 @@ function App() {
   const [locating, setLocating] = useState(false);
   const [reservationSuccess, setReservationSuccess] = useState(null);
 
-
-
-
   const reserveSectionRef = useRef(null);
 
   const recommendationsRef = useRef(null);
   const rangeAwareRef = useRef(null);
   const myAccountRef = useRef(null);
 
-
-
   useEffect(() => {
     if (accessToken) localStorage.setItem(TOKEN_KEY, accessToken);
     else localStorage.removeItem(TOKEN_KEY);
   }, [accessToken]);
 
-
-
   useEffect(() => {
-    if (!accessToken) { setVehicles([]); setSelectedVehicleId(null); return; }
-    fetchVehicles(accessToken).then(setVehicles).catch(() => {});
+    if (!accessToken) {
+      setVehicles([]);
+      setSelectedVehicleId(null);
+      return;
+    }
+    fetchVehicles(accessToken)
+      .then(setVehicles)
+      .catch(() => {});
   }, [accessToken]);
 
-
-
-
   useEffect(() => {
-    if (!accessToken) { setMyReservations([]); return; }
-    getMyReservations(accessToken).then(setMyReservations).catch(() => {});
+    if (!accessToken) {
+      setMyReservations([]);
+      return;
+    }
+    getMyReservations(accessToken)
+      .then(setMyReservations)
+      .catch(() => {});
   }, [accessToken]);
-
-
 
   useEffect(() => {
     if (!recommendations.length) return;
@@ -135,16 +121,12 @@ function App() {
     });
   }, [recommendations]);
 
-
-
   useEffect(() => {
     if (!selectedStation) return;
     const ms30 = 30 * 60 * 1000;
     const rounded = new Date(Math.round(Date.now() / ms30) * ms30);
     setSlotArrival(toLocalDatetimeInput(rounded));
   }, [selectedStation]);
-
-
 
   async function loadNearby() {
     try {
@@ -156,13 +138,9 @@ function App() {
     }
   }
 
-
-
   useEffect(() => {
     let cancelled = false;
     const timers = [];
-
-
 
     async function initialLoad() {
       try {
@@ -177,13 +155,14 @@ function App() {
         for (let i = DELAY; i > 0; i--) {
           if (cancelled) return;
           setStatus(`Backend starting, retrying in ${i}s… (or click Find nearby stations)`);
-          await new Promise((r) => { const t = setTimeout(r, 1000); timers.push(t); });
+          await new Promise((r) => {
+            const t = setTimeout(r, 1000);
+            timers.push(t);
+          });
         }
         if (!cancelled) loadNearby();
       }
     }
-
-
 
     initialLoad();
     return () => {
@@ -191,8 +170,6 @@ function App() {
       timers.forEach(clearTimeout);
     };
   }, []);
-
-
 
   useEffect(() => {
     if (tab !== "stats") return;
@@ -204,8 +181,6 @@ function App() {
       .catch((err) => setStatsLoadError(err.message || "fetch failed"));
   }, [tab]);
 
-
-
   useEffect(() => {
     if (!recommendations.length) return;
     const stationById = new Map(stations.map((s) => [String(s.id), s]));
@@ -215,18 +190,24 @@ function App() {
     if (!missing.length) return;
 
     setFetchingHotspots(true);
-    Promise.all(missing.map((id) => fetchStation(id).then((st) => [id, st]).catch(() => null)))
+    Promise.all(
+      missing.map((id) =>
+        fetchStation(id)
+          .then((st) => [id, st])
+          .catch(() => null),
+      ),
+    )
       .then((results) => {
         setSupplementaryStations((prev) => {
           const next = new Map(prev);
-          results.forEach((entry) => { if (entry) next.set(entry[0], entry[1]); });
+          results.forEach((entry) => {
+            if (entry) next.set(entry[0], entry[1]);
+          });
           return next;
         });
       })
       .finally(() => setFetchingHotspots(false));
   }, [recommendations, stations, supplementaryStations]);
-
-
 
   useEffect(() => {
     setStationFilter("");
@@ -260,8 +241,6 @@ function App() {
     }
   }
 
-
-
   async function onSelectStation(stationId) {
     try {
       const data = await fetchStation(stationId);
@@ -279,8 +258,6 @@ function App() {
       setStatus(err.message);
     }
   }
-
-
 
   async function onRecommend(algorithm) {
     try {
@@ -304,7 +281,6 @@ function App() {
     }
   }
 
-
   function handleUseMyLocation() {
     if (!navigator.geolocation) return;
     setLocating(true);
@@ -316,7 +292,10 @@ function App() {
         setLocating(false);
         setStatus("Location found, loading nearby stations.");
         fetchNearbyStations(lat, lon, radiusKm)
-          .then((data) => { setStations(data); setStatus(`Loaded ${data.length} stations.`); })
+          .then((data) => {
+            setStations(data);
+            setStatus(`Loaded ${data.length} stations.`);
+          })
           .catch((err) => setStatus(err.message));
       },
       () => {
@@ -325,8 +304,6 @@ function App() {
       },
     );
   }
-
-
 
   function handleAlgoClick(algo) {
     setActiveAlgorithm(ALGO_LABELS[algo]);
@@ -339,12 +316,13 @@ function App() {
     onRecommend("range_aware");
   }
 
-
-
   async function onSaveVehicle(e) {
     e.preventDefault();
     try {
-      await createVehicle({ make_model: vehicleForm.make_model, battery_kwh: Number(vehicleForm.battery_kwh) }, accessToken);
+      await createVehicle(
+        { make_model: vehicleForm.make_model, battery_kwh: Number(vehicleForm.battery_kwh) },
+        accessToken,
+      );
       setVehicleForm({ make_model: "", battery_kwh: "" });
       const updated = await fetchVehicles(accessToken);
       setVehicles(updated);
@@ -368,10 +346,6 @@ function App() {
     }
   }
 
-
-
-
-
   async function onLogin(e) {
     e.preventDefault();
     try {
@@ -382,8 +356,6 @@ function App() {
       setAuthStatus(err.message);
     }
   }
-
-
 
   async function onReserve(e) {
     e.preventDefault();
@@ -424,7 +396,9 @@ function App() {
         end,
       });
       setForm((prev) => ({ ...prev, start_time: "", end_time: "" }));
-      getMyReservations(accessToken).then(setMyReservations).catch(() => {});
+      getMyReservations(accessToken)
+        .then(setMyReservations)
+        .catch(() => {});
       requestAnimationFrame(() => {
         if (typeof myAccountRef.current?.scrollIntoView === "function") {
           myAccountRef.current.open = true;
@@ -436,10 +410,6 @@ function App() {
       setReservationStatus(err.message);
     }
   }
-
-
-
-
 
   const position = useMemo(() => [center.lat, center.lon], [center]);
   const hotspotPoints = useMemo(() => {
@@ -460,9 +430,6 @@ function App() {
     return Array.from(byId.values());
   }, [recommendations, stations, supplementaryStations]);
 
-
-
-
   return (
     <div className="layout">
       <div className="sidebar">
@@ -472,16 +439,17 @@ function App() {
           <button type="button" className={tab === "map" ? "active" : ""} onClick={() => setTab("map")}>
             Map
           </button>
-          <button type="button" className={tab === "privacy" ? "active" : ""} onClick={() => setTab("privacy")}>
+          <button
+            type="button"
+            className={tab === "privacy" ? "active" : ""}
+            onClick={() => setTab("privacy")}
+          >
             Privacy &amp; ethics
           </button>
           <button type="button" className={tab === "stats" ? "active" : ""} onClick={() => setTab("stats")}>
             Stats
           </button>
         </div>
-
-
-
 
         {tab === "privacy" && <EthicsPanel />}
 
@@ -491,8 +459,6 @@ function App() {
           <>
             <p className="status global-status">{status}</p>
             {fetchingHotspots && <p className="status">Fetching hotspot locations…</p>}
-
-
 
             {/* 1. Find stations */}
             <details open className="sidebar-section">
@@ -516,10 +482,16 @@ function App() {
                 </div>
                 <div className="field">
                   <label>Radius (km)</label>
-                  <input type="number" value={radiusKm} onChange={(e) => setRadiusKm(Number(e.target.value))} />
+                  <input
+                    type="number"
+                    value={radiusKm}
+                    onChange={(e) => setRadiusKm(Number(e.target.value))}
+                  />
                 </div>
                 <div className="find-buttons">
-                  <button className="btn-primary btn-block" onClick={loadNearby}>Find nearby stations</button>
+                  <button className="btn-primary btn-block" onClick={loadNearby}>
+                    Find nearby stations
+                  </button>
                   {navigator.geolocation && (
                     <button
                       className="btn-secondary btn-block"
@@ -531,12 +503,10 @@ function App() {
                   )}
                 </div>
 
-
-
                 {stations.length < 50 && (
                   <p className="stats-note">
-                    Station count depends on ingestion. For realistic experiments, ingest 50+ live stations with{" "}
-                    <code>OPENCHARGEMAP_API_KEY</code>.
+                    Station count depends on ingestion. For realistic experiments, ingest 50+ live stations
+                    with <code>OPENCHARGEMAP_API_KEY</code>.
                   </p>
                 )}
                 {stations.length > 0 && (
@@ -551,7 +521,6 @@ function App() {
                   </div>
                 )}
 
-
                 {stations.length > 0 && (
                   <div className="field">
                     <label>Select station</label>
@@ -559,14 +528,15 @@ function App() {
                       defaultValue=""
                       onChange={(e) => e.target.value && onSelectStation(e.target.value)}
                     >
-                      <option value="" disabled>choose a station</option>
+                      <option value="" disabled>
+                        choose a station
+                      </option>
                       {stations
-                        .filter((s) =>
-                          s.name.toLowerCase().includes(stationFilter.toLowerCase())
-                        )
+                        .filter((s) => s.name.toLowerCase().includes(stationFilter.toLowerCase()))
                         .map((s) => (
                           <option key={s.id} value={s.id}>
-                            {s.name}{s.borough ? ` (${s.borough})` : ""}
+                            {s.name}
+                            {s.borough ? ` (${s.borough})` : ""}
                           </option>
                         ))}
                     </select>
@@ -574,8 +544,6 @@ function App() {
                 )}
               </div>
             </details>
-
-
 
             {/* 2. Algorithm */}
             <details open className="sidebar-section">
@@ -626,11 +594,11 @@ function App() {
                   </button>
                 </div>
                 <p className="algo-tip">
-                  Queue-aware and Static queue may recommend a station that is not the nearest one. This is intentional: they are avoiding stations with predicted queues.
+                  Queue-aware and Static queue may recommend a station that is not the nearest one. This is
+                  intentional: they are avoiding stations with predicted queues.
                 </p>
               </div>
             </details>
-
 
             {/* Recommendations, hidden until results exist */}
             <div
@@ -640,7 +608,11 @@ function App() {
               <h3 className="recommendations-label">Results: {activeAlgorithm}</h3>
               <ol className="recommendations-list">
                 {recommendations.map((r) => (
-                  <li key={r.station_id} onClick={() => onSelectStation(r.station_id)} style={{ cursor: "pointer" }}>
+                  <li
+                    key={r.station_id}
+                    onClick={() => onSelectStation(r.station_id)}
+                    style={{ cursor: "pointer" }}
+                  >
                     {r.station_name} | {Number(r.travel_distance_km).toFixed(2)} km |{" "}
                     {Number(r.travel_time_min).toFixed(1)} min travel |{" "}
                     {Number(r.predicted_wait_min).toFixed(2)} min wait | P(delay){" "}
@@ -649,9 +621,6 @@ function App() {
                 ))}
               </ol>
             </div>
-
-
-
 
             {/* 3. Range-aware routing */}
             <details className="sidebar-section" ref={rangeAwareRef}>
@@ -686,9 +655,6 @@ function App() {
                 </button>
               </div>
             </details>
-
-
-
 
             {/* 4. Reserve / Book, only when a station is selected */}
             {selectedStation && (
@@ -731,7 +697,9 @@ function App() {
                         required
                       />
                     </div>
-                    <button type="submit" className="btn-primary btn-block">Reserve</button>
+                    <button type="submit" className="btn-primary btn-block">
+                      Reserve
+                    </button>
                   </form>
                   {reservationSuccess && (
                     <div className="reservation-banner">
@@ -779,8 +747,7 @@ function App() {
                         const end = new Date(s.suggested_end);
                         return (
                           <li key={s.charger_id} className="slot-item">
-                            <strong>{chargerLabel}</strong>:{" "}
-                            {start.toLocaleString()} - {end.toLocaleString()}{" "}
+                            <strong>{chargerLabel}</strong>: {start.toLocaleString()} - {end.toLocaleString()}{" "}
                             {s.wait_from_desired_minutes > 0
                               ? `(wait ${Math.round(s.wait_from_desired_minutes)} min)`
                               : "(no wait)"}
@@ -806,10 +773,6 @@ function App() {
                 </div>
               </details>
             )}
-
-
-
-
 
             {/* 5. My account */}
             <details className="sidebar-section auth-box" ref={myAccountRef}>
@@ -838,7 +801,9 @@ function App() {
                         />
                       </div>
                       <div className="buttons">
-                        <button type="submit" className="btn-primary">Register</button>
+                        <button type="submit" className="btn-primary">
+                          Register
+                        </button>
                         <button type="button" className="btn-secondary" onClick={onLogin}>
                           Sign in
                         </button>
@@ -876,7 +841,9 @@ function App() {
                           required
                         />
                       </div>
-                      <button type="submit" className="btn-primary">Save vehicle</button>
+                      <button type="submit" className="btn-primary">
+                        Save vehicle
+                      </button>
                     </form>
                     {vehicles.length > 0 && (
                       <ul className="vehicle-list">

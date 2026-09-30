@@ -1,5 +1,7 @@
 # EV Charger Scheduling
 
+[![CI](https://github.com/Arnav274/ev-charger-scheduling/actions/workflows/ci.yml/badge.svg)](https://github.com/Arnav274/ev-charger-scheduling/actions/workflows/ci.yml)
+
 A full-stack system that recommends London EV charging stations, and a controlled experiment
 measuring whether it is worth modelling the queue at each one.
 

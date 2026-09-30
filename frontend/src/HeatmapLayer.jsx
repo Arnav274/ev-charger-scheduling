@@ -6,8 +6,6 @@ import L from "leaflet";
 export default function HeatmapLayer({ points, enabled }) {
   const map = useMap();
 
-
-
   useEffect(() => {
     if (!enabled) return;
     if (!points || !points.length) return;
@@ -36,4 +34,3 @@ export default function HeatmapLayer({ points, enabled }) {
 
   return null;
 }
-

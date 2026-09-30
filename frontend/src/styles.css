@@ -36,14 +36,12 @@ body {
   width: 100%;
 }
 
-
 .sidebar-title {
   margin: 0 0 4px;
   font-size: 1.1rem;
   font-weight: 700;
   color: #1e3a8a;
 }
-
 
 .tabs {
   display: flex;
@@ -70,7 +68,6 @@ body {
   color: #fff;
   border-color: #1d4ed8;
 }
-
 
 .sidebar-section {
   background: #fff;
@@ -103,7 +100,6 @@ body {
 details[open] > .section-summary::after {
   transform: rotate(90deg);
 }
-
 
 .section-summary::-webkit-details-marker {
   display: none;
@@ -252,7 +248,9 @@ button {
   font-weight: 500;
   white-space: nowrap;
   text-align: center;
-  transition: background 0.15s, outline 0.1s;
+  transition:
+    background 0.15s,
+    outline 0.1s;
 }
 
 .btn-algo:hover {

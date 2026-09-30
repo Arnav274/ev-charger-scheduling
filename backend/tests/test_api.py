@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -9,16 +9,12 @@ from sqlalchemy.exc import IntegrityError
 from app.auth_deps import get_current_user_id
 from app.database import get_db
 from app.main import app
-from app.models import Charger, Reservation, Station, Vehicle
-
-
-
+from app.models import Charger, Reservation, Station
 
 
 class FakeResult:
     def __init__(self, rows: list[SimpleNamespace]) -> None:
         self._rows = rows
-
 
     def all(self) -> list[SimpleNamespace]:
         return self._rows
@@ -29,10 +25,6 @@ class FakeResult:
         return self._rows[0]
 
 
-
-
-
-
 class FakeQuery:
     def __init__(self, station_rows: list[Station]) -> None:
         self._station_rows = station_rows
@@ -40,12 +32,6 @@ class FakeQuery:
 
     def options(self, *_args, **_kwargs) -> "FakeQuery":
         return self
-
-
-
-
-
-
 
     def filter(self, expression) -> "FakeQuery":
         try:
@@ -64,9 +50,6 @@ class FakeQuery:
             if str(station.id) == self._filtered_station_id:
                 return station
         return None
-
-
-
 
 
 class FakeDb:
@@ -97,11 +80,6 @@ class FakeDb:
             return FakeResult(self._reservation_rows)
         return FakeResult(self._nearby_rows)
 
-
-
-
-
-
     def query(self, _model):
         return FakeQuery(self._station_rows)
 
@@ -126,10 +104,6 @@ class FakeDb:
         self.rollback_called = True
 
 
-
-
-
-
 def make_station(*, station_id: str | None = None, n_chargers: int = 2) -> Station:
     sid = station_id or str(uuid4())
     station = Station(
@@ -147,9 +121,8 @@ def make_station(*, station_id: str | None = None, n_chargers: int = 2) -> Stati
         raw_json={},
     )
 
-
     station.chargers = [
-        Charger(id=str(uuid4()), station_id=sid, name=f"C{i+1}", power_kw=22.0, connector_type="Type2")
+        Charger(id=str(uuid4()), station_id=sid, name=f"C{i + 1}", power_kw=22.0, connector_type="Type2")
         for i in range(n_chargers)
     ]
     return station
@@ -159,12 +132,8 @@ def with_override(fake_db: FakeDb) -> TestClient:
     def _get_db_override():
         yield fake_db
 
-
-
     app.dependency_overrides[get_db] = _get_db_override
     return TestClient(app)
-
-
 
 
 @pytest.fixture(autouse=True)
@@ -178,9 +147,6 @@ def test_healthcheck() -> None:
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
-
-
-
 
 
 def test_stations_nearby_returns_rows() -> None:
@@ -204,10 +170,6 @@ def test_stations_nearby_returns_rows() -> None:
     assert payload[0]["distance_m"] == pytest.approx(123.4)
 
 
-
-
-
-
 def test_station_detail_404_for_missing_station() -> None:
     client = with_override(FakeDb(station_rows=[]))
     response = client.get(f"/stations/{uuid4()}")
@@ -225,15 +187,12 @@ def test_station_detail_returns_chargers() -> None:
     assert len(payload["chargers"]) == 1
 
 
-
-
-
 def test_create_reservation_rejects_invalid_window() -> None:
     station = make_station(n_chargers=1)
     client = with_override(FakeDb(station_rows=[station]))
     uid = uuid4()
     app.dependency_overrides[get_current_user_id] = lambda: uid
-    start = datetime.now(timezone.utc)
+    start = datetime.now(UTC)
     end = start - timedelta(minutes=15)
     response = client.post(
         "/reservations",
@@ -247,17 +206,13 @@ def test_create_reservation_rejects_invalid_window() -> None:
     assert "after start_time" in response.json()["detail"]
 
 
-
-
-
-
 def test_create_reservation_returns_201() -> None:
     station = make_station(n_chargers=1)
     fake_db = FakeDb(station_rows=[station])
     client = with_override(fake_db)
     uid = uuid4()
     app.dependency_overrides[get_current_user_id] = lambda: uid
-    start = datetime.now(timezone.utc)
+    start = datetime.now(UTC)
     end = start + timedelta(minutes=45)
     response = client.post(
         "/reservations",
@@ -266,10 +221,6 @@ def test_create_reservation_returns_201() -> None:
             "start_time": start.isoformat(),
             "end_time": end.isoformat(),
         },
-
-
-
-
     )
     assert response.status_code == 201
     assert len(fake_db.added) == 1
@@ -282,7 +233,7 @@ def test_create_reservation_returns_409_on_overlap() -> None:
     client = with_override(fake_db)
     uid = uuid4()
     app.dependency_overrides[get_current_user_id] = lambda: uid
-    start = datetime.now(timezone.utc)
+    start = datetime.now(UTC)
     end = start + timedelta(minutes=30)
     response = client.post(
         "/reservations",
@@ -291,10 +242,6 @@ def test_create_reservation_returns_409_on_overlap() -> None:
             "start_time": start.isoformat(),
             "end_time": end.isoformat(),
         },
-
-
-
-
     )
     assert response.status_code == 409
     assert response.json()["detail"] == "Overlapping reservation"
@@ -306,7 +253,7 @@ def test_create_reservation_returns_400_on_generic_integrity_error() -> None:
     client = with_override(FakeDb(station_rows=[station], fail_generic_commit=True))
     uid = uuid4()
     app.dependency_overrides[get_current_user_id] = lambda: uid
-    start = datetime.now(timezone.utc)
+    start = datetime.now(UTC)
     end = start + timedelta(minutes=30)
     response = client.post(
         "/reservations",
@@ -315,10 +262,6 @@ def test_create_reservation_returns_400_on_generic_integrity_error() -> None:
             "start_time": start.isoformat(),
             "end_time": end.isoformat(),
         },
-
-
-
-
     )
     assert response.status_code == 400
     assert response.json()["detail"] == "Reservation creation failed"
@@ -338,10 +281,6 @@ def test_recommendations_rejects_unknown_algorithm() -> None:
     )
     assert response.status_code == 400
     assert "Unknown algorithm" in response.json()["detail"]
-
-
-
-
 
 
 @pytest.mark.parametrize("algorithm", ["nearest", "cost_optimized", "queue_aware", "static_queue"])
@@ -373,7 +312,7 @@ def test_recommendations_support_all_algorithms(algorithm: str) -> None:
 def test_queue_aware_increases_wait_under_future_reservations() -> None:
     station = make_station(n_chargers=2)
     # Two overlapping future reservations in the arrival window.
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     reservation_rows = [
         SimpleNamespace(start_time=now + timedelta(minutes=5), end_time=now + timedelta(minutes=35)),
         SimpleNamespace(start_time=now + timedelta(minutes=10), end_time=now + timedelta(minutes=40)),
@@ -426,7 +365,7 @@ def test_suggest_slot_returns_available_slot() -> None:
     client = with_override(FakeDb(station_rows=[station]))
     # Fixed 30-min-aligned future time so _next_30min_aligned returns it unchanged,
     # guaranteeing wait_from_desired_minutes == 0.
-    desired = datetime(2030, 6, 1, 10, 0, 0, tzinfo=timezone.utc)
+    desired = datetime(2030, 6, 1, 10, 0, 0, tzinfo=UTC)
     response = client.post(
         f"/stations/{station.id}/suggest-slot",
         json={"desired_arrival": desired.isoformat(), "duration_minutes": 60},
@@ -439,7 +378,7 @@ def test_suggest_slot_returns_available_slot() -> None:
 
 def test_suggest_slot_returns_empty_when_fully_booked() -> None:
     station = make_station(n_chargers=2)
-    desired = datetime(2030, 6, 1, 10, 0, 0, tzinfo=timezone.utc)
+    desired = datetime(2030, 6, 1, 10, 0, 0, tzinfo=UTC)
     window_end = desired + timedelta(hours=4)
     # One reservation per charger spanning the full 4-hour candidate window
     # blocks every possible 30-min-aligned slot for a 60-minute session.
@@ -459,7 +398,7 @@ def test_suggest_slot_returns_empty_when_fully_booked() -> None:
 def test_get_my_reservations_returns_200_when_authenticated() -> None:
     uid = uuid4()
     charger_id = uuid4()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     reservation_rows = [
         SimpleNamespace(
             id=uuid4(),

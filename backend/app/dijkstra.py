@@ -5,8 +5,6 @@ from __future__ import annotations
 import heapq
 import math
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
-
 
 # Data structure
 
@@ -18,15 +16,13 @@ class Station:
     lon: float
 
 
-
-
 @dataclass
 class RouteResult:
     station_id: str
     distance_km: float
-    path_nodes: List[int] = field(default_factory=list)  # sequence of node indices; 0 = origin, 1..N = stations
-
-
+    path_nodes: list[int] = field(
+        default_factory=list
+    )  # sequence of node indices; 0 = origin, 1..N = stations
 
 
 # Haversine distance
@@ -44,15 +40,14 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return 2.0 * _EARTH_RADIUS_KM * math.asin(math.sqrt(a))
 
 
-
-
 # Graph construction
+
 
 def _build_graph(
     origin_lat: float,
     origin_lon: float,
-    stations: List[Station],
-) -> Tuple[List[Tuple[float, float]], List[List[Tuple[int, float]]]]:
+    stations: list[Station],
+) -> tuple[list[tuple[float, float]], list[list[tuple[int, float]]]]:
     """Build a complete weighted undirected adjacency list. Node 0 is the origin.
 
     Every pair of nodes gets a Haversine edge, so Dijkstra finds the shortest
@@ -60,12 +55,12 @@ def _build_graph(
     of road distance. For real road distances the app uses OSRM instead
     (see routing_osrm.py); this graph is the fallback for the Dijkstra strategy.
     """
-    coords: List[Tuple[float, float]] = [(origin_lat, origin_lon)]
+    coords: list[tuple[float, float]] = [(origin_lat, origin_lon)]
     for s in stations:
         coords.append((s.lat, s.lon))
 
     n = len(coords)
-    adj: List[List[Tuple[int, float]]] = [[] for _ in range(n)]
+    adj: list[list[tuple[int, float]]] = [[] for _ in range(n)]
 
     for i in range(n):
         for j in range(i + 1, n):
@@ -76,29 +71,24 @@ def _build_graph(
     return coords, adj
 
 
-
-
 # Dijkstra's algorithm
 
+
 def _dijkstra(
-    adj: List[List[Tuple[int, float]]],
+    adj: list[list[tuple[int, float]]],
     source: int,
-) -> Tuple[List[float], List[Optional[int]]]:
+) -> tuple[list[float], list[int | None]]:
     """Single-source shortest paths from source using a min-heap."""
     n = len(adj)
-    dist: List[float] = [math.inf] * n
-    prev: List[Optional[int]] = [None] * n
+    dist: list[float] = [math.inf] * n
+    prev: list[int | None] = [None] * n
     dist[source] = 0.0
 
     # heap entries
-    heap: List[Tuple[float, int]] = [(0.0, source)]
+    heap: list[tuple[float, int]] = [(0.0, source)]
 
     while heap:
         d_u, u = heapq.heappop(heap)
-
-
-
-
 
         # Lazy deletion: if a shorter path to u was found after this heap entry
         # was pushed, skip it, the node has already been finalised.
@@ -115,13 +105,9 @@ def _dijkstra(
     return dist, prev
 
 
-
-
-
-
-def _reconstruct_path(prev: List[Optional[int]], target: int) -> List[int]:
-    path: List[int] = []
-    node: Optional[int] = target
+def _reconstruct_path(prev: list[int | None], target: int) -> list[int]:
+    path: list[int] = []
+    node: int | None = target
     while node is not None:
         path.append(node)
         node = prev[node]
@@ -134,37 +120,22 @@ def _reconstruct_path(prev: List[Optional[int]], target: int) -> List[int]:
     return path
 
 
-
-
 # Public API
-
-
 
 
 def shortest_paths_to_stations(
     origin_lat: float,
     origin_lon: float,
-    stations: List[Station],
-) -> Dict[str, RouteResult]:
+    stations: list[Station],
+) -> dict[str, RouteResult]:
     """Run Dijkstra from the origin to every station in the list."""
     if not stations:
-
-
-
-
-
         raise ValueError("At least one station must be provided.")
-
-
-
-
-
-
 
     _, adj = _build_graph(origin_lat, origin_lon, stations)
     dist, prev = _dijkstra(adj, source=0)
 
-    results: Dict[str, RouteResult] = {}
+    results: dict[str, RouteResult] = {}
     for idx, station in enumerate(stations):
         node_idx = idx + 1  # stations are 1-indexed; node 0 is the origin
         path = _reconstruct_path(prev, node_idx)
@@ -173,11 +144,6 @@ def shortest_paths_to_stations(
             distance_km=dist[node_idx],
             path_nodes=path,
         )
-
-
-
-
-
 
     return results
 
@@ -191,7 +157,6 @@ if __name__ == "__main__":
         Station(station_id="S3", lat=52.6400, lon=1.2800),
     ]
 
-
     origin = (52.6309, 1.2974)
 
     print("Dijkstra shortest-path demo")
@@ -200,13 +165,8 @@ if __name__ == "__main__":
     results = shortest_paths_to_stations(origin[0], origin[1], demo_stations)
 
     for station_id, result in sorted(results.items(), key=lambda kv: kv[1].distance_km):
-        path_str = " -> ".join(
-            "origin" if n == 0 else f"S{n}" for n in result.path_nodes
-        )
-        print(
-            f"  {station_id:>4}  {result.distance_km:6.3f} km   path: {path_str}"
-        )
+        path_str = " -> ".join("origin" if n == 0 else f"S{n}" for n in result.path_nodes)
+        print(f"  {station_id:>4}  {result.distance_km:6.3f} km   path: {path_str}")
 
     best_id = min(results, key=lambda sid: results[sid].distance_km)
     print(f"\nNearest station: {best_id} ({results[best_id].distance_km:.3f} km)")
-

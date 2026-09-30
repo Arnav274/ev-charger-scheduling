@@ -1,17 +1,5 @@
 import { useMemo, useState } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-  Legend,
-} from "recharts";
-
-
-
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts";
 
 const VARIANT_OPTIONS = ["baseline_equal", "distance_priority", "queue_stress", "topk_robustness"];
 const SCENARIO_OPTIONS = ["urban", "mixed", "highway"];
@@ -37,15 +25,13 @@ export default function StatsDashboard({ rows, loadError }) {
   if (!rows.length) {
     return (
       <p className="status">
-        No experiment summaries found. Run <code>docker compose exec backend python -m experiments.run_experiments</code> then{" "}
+        No experiment summaries found. Run{" "}
+        <code>docker compose exec backend python -m experiments.run_experiments</code> then{" "}
         <code>analyse_results</code>.
       </p>
     );
   }
 
-
-
-  
   return (
     <div className="stats-wrap">
       <div className="field">
@@ -70,7 +56,9 @@ export default function StatsDashboard({ rows, loadError }) {
       </div>
       <div className="findings-panel">
         <div className="findings-title">Experiment results</div>
-        <div className="findings-sub">162 conditions &nbsp;·&nbsp; 9 variants × 3 scenarios × 6 algorithms &nbsp;·&nbsp; 100 trials each</div>
+        <div className="findings-sub">
+          162 conditions &nbsp;·&nbsp; 9 variants × 3 scenarios × 6 algorithms &nbsp;·&nbsp; 100 trials each
+        </div>
         <div className="findings-grid">
           <div className="finding-card finding-card--highlight">
             <div className="finding-value">~99%</div>
@@ -79,7 +67,7 @@ export default function StatsDashboard({ rows, loadError }) {
           </div>
           <div className="finding-card finding-card--highlight">
             <div className="finding-value">d = 1.17</div>
-            <div className="finding-label">Cohen's d</div>
+            <div className="finding-label">Cohen&rsquo;s d</div>
             <div className="finding-detail">effect size, large (&gt; 0.8)</div>
           </div>
           <div className="finding-card">
@@ -95,30 +83,56 @@ export default function StatsDashboard({ rows, loadError }) {
           <div className="finding-card finding-card--nonresult">
             <div className="finding-value">d = 0.03 &nbsp;·&nbsp; p = 1.0</div>
             <div className="finding-label">queue_aware vs static_queue</div>
-            <div className="finding-detail">reservation lookahead shows no significant benefit at baseline load</div>
+            <div className="finding-detail">
+              reservation lookahead shows no significant benefit at baseline load
+            </div>
           </div>
         </div>
       </div>
       <p className="stats-summary">
-        The charts below show one configuration at a time. Use the dropdowns to explore different variants and scenarios. The headline numbers above are from the full ANOVA across all 162 conditions.
+        The charts below show one configuration at a time. Use the dropdowns to explore different variants and
+        scenarios. The headline numbers above are from the full ANOVA across all 162 conditions.
       </p>
       <details className="stats-details">
         <summary>What am I looking at?</summary>
         <div className="stats-details-body">
-          <p><strong>Variant options:</strong></p>
+          <p>
+            <strong>Variant options:</strong>
+          </p>
           <ul>
-            <li><strong>baseline_equal:</strong> equal weights across all routing criteria</li>
-            <li><strong>distance_priority:</strong> users prefer shorter drives</li>
-            <li><strong>queue_stress:</strong> artificially high arrival rate to stress-test queuing behaviour</li>
-            <li><strong>topk_robustness:</strong> only the top-k nearest stations are considered per request</li>
+            <li>
+              <strong>baseline_equal:</strong> equal weights across all routing criteria
+            </li>
+            <li>
+              <strong>distance_priority:</strong> users prefer shorter drives
+            </li>
+            <li>
+              <strong>queue_stress:</strong> artificially high arrival rate to stress-test queuing behaviour
+            </li>
+            <li>
+              <strong>topk_robustness:</strong> only the top-k nearest stations are considered per request
+            </li>
           </ul>
-          <p><strong>Scenario options:</strong></p>
+          <p>
+            <strong>Scenario options:</strong>
+          </p>
           <ul>
-            <li><strong>urban:</strong> high-density city demand profile</li>
-            <li><strong>mixed:</strong> blend of urban and highway demand</li>
-            <li><strong>highway:</strong> long-distance motorway demand profile</li>
+            <li>
+              <strong>urban:</strong> high-density city demand profile
+            </li>
+            <li>
+              <strong>mixed:</strong> blend of urban and highway demand
+            </li>
+            <li>
+              <strong>highway:</strong> long-distance motorway demand profile
+            </li>
           </ul>
-          <p><em>Note: Very large wait values (e.g. 40 min) indicate the Erlang-C model reached high utilisation for that synthetic profile. This is expected behaviour and is discussed in the dissertation.</em></p>
+          <p>
+            <em>
+              Note: Very large wait values (e.g. 40 min) indicate the Erlang-C model reached high utilisation
+              for that synthetic profile. This is expected behaviour and is discussed in the dissertation.
+            </em>
+          </p>
         </div>
       </details>
       <div className="chart-box">

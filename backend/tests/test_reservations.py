@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
@@ -55,7 +55,7 @@ def test_overlapping_reservation_rejected() -> None:
             },
         ).first()
 
-        start = datetime.now(timezone.utc).replace(microsecond=0)
+        start = datetime.now(UTC).replace(microsecond=0)
         end = start + timedelta(hours=1)
         db.execute(
             text(
@@ -94,7 +94,10 @@ def test_overlapping_reservation_rejected() -> None:
     finally:
         db.rollback()
         if ids is not None:
-            db.execute(text("DELETE FROM reservations WHERE charger_id = :charger_id"), {"charger_id": ids.charger_id})
+            db.execute(
+                text("DELETE FROM reservations WHERE charger_id = :charger_id"),
+                {"charger_id": ids.charger_id},
+            )
             db.execute(text("DELETE FROM chargers WHERE id = :charger_id"), {"charger_id": ids.charger_id})
             db.execute(text("DELETE FROM stations WHERE id = :station_id"), {"station_id": ids.station_id})
             db.execute(text("DELETE FROM users WHERE id = :user_id"), {"user_id": ids.user_id})

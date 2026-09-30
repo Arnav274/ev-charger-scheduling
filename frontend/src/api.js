@@ -12,6 +12,13 @@ export function errorMessage(detail, fallback) {
   return fallback;
 }
 
+// Called with the rejected token whenever an authenticated request gets a 401,
+// so the session can end wherever the request was made from.
+let unauthorizedHandler = () => {};
+export function onUnauthorized(handler) {
+  unauthorizedHandler = handler;
+}
+
 async function request(path, { method = "GET", json, form, token, failure }) {
   const headers = {};
   let body;
@@ -30,6 +37,7 @@ async function request(path, { method = "GET", json, form, token, failure }) {
   } catch {
     throw new Error("Cannot reach the backend. Is `docker compose up` running?");
   }
+  if (res.status === 401 && token) unauthorizedHandler(token);
   if (!res.ok) {
     // Error bodies are not always JSON (a proxy's HTML page, an empty 502).
     const payload = await Promise.resolve()

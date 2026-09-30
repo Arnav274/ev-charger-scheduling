@@ -45,22 +45,17 @@ export default function App() {
   const bookingRef = useRef(null);
   const accountRef = useRef(null);
 
-  const { token, logout } = auth;
-  // A 401 means the token has expired or the server's secret changed, so sign out
-  // rather than keep showing "Signed in" with every request failing.
-  const onAccountError = useCallback(
-    (clear) => (err) => {
-      if (err.status === 401) logout();
-      clear([]);
-    },
-    [logout],
-  );
+  const { token } = auth;
   const refreshVehicles = useCallback(() => {
-    fetchVehicles(token).then(setVehicles).catch(onAccountError(setVehicles));
-  }, [token, onAccountError]);
+    fetchVehicles(token)
+      .then(setVehicles)
+      .catch(() => setVehicles([]));
+  }, [token]);
   const refreshReservations = useCallback(() => {
-    getMyReservations(token).then(setReservations).catch(onAccountError(setReservations));
-  }, [token, onAccountError]);
+    getMyReservations(token)
+      .then(setReservations)
+      .catch(() => setReservations([]));
+  }, [token]);
 
   useEffect(() => {
     if (!token) {

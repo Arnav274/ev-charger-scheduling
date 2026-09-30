@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { loginUser, registerUser } from "../api";
+import { loginUser, onUnauthorized, registerUser } from "../api";
 
 const TOKEN_KEY = "ev_access_token";
 
@@ -23,6 +23,13 @@ export default function useAuth() {
       // Storage can be unavailable (private mode); the session still works in memory.
     }
   }, [token]);
+
+  // An expired or revoked token ends the session. A 401 for an older token, from a
+  // request that was already in flight when the user signed in again, is ignored.
+  useEffect(() => {
+    onUnauthorized((rejected) => setToken((current) => (current === rejected ? "" : current)));
+    return () => onUnauthorized(() => {});
+  }, []);
 
   const login = useCallback(async (email, password) => {
     setToken((await loginUser(email, password)).access_token);

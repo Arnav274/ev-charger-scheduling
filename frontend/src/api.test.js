@@ -6,7 +6,9 @@ import {
   fetchNearbyStations,
   fetchStation,
   getRecommendations,
+  fetchVehicles,
   loginUser,
+  onUnauthorized,
 } from "./api";
 
 const ok = (payload) => ({ ok: true, json: async () => payload });
@@ -70,5 +72,18 @@ describe("api", () => {
     const detail = [{ loc: ["body", "radius_km"], msg: "Input should be less than or equal to 50" }];
     expect(errorMessage(detail, "x")).toBe("radius_km: Input should be less than or equal to 50");
     expect(errorMessage(undefined, "fallback")).toBe("fallback");
+  });
+
+  it("hands a rejected token to the unauthorized handler", async () => {
+    const handler = vi.fn();
+    onUnauthorized(handler);
+    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 401, json: async () => ({}) });
+
+    await expect(fetchVehicles("stale")).rejects.toThrow();
+    expect(handler).toHaveBeenCalledWith("stale");
+
+    handler.mockClear();
+    await expect(fetchStation("abc")).rejects.toThrow(); // no token, so no session to end
+    expect(handler).not.toHaveBeenCalled();
   });
 });

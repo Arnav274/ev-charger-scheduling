@@ -6,6 +6,8 @@ import heapq
 import math
 from dataclasses import dataclass, field
 
+from app.geo import haversine_km
+
 # Data structure
 
 
@@ -23,21 +25,6 @@ class RouteResult:
     path_nodes: list[int] = field(
         default_factory=list
     )  # sequence of node indices; 0 = origin, 1..N = stations
-
-
-# Haversine distance
-
-_EARTH_RADIUS_KM = 6_371.0
-
-
-def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Great-circle distance in km between two lat/lon points."""
-    phi1, phi2 = math.radians(lat1), math.radians(lat2)
-    dphi = math.radians(lat2 - lat1)
-    dlambda = math.radians(lon2 - lon1)
-
-    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
-    return 2.0 * _EARTH_RADIUS_KM * math.asin(math.sqrt(a))
 
 
 # Graph construction

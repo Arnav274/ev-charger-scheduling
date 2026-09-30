@@ -3,7 +3,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -38,6 +38,9 @@ def create_reservation(
         raise HTTPException(status_code=400, detail="Bookings can last at most 12 hours")
     if db.get(Charger, payload.charger_id) is None:
         raise HTTPException(status_code=404, detail="Charger not found")
+    # Serialise this user's bookings for the rest of the transaction, so parallel
+    # requests cannot all pass the count below before any of them commits.
+    db.execute(text("SELECT pg_advisory_xact_lock(hashtextextended(:user_id, 0))"), {"user_id": str(user_id)})
     upcoming = db.scalar(
         select(func.count()).where(Reservation.user_id == user_id, Reservation.end_time > now)
     )

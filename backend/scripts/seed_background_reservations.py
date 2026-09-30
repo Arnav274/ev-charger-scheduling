@@ -46,8 +46,6 @@ def main() -> None:
             raise RuntimeError("No stations/chargers found. Run ingestion first.")
 
         station_ids = [str(r.id) for r in station_rows]
-        for sid in station_ids:
-            uuid.UUID(sid)
         charger_rows = db.execute(
             text(
                 """
@@ -75,11 +73,11 @@ def main() -> None:
         )
 
         anchor = next_full_hour_utc(datetime.now(UTC))
-        # Create heavy overlap for 90
-        # This increases both
+        # Book every charger at these stations for 75 minutes from the next full
+        # hour, staggered by up to 25 minutes, so a request arriving then finds
+        # them fully booked and queue_aware steers away while static_queue does not.
         for idx, row in enumerate(charger_rows):
             charger_id = str(row.id)
-            # Stagger starts slightly across chargers to create starts within windows too.
             start = anchor + timedelta(minutes=(idx % 6) * 5)
             end = start + timedelta(minutes=75)
             db.execute(

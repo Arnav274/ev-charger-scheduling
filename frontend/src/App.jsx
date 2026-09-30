@@ -9,7 +9,8 @@ import StationMap from "./components/StationMap";
 import StrategyPicker from "./components/StrategyPicker";
 import EthicsPanel from "./EthicsPanel";
 import useAuth from "./hooks/useAuth";
-import useStations, { parseSearch } from "./hooks/useStations";
+import useLatestRequest from "./hooks/useLatestRequest";
+import useStations, { DEFAULT_CENTRE, parseSearch } from "./hooks/useStations";
 
 // The charts library is only needed on the Results tab, so it loads on demand.
 const StatsDashboard = lazy(() => import("./StatsDashboard"));
@@ -40,7 +41,7 @@ export default function App() {
   const [reservations, setReservations] = useState([]);
 
   // Only the most recent recommendation request may update the results.
-  const latestRequest = useRef(0);
+  const recommendations = useLatestRequest();
   const resultsRef = useRef(null);
   const bookingRef = useRef(null);
   const accountRef = useRef(null);
@@ -69,14 +70,16 @@ export default function App() {
   }, [token, refreshVehicles, refreshReservations]);
 
   async function recommend(algorithm) {
-    setStrategy(algorithm);
-    const request = ++latestRequest.current;
     // Recommend from what is typed in the search fields, the same place a search would use.
     const where = parseSearch(finder.draft);
     if (where.error) {
       finder.setStatus(where.error);
       return;
     }
+    setStrategy(algorithm);
+    const request = recommendations.claim();
+    // Keep the station list and map in step with where the recommendations are for.
+    finder.showStationsAround(where);
     const payload = {
       origin_lat: where.centre.lat,
       origin_lon: where.centre.lon,
@@ -90,11 +93,11 @@ export default function App() {
     }
     try {
       const items = await getRecommendations(payload);
-      if (request !== latestRequest.current) return; // a newer request superseded this one
+      if (!recommendations.isLatest(request)) return; // a newer request superseded this one
       setResults({ strategy: algorithm, items });
       scrollTo(resultsRef);
     } catch (err) {
-      if (request !== latestRequest.current) return;
+      if (!recommendations.isLatest(request)) return;
       setResults({ strategy: null, items: [] });
       finder.setStatus(err.message);
     }
@@ -176,6 +179,7 @@ export default function App() {
                 setBattery((b) => ({ ...b, capacity: String(v.battery_kwh) }));
               }}
               reservations={reservations}
+              onCancelled={refreshReservations}
             />
             <label className="checkbox sidebar-section">
               <input
@@ -190,7 +194,7 @@ export default function App() {
       </div>
 
       <StationMap
-        centre={finder.centre}
+        centre={DEFAULT_CENTRE}
         stations={finder.stations}
         recommendations={results.items}
         showHotspots={showHotspots}

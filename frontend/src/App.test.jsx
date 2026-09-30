@@ -13,6 +13,9 @@ vi.mock("react-leaflet", () => ({
   useMap: () => ({ fitBounds: vi.fn() }),
 }));
 
+// A date a few days out, inside the 30 days ahead the booking form allows.
+const soon = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
 const station = { id: "s1", name: "Kings Cross Car Park", lat: 51.53, lon: -0.12, borough: "London" };
 const detail = { ...station, chargers: [{ id: "c1", name: "Charger 1", power_kw: 22 }] };
 const recommendation = {
@@ -72,8 +75,8 @@ describe("App", () => {
   it("asks the user to sign in before booking", async () => {
     render(<App />);
     await userEvent.selectOptions(await screen.findByLabelText("Select station"), "s1");
-    await userEvent.type(await screen.findByLabelText("Start"), "2031-01-15T10:00");
-    await userEvent.type(screen.getByLabelText("End"), "2031-01-15T11:00");
+    await userEvent.type(await screen.findByLabelText("Start"), `${soon}T10:00`);
+    await userEvent.type(screen.getByLabelText("End"), `${soon}T11:00`);
     await userEvent.click(screen.getByRole("button", { name: "Reserve" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Sign in under My account");
@@ -87,8 +90,8 @@ describe("App", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Queue aware" }));
     await userEvent.click(await screen.findByRole("button", { name: /Kings Cross Car Park/ }));
     const booking = (await screen.findByText("Book a charger")).closest("details");
-    await userEvent.type(within(booking).getByLabelText("Start"), "2031-01-15T10:00");
-    await userEvent.type(within(booking).getByLabelText("End"), "2031-01-15T11:00");
+    await userEvent.type(within(booking).getByLabelText("Start"), `${soon}T10:00`);
+    await userEvent.type(within(booking).getByLabelText("End"), `${soon}T11:00`);
     await userEvent.click(within(booking).getByRole("button", { name: "Reserve" }));
 
     await waitFor(() => expect(api.createReservation).toHaveBeenCalled());
@@ -220,5 +223,55 @@ describe("App", () => {
       expect(await screen.findByText("Latitude must be a number, like 51.5074.")).toBeInTheDocument();
     }
     expect(api.fetchNearbyStations).toHaveBeenCalledTimes(1);
+  });
+
+  it("cancels a booking and refreshes the list", async () => {
+    localStorage.setItem("ev_access_token", "test-jwt");
+    api.getMyReservations
+      .mockResolvedValueOnce([
+        {
+          id: "r1",
+          station_name: "Kings Cross Car Park",
+          charger_name: "Charger 1",
+          start_time: "2031-01-15T10:00:00Z",
+          end_time: "2031-01-15T11:00:00Z",
+        },
+      ])
+      .mockResolvedValueOnce([]);
+    vi.spyOn(api, "cancelReservation").mockResolvedValue(null);
+    render(<App />);
+
+    await userEvent.click(screen.getByText("My account"));
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Cancel booking at Kings Cross Car Park" }),
+    );
+
+    expect(api.cancelReservation).toHaveBeenCalledWith("r1", "test-jwt");
+    await waitFor(() => expect(screen.queryByText("My bookings")).not.toBeInTheDocument());
+  });
+
+  it("leaves the selected strategy alone when the input is invalid", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Nearest" }));
+    await screen.findByText("Best stations: Nearest");
+
+    await userEvent.clear(screen.getByLabelText("Radius (km)"));
+    await userEvent.click(screen.getByRole("button", { name: "Queue aware" }));
+
+    expect(screen.getByRole("button", { name: "Nearest" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Queue aware" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByText("Radius must be a number, like 5.")).toBeInTheDocument();
+  });
+
+  it("reloads the station list when recommending somewhere new", async () => {
+    render(<App />);
+    await screen.findByText("1 stations within 5 km.");
+    await userEvent.click(screen.getByRole("button", { name: "Nearest" }));
+    expect(api.fetchNearbyStations).toHaveBeenCalledTimes(1); // same place, no reload
+
+    await userEvent.clear(screen.getByLabelText("Radius (km)"));
+    await userEvent.type(screen.getByLabelText("Radius (km)"), ".5");
+    await userEvent.click(screen.getByRole("button", { name: "Nearest" }));
+    expect(api.fetchNearbyStations).toHaveBeenLastCalledWith(51.5074, -0.1278, 0.5);
   });
 });

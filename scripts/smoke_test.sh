@@ -45,8 +45,9 @@ token=$(curl -sf -X POST "$API/auth/register" -H 'Content-Type: application/json
 if [ -n "$token" ]; then ok "registration"; else bad "registration"; fi
 station=$(curl -sf "$API/stations/nearby?lat=51.5074&lon=-0.1278&radius_km=1" | json 'd[0]["id"]')
 charger=$(curl -sf "$API/stations/$station" | json 'd["chargers"][0]["id"]')
-# A random hour far in the future, so repeated runs do not collide with their own bookings.
-start=$("$PY" -c "import datetime as t, random; print((t.datetime(2040, 1, 1) + t.timedelta(hours=random.randrange(10**5))).isoformat() + 'Z')")
+# A random hour in the next few weeks (bookings may be made up to 30 days ahead),
+# so repeated runs are unlikely to collide with their own bookings.
+start=$("$PY" -c "import datetime as t, random; now = t.datetime.now(t.timezone.utc).replace(minute=0, second=0, microsecond=0, tzinfo=None); print((now + t.timedelta(hours=random.randrange(2, 24 * 25))).isoformat() + 'Z')")
 end=$("$PY" -c "import datetime as t; print((t.datetime.fromisoformat('${start%Z}') + t.timedelta(hours=1)).isoformat() + 'Z')")
 book() {
   curl -s -o /dev/null -w '%{http_code}' -X POST "$API/reservations" -H "Authorization: Bearer $token" \

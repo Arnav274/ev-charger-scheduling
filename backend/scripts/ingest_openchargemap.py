@@ -99,8 +99,15 @@ def fetch(latitude: float, longitude: float, distance_km: float, max_results: in
     return response.json()
 
 
-def ingest(records: list[dict], *, prune: bool) -> int:
+def ingest(records: list[dict], *, prune: bool, min_stations: int = 0) -> int:
     usable = [r for r in records if is_usable(r)]
+    # Check before touching the database: pruning against a short or failed
+    # response would otherwise delete every station it happened to leave out.
+    if len(usable) < min_stations:
+        raise SystemExit(
+            f"Only {len(usable)} usable stations in the response, so nothing was changed. "
+            "Widen --distance-km or raise --max-results."
+        )
     prices = [p for r in usable if (p := parse_price_pence_per_kwh(r.get("UsageCost"))) is not None]
     fallback_price = statistics.median(prices) if prices else FALLBACK_PRICE_PENCE
 
@@ -203,9 +210,8 @@ def main() -> None:
     if not args.live:
         ingest(json.loads(CACHE_PATH.read_text(encoding="utf-8")), prune=False)
         return
-    loaded = ingest(fetch(args.latitude, args.longitude, args.distance_km, args.max_results), prune=True)
-    if loaded < MIN_STATIONS_REQUIRED:
-        raise SystemExit(f"Only {loaded} usable stations; widen --distance-km or raise --max-results.")
+    records = fetch(args.latitude, args.longitude, args.distance_km, args.max_results)
+    ingest(records, prune=True, min_stations=MIN_STATIONS_REQUIRED)
 
 
 if __name__ == "__main__":

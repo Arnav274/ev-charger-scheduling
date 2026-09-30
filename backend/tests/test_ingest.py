@@ -1,6 +1,6 @@
 import pytest
 
-from scripts.ingest_openchargemap import is_usable, max_power_kw, parse_price_pence_per_kwh
+from scripts.ingest_openchargemap import ingest, is_usable, max_power_kw, parse_price_pence_per_kwh
 
 
 def record(**overrides) -> dict:
@@ -75,3 +75,14 @@ def test_max_power_takes_the_fastest_connection() -> None:
     assert max_power_kw({"Connections": [{"PowerKW": 7}, {"PowerKW": 50}, {"PowerKW": None}]}) == 50
     assert max_power_kw({"Connections": []}) == 7.0
     assert max_power_kw({}) == 7.0
+
+
+def test_a_short_response_is_refused_before_anything_is_written(monkeypatch) -> None:
+    import scripts.ingest_openchargemap as module
+
+    def no_database():
+        raise AssertionError("ingest opened a database session")
+
+    monkeypatch.setattr(module, "SessionLocal", no_database)
+    with pytest.raises(SystemExit, match="Only 1 usable stations"):
+        ingest([record()], prune=True, min_stations=50)

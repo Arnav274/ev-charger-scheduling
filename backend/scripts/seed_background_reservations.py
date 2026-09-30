@@ -1,4 +1,8 @@
-"""Seed deterministic future reservations to create a hotspot for demos."""
+"""Book up the largest stations for the coming hour, to show queue_aware steering around them.
+
+The bookings belong to a separate account that cannot sign in, so the demo
+user's own booking allowance is left free.
+"""
 
 from __future__ import annotations
 
@@ -9,7 +13,8 @@ from sqlalchemy import text
 
 from app.database import SessionLocal
 
-DEMO_USER_EMAIL = "demo.user@example.com"
+BACKGROUND_USER_ID = "b0000001-0000-4000-8000-000000000001"
+BACKGROUND_USER_EMAIL = "background.bookings@example.com"
 
 
 def next_full_hour_utc(now: datetime) -> datetime:
@@ -20,14 +25,14 @@ def next_full_hour_utc(now: datetime) -> datetime:
 def main() -> None:
     db = SessionLocal()
     try:
+        # No password hash, so nobody can sign in as this account.
+        db.execute(
+            text("INSERT INTO users (id, email) VALUES (:id, :email) ON CONFLICT (email) DO NOTHING"),
+            {"id": BACKGROUND_USER_ID, "email": BACKGROUND_USER_EMAIL},
+        )
         user_id = db.execute(
-            text("SELECT id FROM users WHERE email = :email"),
-            {"email": DEMO_USER_EMAIL},
-        ).scalar()
-        if user_id is None:
-            raise RuntimeError(
-                f"Demo user not found ({DEMO_USER_EMAIL}). Run `python -m scripts.seed_demo` first."
-            )
+            text("SELECT id FROM users WHERE email = :email"), {"email": BACKGROUND_USER_EMAIL}
+        ).scalar_one()
 
         # Pick a small set of stations with the most chargers to make the hotspot visually obvious.
         station_rows = db.execute(
@@ -76,6 +81,7 @@ def main() -> None:
         # Book every charger at these stations for 75 minutes from the next full
         # hour, staggered by up to 25 minutes, so a request arriving then finds
         # them fully booked and queue_aware steers away while static_queue does not.
+        # Slots someone has already booked are skipped rather than failing the seed.
         for idx, row in enumerate(charger_rows):
             charger_id = str(row.id)
             start = anchor + timedelta(minutes=(idx % 6) * 5)
@@ -85,6 +91,7 @@ def main() -> None:
                     """
                     INSERT INTO reservations (id, charger_id, user_id, start_time, end_time)
                     VALUES (:id, :charger_id, :user_id, :start_time, :end_time)
+                    ON CONFLICT DO NOTHING
                     """
                 ),
                 {

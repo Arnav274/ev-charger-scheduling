@@ -120,8 +120,10 @@ class TestSuggestSlot:
             f"/stations/{station.id}/suggest-slot",
             json={"desired_arrival": an_hour_ago.isoformat(), "duration_minutes": 30},
         )
-        start = datetime.fromisoformat(response.json()[0]["suggested_start"])
-        assert start >= datetime.now(UTC) - timedelta(seconds=1)
+        slot = response.json()[0]
+        assert datetime.fromisoformat(slot["suggested_start"]) >= datetime.now(UTC) - timedelta(seconds=1)
+        # The wait counts from now, not from the hour-old request.
+        assert slot["wait_from_desired_minutes"] <= 30
 
     def test_fully_booked_station_offers_nothing(self, client, db, make_station, user) -> None:
         station = make_station(chargers=1)

@@ -73,7 +73,10 @@ def next_slot_boundary(dt: datetime) -> datetime:
 def suggest_slot(
     station_id: uuid.UUID, payload: SlotRequest, db: Session = Depends(get_db)
 ) -> list[SlotSuggestion]:
-    """Earliest free half-hour-aligned slot on each charger within four hours of the desired arrival."""
+    """Earliest free half-hour-aligned slot on each charger in the four hours from the desired arrival.
+
+    An arrival time in the past is treated as now.
+    """
     station = _get_station(db, station_id)
     chargers = station.chargers
     if payload.charger_id is not None:
@@ -110,7 +113,9 @@ def suggest_slot(
                         charger_id=charger.id,
                         suggested_start=start,
                         suggested_end=end,
-                        wait_from_desired_minutes=(start - desired).total_seconds() / 60.0,
+                        # Measured from when the driver could actually arrive, which is
+                        # now if the time they asked for has passed.
+                        wait_from_desired_minutes=(start - earliest).total_seconds() / 60.0,
                     )
                 )
                 break

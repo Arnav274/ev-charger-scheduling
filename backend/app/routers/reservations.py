@@ -35,7 +35,9 @@ def create_reservation(
     if start < now - CLOCK_SKEW:
         raise HTTPException(status_code=400, detail="Bookings must start in the future")
     if end - start > MAX_BOOKING:
-        raise HTTPException(status_code=400, detail="Bookings can last at most 12 hours")
+        raise HTTPException(
+            status_code=400, detail=f"Bookings can last at most {MAX_BOOKING.total_seconds() / 3600:g} hours"
+        )
     if db.get(Charger, payload.charger_id) is None:
         raise HTTPException(status_code=404, detail="Charger not found")
     # Serialise this user's bookings for the rest of the transaction, so parallel

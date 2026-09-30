@@ -1,16 +1,13 @@
 """Tests for DijkstraStrategy in app.algorithms."""
 
 import uuid
-from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
 
-from app.algorithms import DijkstraStrategy, RecommendationContext, STRATEGIES
-
+from app.algorithms import STRATEGIES, DijkstraStrategy, RecommendationContext
 
 # Helpers
-
 
 
 def _make_station(lat: float, lon: float) -> MagicMock:
@@ -23,9 +20,6 @@ def _make_station(lat: float, lon: float) -> MagicMock:
     s.mean_service_minutes = 40.0
     s.chargers = [MagicMock()]
     return s
-
-
-
 
 
 def _make_context(origin_lat: float = 0.0, origin_lon: float = 0.0) -> RecommendationContext:
@@ -42,12 +36,14 @@ _STRATEGY = DijkstraStrategy()
 
 # Registration
 
+
 def test_dijkstra_registered_in_strategies():
     assert "dijkstra" in STRATEGIES
     assert isinstance(STRATEGIES["dijkstra"], DijkstraStrategy)
 
 
 # Score correctness
+
 
 def test_score_is_positive_for_non_coincident_station():
     station = _make_station(lat=1.0, lon=1.0)
@@ -66,8 +62,8 @@ def test_score_is_haversine_distance():
 
 
 def test_score_increases_with_distance():
-    near = _make_station(lat=0.01, lon=0.0)   # ~1.1 km
-    far = _make_station(lat=0.10, lon=0.0)    # ~11.1 km
+    near = _make_station(lat=0.01, lon=0.0)  # ~1.1 km
+    far = _make_station(lat=0.10, lon=0.0)  # ~11.1 km
     ctx = _make_context(0.0, 0.0)
 
     assert _STRATEGY.score(near, ctx, _MAX_VALS) < _STRATEGY.score(far, ctx, _MAX_VALS)

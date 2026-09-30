@@ -42,7 +42,9 @@ def main() -> None:
                 "wait_mean": group["wait_min"].mean(),
                 "wait_ci_low": w_ci[0],
                 "wait_ci_high": w_ci[1],
-                "pdelay_mean": group["probability_of_delay"].mean() if "probability_of_delay" in group.columns else 0.0,
+                "pdelay_mean": group["probability_of_delay"].mean()
+                if "probability_of_delay" in group.columns
+                else 0.0,
                 "pdelay_ci_low": p_ci[0],
                 "pdelay_ci_high": p_ci[1],
                 "runtime_ms_mean": group["runtime_ms"].mean(),
@@ -65,7 +67,8 @@ def main() -> None:
     ss_total = ((baseline_df["wait_min"] - grand_mean) ** 2).sum()
     eta_squared = float(ss_between / ss_total) if ss_total else 0.0
     (OUT_DIR / "anova.txt").write_text(
-        f"One-way ANOVA wait times (baseline_equal)\nF={f_stat:.4f}\np={p_value:.8f}\neta_squared={eta_squared:.6f}\n",
+        "One-way ANOVA wait times (baseline_equal)\n"
+        f"F={f_stat:.4f}\np={p_value:.8f}\neta_squared={eta_squared:.6f}\n",
         encoding="utf-8",
     )
     posthoc_rows = []
@@ -86,13 +89,7 @@ def main() -> None:
                     "p_bonferroni": p_adj,
                     "cohen_d": (
                         (alg_groups[a].mean() - alg_groups[b].mean())
-                        / (
-                            (
-                                ((alg_groups[a].std(ddof=1) ** 2) + (alg_groups[b].std(ddof=1) ** 2))
-                                / 2
-                            )
-                            ** 0.5
-                        )
+                        / ((((alg_groups[a].std(ddof=1) ** 2) + (alg_groups[b].std(ddof=1) ** 2)) / 2) ** 0.5)
                         if (alg_groups[a].std(ddof=1) > 0 or alg_groups[b].std(ddof=1) > 0)
                         else 0.0
                     ),
@@ -112,7 +109,8 @@ def main() -> None:
         ss_total2 = ((baseline_df["probability_of_delay"] - grand_mean2) ** 2).sum()
         eta2 = float(ss_between2 / ss_total2) if ss_total2 else 0.0
         (OUT_DIR / "anova_pdelay.txt").write_text(
-            f"One-way ANOVA probability_of_delay (baseline_equal)\nF={f2:.4f}\np={p2:.8f}\neta_squared={eta2:.6f}\n",
+            "One-way ANOVA probability_of_delay (baseline_equal)\n"
+            f"F={f2:.4f}\np={p2:.8f}\neta_squared={eta2:.6f}\n",
             encoding="utf-8",
         )
     sensitivity_rows = []
@@ -134,7 +132,7 @@ def main() -> None:
                 "",
                 "- Random seed fixed at `42` in `run_experiments.py`.",
                 "- Scenarios vary by geographic origin range and session duration (urban/mixed/highway).",
-                "- Sensitivity variants cover distance-priority weights, load stress multiplier, and top-k sampling.",
+                "- Sensitivity variants cover distance-priority weights, load stress and top-k sampling.",
                 "- When `rho >= 1`, `erlang_c_wait_minutes` returns `1e6` as a saturation penalty.",
                 "- ANOVA eta-squared is in `anova.txt` (baseline variant).",
                 "- Post-hoc pairwise comparisons use Welch t-test with Bonferroni correction and Cohen's d.",
@@ -216,8 +214,7 @@ def generate_comparison_table(df: pd.DataFrame) -> None:
     header = "| " + " | ".join(tbl.columns) + " |"
     sep = "| " + " | ".join("---" for _ in tbl.columns) + " |"
     body_lines = [
-        "| " + " | ".join(str(v) for v in row) + " |"
-        for row in tbl.itertuples(index=False, name=None)
+        "| " + " | ".join(str(v) for v in row) + " |" for row in tbl.itertuples(index=False, name=None)
     ]
     md = "\n".join(["# Algorithm Comparison Table", "", header, sep] + body_lines + [""])
     (OUT_DIR / "comparison_table.md").write_text(md, encoding="utf-8")

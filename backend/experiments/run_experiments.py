@@ -1,12 +1,12 @@
-import csv
 import copy
+import csv
 import random
 import time
 from pathlib import Path
 
 from sqlalchemy.orm import joinedload
 
-from app.algorithms import DijkstraStrategy, RecommendationContext, STRATEGIES, haversine_km
+from app.algorithms import STRATEGIES, DijkstraStrategy, RecommendationContext, haversine_km
 from app.database import SessionLocal
 from app.models import Station
 from app.queueing import erlang_c_probability_of_delay, erlang_c_wait_minutes
@@ -67,13 +67,17 @@ def max_overlapping_in_window(
     return best
 
 
-def count_starts_in_window(intervals: list[tuple[float, float]], *, window_start: float, window_end: float) -> int:
+def count_starts_in_window(
+    intervals: list[tuple[float, float]], *, window_start: float, window_end: float
+) -> int:
     if window_end <= window_start:
         return 0
     return sum(1 for s, _e in intervals if window_start <= s < window_end)
 
 
-def flatten_station_intervals(charger_schedules: dict[str, list[tuple[float, float]]]) -> list[tuple[float, float]]:
+def flatten_station_intervals(
+    charger_schedules: dict[str, list[tuple[float, float]]],
+) -> list[tuple[float, float]]:
     out: list[tuple[float, float]] = []
     for slots in charger_schedules.values():
         out.extend(slots)
@@ -160,32 +164,80 @@ def run(n_trials: int = 100) -> Path:
         }
         summary_metrics: list[dict] = []
         variants = [
-            {"name": "baseline_equal", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.0, "top_k": 1, "lambda_multiplier": 1.0},
-            {"name": "distance_priority", "weights": (0.7, 0.2, 0.1), "load_multiplier": 1.0, "top_k": 1, "lambda_multiplier": 1.0},
-            {"name": "queue_stress", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.6, "top_k": 1, "lambda_multiplier": 1.6},
-            {"name": "topk_robustness", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.0, "top_k": 3, "lambda_multiplier": 1.0},
+            {
+                "name": "baseline_equal",
+                "weights": (1 / 3, 1 / 3, 1 / 3),
+                "load_multiplier": 1.0,
+                "top_k": 1,
+                "lambda_multiplier": 1.0,
+            },
+            {
+                "name": "distance_priority",
+                "weights": (0.7, 0.2, 0.1),
+                "load_multiplier": 1.0,
+                "top_k": 1,
+                "lambda_multiplier": 1.0,
+            },
+            {
+                "name": "queue_stress",
+                "weights": (1 / 3, 1 / 3, 1 / 3),
+                "load_multiplier": 1.6,
+                "top_k": 1,
+                "lambda_multiplier": 1.6,
+            },
+            {
+                "name": "topk_robustness",
+                "weights": (1 / 3, 1 / 3, 1 / 3),
+                "load_multiplier": 1.0,
+                "top_k": 3,
+                "lambda_multiplier": 1.0,
+            },
             # Erlang sensitivity sweep: fixed equal weights, arrival-rate multiplier varies.
-            {"name": "erlang_sensitivity", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 0.5, "top_k": 1, "lambda_multiplier": 0.5},
-            {"name": "erlang_sensitivity", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.0, "top_k": 1, "lambda_multiplier": 1.0},
-            {"name": "erlang_sensitivity", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 1.5, "top_k": 1, "lambda_multiplier": 1.5},
-            {"name": "erlang_sensitivity", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 2.0, "top_k": 1, "lambda_multiplier": 2.0},
-            {"name": "erlang_sensitivity", "weights": (1 / 3, 1 / 3, 1 / 3), "load_multiplier": 3.0, "top_k": 1, "lambda_multiplier": 3.0},
+            {
+                "name": "erlang_sensitivity",
+                "weights": (1 / 3, 1 / 3, 1 / 3),
+                "load_multiplier": 0.5,
+                "top_k": 1,
+                "lambda_multiplier": 0.5,
+            },
+            {
+                "name": "erlang_sensitivity",
+                "weights": (1 / 3, 1 / 3, 1 / 3),
+                "load_multiplier": 1.0,
+                "top_k": 1,
+                "lambda_multiplier": 1.0,
+            },
+            {
+                "name": "erlang_sensitivity",
+                "weights": (1 / 3, 1 / 3, 1 / 3),
+                "load_multiplier": 1.5,
+                "top_k": 1,
+                "lambda_multiplier": 1.5,
+            },
+            {
+                "name": "erlang_sensitivity",
+                "weights": (1 / 3, 1 / 3, 1 / 3),
+                "load_multiplier": 2.0,
+                "top_k": 1,
+                "lambda_multiplier": 2.0,
+            },
+            {
+                "name": "erlang_sensitivity",
+                "weights": (1 / 3, 1 / 3, 1 / 3),
+                "load_multiplier": 3.0,
+                "top_k": 1,
+                "lambda_multiplier": 3.0,
+            },
         ]
 
         for variant in variants:
             for scenario, cfg in scenario_configs.items():
                 background = seed_background_schedules(stations=stations)
-                per_alg_loads = {
-                    algorithm: {str(s.id): 0 for s in stations}
-                    for algorithm in STRATEGIES
-                }
+                per_alg_loads = {algorithm: {str(s.id): 0 for s in stations} for algorithm in STRATEGIES}
                 per_alg_attempts = {algorithm: 0 for algorithm in STRATEGIES}
                 per_alg_rejections = {algorithm: 0 for algorithm in STRATEGIES}
                 per_alg_schedules = {
-                    algorithm: {
-                        str(s.id): copy.deepcopy(background[str(s.id)])
-                        for s in stations
-                    }
+                    algorithm: {str(s.id): copy.deepcopy(background[str(s.id)]) for s in stations}
                     for algorithm in STRATEGIES
                 }
 
@@ -209,7 +261,10 @@ def run(n_trials: int = 100) -> Path:
                     )
                     if travel_metrics is None:
                         travel_by_station = {
-                            str(s.id): (haversine_km(origin_lat, origin_lon, s.lat, s.lon), (haversine_km(origin_lat, origin_lon, s.lat, s.lon) / 25.0) * 60.0)
+                            str(s.id): (
+                                haversine_km(origin_lat, origin_lon, s.lat, s.lon),
+                                (haversine_km(origin_lat, origin_lon, s.lat, s.lon) / 25.0) * 60.0,
+                            )
                             for s in stations
                         }
                     else:
@@ -220,14 +275,17 @@ def run(n_trials: int = 100) -> Path:
                     context.travel_by_station = travel_by_station  # type: ignore[attr-defined]
 
                     max_distance = max(travel_by_station[str(s.id)][0] for s in stations) or 1.0
-                    max_wait = max(
-                        erlang_c_wait_minutes(
-                            s.arrival_rate_per_hour * variant["load_multiplier"],
-                            s.mean_service_minutes,
-                            max(1, len(s.chargers)),
+                    max_wait = (
+                        max(
+                            erlang_c_wait_minutes(
+                                s.arrival_rate_per_hour * variant["load_multiplier"],
+                                s.mean_service_minutes,
+                                max(1, len(s.chargers)),
+                            )
+                            for s in stations
                         )
-                        for s in stations
-                    ) or 1.0
+                        or 1.0
+                    )
                     max_cost = max(s.price_pence_per_kwh for s in stations) or 1.0
                     max_vals = {"distance": max_distance, "wait": max_wait, "cost": max_cost}
 
@@ -256,7 +314,13 @@ def run(n_trials: int = 100) -> Path:
                         if isinstance(strategy, DijkstraStrategy):
                             pre_computed_dijkstra = strategy.rank_all(stations, context)
 
-                        def _score(s: Station, _strategy=strategy, _ctx=context, _mv=max_vals, _pd=pre_computed_dijkstra) -> float:
+                        def _score(
+                            s: Station,
+                            _strategy=strategy,
+                            _ctx=context,
+                            _mv=max_vals,
+                            _pd=pre_computed_dijkstra,
+                        ) -> float:
                             if _pd is not None:
                                 return _strategy.score(s, _ctx, _mv, _pd[str(s.id)])
                             return _strategy.score(s, _ctx, _mv)

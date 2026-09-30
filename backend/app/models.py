@@ -1,12 +1,11 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import JSON, TIMESTAMP, Float, ForeignKey, Integer, String, text
+from sqlalchemy import JSON, TIMESTAMP, Float, ForeignKey, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
-
 
 
 class User(Base):
@@ -18,8 +17,6 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"), nullable=False
     )
-
-
 
 
 class Vehicle(Base):
@@ -53,15 +50,17 @@ class Station(Base):
     chargers: Mapped[list["Charger"]] = relationship(back_populates="station", cascade="all, delete-orphan")
 
 
-
-
 class Charger(Base):
     __tablename__ = "chargers"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    station_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("stations.id"), nullable=False)
+    station_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("stations.id"), nullable=False
+    )
     name: Mapped[str] = mapped_column(String(120), nullable=False)
-    power_kw: Mapped[float] = mapped_column(Float, default=22.0, nullable=False)  # 22 kW = typical UK Type 2 fast charger
+    power_kw: Mapped[float] = mapped_column(
+        Float, default=22.0, nullable=False
+    )  # 22 kW = typical UK Type 2 fast charger
     connector_type: Mapped[str] = mapped_column(String(80), default="Type2", nullable=False)
 
     station: Mapped["Station"] = relationship(back_populates="chargers")
@@ -70,13 +69,13 @@ class Charger(Base):
     )
 
 
-
-
 class Reservation(Base):
     __tablename__ = "reservations"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    charger_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("chargers.id"), nullable=False)
+    charger_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("chargers.id"), nullable=False
+    )
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     start_time: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     end_time: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Iterable
 
 import requests
 
@@ -15,13 +15,9 @@ class TravelMetric:
     duration_min: float
 
 
-
-
 def _coords_str(lat: float, lon: float) -> str:
     # OSRM expects lon,lat
     return f"{lon:.6f},{lat:.6f}"
-
-
 
 
 @lru_cache(maxsize=2048)
@@ -60,8 +56,6 @@ def route_one_to_many(
     if not dest_list:
         return []
 
-
-
     try:
         dest_key = ";".join(_coords_str(lat, lon) for lat, lon in dest_list)
         payload = _table_cached(origin_lat, origin_lon, dest_key)
@@ -76,5 +70,3 @@ def route_one_to_many(
         return out
     except Exception:
         return None
-
-

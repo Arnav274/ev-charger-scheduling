@@ -1,25 +1,22 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 
 @dataclass(frozen=True)
 class ReservationInterval:
     """Lightweight projection of a Reservation row, used by the sweep-line overlap counter."""
+
     start_time: datetime
     end_time: datetime
-
-
 
 
 def ensure_utc(dt: datetime) -> datetime:
     """Normalise to UTC. Naive datetimes are assumed UTC; aware datetimes are converted."""
     if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
-    return dt.astimezone(timezone.utc)
-
-
+        return dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC)
 
 
 def arrival_window(
@@ -40,8 +37,6 @@ def arrival_window(
     window_start = arrival_est
     window_end = arrival_est + timedelta(minutes=int(arrival_window_minutes))
     return arrival_est, window_start, window_end
-
-
 
 
 def max_overlapping(intervals: list[ReservationInterval]) -> int:
@@ -72,7 +67,6 @@ def max_overlapping(intervals: list[ReservationInterval]) -> int:
     return best
 
 
-
 def count_starts_in_window(
     intervals: list[ReservationInterval], *, window_start: datetime, window_end: datetime
 ) -> int:
@@ -81,4 +75,3 @@ def count_starts_in_window(
     if window_end <= window_start:
         return 0
     return sum(1 for it in intervals if window_start <= ensure_utc(it.start_time) < window_end)
-

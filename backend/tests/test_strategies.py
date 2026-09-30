@@ -3,8 +3,6 @@
 import uuid
 from unittest.mock import MagicMock
 
-import pytest
-
 from app.algorithms import (
     DijkstraStrategy,
     NearestStrategy,
@@ -14,10 +12,10 @@ from app.algorithms import (
     StaticQueueStrategy,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_station(
     lat: float,
@@ -54,6 +52,7 @@ _MAX = {"distance": 100.0, "wait": 1000.0, "cost": 100.0}
 # NearestStrategy
 # ---------------------------------------------------------------------------
 
+
 class TestNearestStrategy:
     def test_nearest_returns_closest_station(self):
         # At lat 51.5°, 0.009° ≈ 1 km, 0.018° ≈ 2 km, 0.045° ≈ 5 km.
@@ -74,16 +73,19 @@ class TestNearestStrategy:
 # QueueAwareStrategy
 # ---------------------------------------------------------------------------
 
+
 class TestQueueAwareStrategy:
     def test_queue_aware_higher_score_under_reservations(self):
         station = _make_station(
-            lat=0.01, lon=0.0,
+            lat=0.01,
+            lon=0.0,
             num_chargers=2,
-            arrival_rate=1.0,   # rho < 1 for both strategies so waits are finite
+            arrival_rate=1.0,  # rho < 1 for both strategies so waits are finite
             mean_service=40.0,
         )
         ctx = _ctx(
-            0.0, 0.0,
+            0.0,
+            0.0,
             future_reserved_parallel_by_station={str(station.id): 2},
             future_reservation_starts_by_station={str(station.id): 0},
             current_occupancy_by_station={str(station.id): 0},
@@ -98,6 +100,7 @@ class TestQueueAwareStrategy:
 # ---------------------------------------------------------------------------
 # DijkstraStrategy
 # ---------------------------------------------------------------------------
+
 
 class TestDijkstraStrategy:
     def test_dijkstra_strategy_consistent_with_haversine(self):
@@ -120,6 +123,7 @@ class TestDijkstraStrategy:
 # RangeAwareStrategy
 # ---------------------------------------------------------------------------
 
+
 class TestRangeAwareStrategy:
     def test_range_aware_penalises_distant_station_on_low_battery(self):
         origin_lat, origin_lon = 51.5, -0.1
@@ -127,7 +131,8 @@ class TestRangeAwareStrategy:
         s_far = _make_station(lat=origin_lat + 0.45, lon=origin_lon)
 
         ctx = _ctx(
-            origin_lat, origin_lon,
+            origin_lat,
+            origin_lon,
             battery_level_percent=5.0,
             battery_capacity_kwh=60.0,
         )
@@ -142,7 +147,8 @@ class TestRangeAwareStrategy:
         s_near = _make_station(lat=origin_lat + 0.009, lon=origin_lon, arrival_rate=0.75)
 
         ctx = _ctx(
-            origin_lat, origin_lon,
+            origin_lat,
+            origin_lon,
             battery_level_percent=80.0,
             battery_capacity_kwh=60.0,
         )

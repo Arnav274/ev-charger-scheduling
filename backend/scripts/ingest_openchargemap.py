@@ -22,7 +22,6 @@ def borough_from_lat_lon(lat: float, lon: float) -> str:
     return "Camden"
 
 
-
 def fetch_openchargemap(
     live: bool,
     *,
@@ -33,7 +32,6 @@ def fetch_openchargemap(
 ) -> list[dict]:
     if not live:
         return json.loads(CACHE_PATH.read_text(encoding="utf-8"))
-
 
     # Default bounding area covers Westminster + Camden.
     params = {
@@ -46,18 +44,17 @@ def fetch_openchargemap(
         "maxresults": max_results,
     }
     headers = {
-        "User-Agent": "uea-ev-dissertation/1.0 (educational project)",
+        "User-Agent": "ev-charger-scheduling/1.0 (+https://github.com/Arnav274/ev-charger-scheduling)",
         "Accept": "application/json",
     }
     api_key = (os.getenv("OPENCHARGEMAP_API_KEY") or "").strip()
     if not api_key:
         raise RuntimeError(
             "OPENCHARGEMAP_API_KEY is missing or empty in this environment. "
-            "Put OPENCHARGEMAP_API_KEY=... in the project .env next to docker-compose.yml, then recreate the backend "
-            "so the container picks it up: docker compose up -d --force-recreate backend"
+            "Put OPENCHARGEMAP_API_KEY=... in the project .env next to docker-compose.yml, then recreate "
+            "the backend so the container picks it up: docker compose up -d --force-recreate backend"
         )
     headers["X-API-Key"] = api_key
-
 
     response = requests.get(
         "https://api.openchargemap.io/v3/poi/",
@@ -73,7 +70,6 @@ def fetch_openchargemap(
         )
     response.raise_for_status()
     return response.json()
-
 
 
 def ingest(records: list[dict], *, enforce_min_stations: bool = True) -> None:
@@ -140,7 +136,9 @@ def ingest(records: list[dict], *, enforce_min_stations: bool = True) -> None:
                 ),
                 {"station_id": station_id},
             )
-            db.execute(text("DELETE FROM chargers WHERE station_id = :station_id"), {"station_id": station_id})
+            db.execute(
+                text("DELETE FROM chargers WHERE station_id = :station_id"), {"station_id": station_id}
+            )
             for idx in range(chargers_count):
                 db.execute(
                     text(
@@ -158,18 +156,19 @@ def ingest(records: list[dict], *, enforce_min_stations: bool = True) -> None:
                     },
                 )
         db.commit()
-        # Dissertation-scale guard applies to live API pulls only; cached sample is intentionally tiny for offline dev.
+        # The minimum-size guard applies to live pulls only; the cached sample is deliberately tiny.
         if enforce_min_stations:
-            station_count = db.execute(text("SELECT COUNT(*) FROM stations WHERE source = 'openchargemap'")).scalar_one()
+            station_count = db.execute(
+                text("SELECT COUNT(*) FROM stations WHERE source = 'openchargemap'")
+            ).scalar_one()
             if int(station_count) < MIN_STATIONS_REQUIRED:
                 raise RuntimeError(
-                    f"Only {station_count} OpenChargeMap stations in DB after ingest; require >= {MIN_STATIONS_REQUIRED}. "
-                    "Increase --distance-km and/or --max-results, and ensure OPENCHARGEMAP_API_KEY is set for live ingestion."
+                    f"Only {station_count} OpenChargeMap stations in DB after ingest; "
+                    f"require >= {MIN_STATIONS_REQUIRED}. Increase --distance-km and/or --max-results, "
+                    "and ensure OPENCHARGEMAP_API_KEY is set for live ingestion."
                 )
     finally:
         db.close()
-
-
 
 
 if __name__ == "__main__":

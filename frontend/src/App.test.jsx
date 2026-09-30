@@ -109,4 +109,63 @@ describe("App", () => {
     expect(await screen.findByText("Signed in")).toBeInTheDocument();
     expect(localStorage.getItem("ev_access_token")).toBe("new-token");
   });
+
+  it("keeps the latest strategy's results when an earlier request answers last", async () => {
+    let answerSlowRequest;
+    api.getRecommendations
+      .mockImplementationOnce(() => new Promise((resolve) => (answerSlowRequest = resolve)))
+      .mockResolvedValueOnce([{ ...recommendation, station_name: "Fast answer" }]);
+    render(<App />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Dijkstra" }));
+    await userEvent.click(screen.getByRole("button", { name: "Queue aware" }));
+    expect(await screen.findByText("Fast answer")).toBeInTheDocument();
+
+    answerSlowRequest([{ ...recommendation, station_name: "Slow answer" }]);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.queryByText("Slow answer")).not.toBeInTheDocument();
+    expect(screen.getByText("Best stations: Queue aware")).toBeInTheDocument();
+  });
+
+  it("signs out when the saved token is no longer accepted", async () => {
+    localStorage.setItem("ev_access_token", "expired");
+    const unauthorised = Object.assign(new Error("Could not validate credentials"), { status: 401 });
+    api.fetchVehicles.mockRejectedValue(unauthorised);
+    api.getMyReservations.mockRejectedValue(unauthorised);
+    render(<App />);
+
+    expect(await screen.findByRole("button", { name: "Sign in" })).toBeInTheDocument();
+    await waitFor(() => expect(localStorage.getItem("ev_access_token")).toBeNull());
+  });
+
+  it("rejects a cleared latitude instead of searching at 0", async () => {
+    render(<App />);
+    await screen.findByText("1 stations within 5 km.");
+    await userEvent.clear(screen.getByLabelText("Latitude"));
+    await userEvent.click(screen.getByRole("button", { name: "Find nearby stations" }));
+
+    expect(await screen.findByText("Enter a latitude between -90 and 90.")).toBeInTheDocument();
+    expect(api.fetchNearbyStations).toHaveBeenCalledTimes(1);
+  });
+
+  it("searches with the typed centre and radius", async () => {
+    render(<App />);
+    await screen.findByText("1 stations within 5 km.");
+    await userEvent.clear(screen.getByLabelText("Latitude"));
+    await userEvent.type(screen.getByLabelText("Latitude"), "51.53");
+    await userEvent.clear(screen.getByLabelText("Radius (km)"));
+    await userEvent.type(screen.getByLabelText("Radius (km)"), "2");
+    await userEvent.click(screen.getByRole("button", { name: "Find nearby stations" }));
+
+    expect(api.fetchNearbyStations).toHaveBeenLastCalledWith(51.53, -0.1278, 2);
+  });
+
+  it("lets an existing account with a short password sign in", async () => {
+    vi.spyOn(api, "loginUser").mockResolvedValue({ access_token: "t" });
+    render(<App />);
+    await userEvent.type(screen.getByLabelText("Email"), "demo@example.com");
+    await userEvent.type(screen.getByLabelText("Password"), "demo");
+    await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    expect(api.loginUser).toHaveBeenCalledWith("demo@example.com", "demo");
+  });
 });

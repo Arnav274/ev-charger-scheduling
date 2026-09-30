@@ -39,21 +39,28 @@ export default function App() {
   const [selectedVehicleId, setSelectedVehicleId] = useState(null);
   const [reservations, setReservations] = useState([]);
 
+  // Only the most recent recommendation request may update the results.
+  const latestRequest = useRef(0);
   const resultsRef = useRef(null);
   const bookingRef = useRef(null);
   const accountRef = useRef(null);
 
-  const { token } = auth;
+  const { token, logout } = auth;
+  // A 401 means the token has expired or the server's secret changed, so sign out
+  // rather than keep showing "Signed in" with every request failing.
+  const onAccountError = useCallback(
+    (clear) => (err) => {
+      if (err.status === 401) logout();
+      clear([]);
+    },
+    [logout],
+  );
   const refreshVehicles = useCallback(() => {
-    fetchVehicles(token)
-      .then(setVehicles)
-      .catch(() => setVehicles([]));
-  }, [token]);
+    fetchVehicles(token).then(setVehicles).catch(onAccountError(setVehicles));
+  }, [token, onAccountError]);
   const refreshReservations = useCallback(() => {
-    getMyReservations(token)
-      .then(setReservations)
-      .catch(() => setReservations([]));
-  }, [token]);
+    getMyReservations(token).then(setReservations).catch(onAccountError(setReservations));
+  }, [token, onAccountError]);
 
   useEffect(() => {
     if (!token) {
@@ -68,6 +75,7 @@ export default function App() {
 
   async function recommend(algorithm) {
     setStrategy(algorithm);
+    const request = ++latestRequest.current;
     const payload = {
       origin_lat: finder.centre.lat,
       origin_lon: finder.centre.lon,
@@ -80,9 +88,12 @@ export default function App() {
       payload.battery_capacity_kwh = Number(battery.capacity);
     }
     try {
-      setResults({ strategy: algorithm, items: await getRecommendations(payload) });
+      const items = await getRecommendations(payload);
+      if (request !== latestRequest.current) return; // a newer request superseded this one
+      setResults({ strategy: algorithm, items });
       scrollTo(resultsRef);
     } catch (err) {
+      if (request !== latestRequest.current) return;
       setResults({ strategy: null, items: [] });
       finder.setStatus(err.message);
     }

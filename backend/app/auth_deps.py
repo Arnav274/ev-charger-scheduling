@@ -5,7 +5,7 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError
+from jwt import PyJWTError
 from sqlalchemy.orm import Session
 
 from app.auth_utils import decode_access_token_subject
@@ -26,7 +26,7 @@ def get_current_user_id(
     )
     try:
         uid = decode_access_token_subject(token)
-    except JWTError as exc:
+    except (PyJWTError, ValueError) as exc:
         raise credentials_exception from exc
     user = db.query(User).filter(User.id == uid).first()
     if user is None:

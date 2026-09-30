@@ -137,12 +137,14 @@ def test_arrival_rate_scale_raises_predicted_waits() -> None:
     assert stressed.wait_min > base.wait_min
 
 
-def test_dijkstra_ranks_by_the_router_it_is_given() -> None:
-    stations = [station("a"), station("b"), station("c")]
-    router_costs = {"a": 7.0, "b": 3.0, "c": 5.0}
-    strategy = DijkstraStrategy(router=lambda lat, lon, candidates: router_costs)
+def test_dijkstra_ranks_by_drive_time_from_its_router() -> None:
+    stations = [station("a"), station("b"), station("c"), station("island")]
+    routes = {"a": Travel(2.0, 7.0), "b": Travel(4.0, 3.0), "c": Travel(1.0, 5.0), "island": None}
+    strategy = DijkstraStrategy(router=lambda lat, lon, candidates: routes)
 
-    ranked = strategy.rank(stations, ctx({"a": 1, "b": 1, "c": 1}))
+    ranked = strategy.rank(stations, ctx({"a": 1, "b": 1, "c": 1, "island": 1}))
 
+    # Fastest first, even though "c" is the shortest; the unreachable station is dropped.
     assert [r.station.id for r in ranked] == ["b", "c", "a"]
     assert [r.score for r in ranked] == pytest.approx([3.0, 5.0, 7.0])
+    assert ranked[0].travel == Travel(4.0, 3.0)

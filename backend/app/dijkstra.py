@@ -1,159 +1,190 @@
-"""Dijkstra shortest-path routing over a Haversine graph of charging stations."""
+"""Dijkstra's shortest-path algorithm over the London road graph.
+
+The graph is built from OpenStreetMap by scripts/build_road_graph.py and
+stored in compressed sparse row (CSR) form: the out-edges of node u are
+indices[indptr[u]:indptr[u + 1]], with matching entries in each weight array.
+"""
 
 from __future__ import annotations
 
 import heapq
 import math
-from dataclasses import dataclass, field
+from collections.abc import Iterable, Sequence
+from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
 
-from app.geo import haversine_km
+import numpy as np
+from scipy.spatial import cKDTree
 
-# Data structure
+from app.config import settings
+from app.geo import EARTH_RADIUS_KM
+
+# Driving between a point and the junction it snaps to is costed at this speed.
+# Junctions in central London are rarely more than ~100 m apart, so the leg is short.
+ACCESS_SPEED_KMH = 15.0
+
+
+class RoadGraphUnavailable(RuntimeError):
+    """Raised when the road graph file has not been built yet."""
 
 
 @dataclass
-class Station:
-    station_id: str
-    lat: float
-    lon: float
+class ShortestPaths:
+    dist: list[float]
+    # Index of the edge used to reach each node, or -1 for the source and unreached nodes.
+    prev_edge: list[int]
+    settled: int
+
+    def reached(self, node: int) -> bool:
+        return not math.isinf(self.dist[node])
 
 
-@dataclass
-class RouteResult:
-    station_id: str
-    distance_km: float
-    path_nodes: list[int] = field(
-        default_factory=list
-    )  # sequence of node indices; 0 = origin, 1..N = stations
-
-
-# Graph construction
-
-
-def _build_graph(
-    origin_lat: float,
-    origin_lon: float,
-    stations: list[Station],
-) -> tuple[list[tuple[float, float]], list[list[tuple[int, float]]]]:
-    """Build a complete weighted undirected adjacency list. Node 0 is the origin.
-
-    Every pair of nodes gets a Haversine edge, so Dijkstra finds the shortest
-    chain of hops rather than a direct straight line, a simple approximation
-    of road distance. For real road distances the app uses OSRM instead
-    (see routing_osrm.py); this graph is the fallback for the Dijkstra strategy.
-    """
-    coords: list[tuple[float, float]] = [(origin_lat, origin_lon)]
-    for s in stations:
-        coords.append((s.lat, s.lon))
-
-    n = len(coords)
-    adj: list[list[tuple[int, float]]] = [[] for _ in range(n)]
-
-    for i in range(n):
-        for j in range(i + 1, n):
-            dist = haversine_km(coords[i][0], coords[i][1], coords[j][0], coords[j][1])
-            adj[i].append((j, dist))
-            adj[j].append((i, dist))
-
-    return coords, adj
-
-
-# Dijkstra's algorithm
-
-
-def _dijkstra(
-    adj: list[list[tuple[int, float]]],
+def dijkstra(
+    indptr: Sequence[int],
+    indices: Sequence[int],
+    weights: Sequence[float],
     source: int,
-) -> tuple[list[float], list[int | None]]:
-    """Single-source shortest paths from source using a min-heap."""
-    n = len(adj)
-    dist: list[float] = [math.inf] * n
-    prev: list[int | None] = [None] * n
-    dist[source] = 0.0
+    targets: Iterable[int] | None = None,
+) -> ShortestPaths:
+    """Single-source shortest paths using a binary heap with lazy deletion.
 
-    # heap entries
-    heap: list[tuple[float, int]] = [(0.0, source)]
+    Instead of decreasing a key in place, a node is pushed again whenever a
+    shorter distance is found, and stale entries are skipped when popped.
+    With `targets`, the search stops as soon as every target is settled, which
+    keeps a query for nearby stations from exploring the whole city.
+    Runs in O((V + E) log V). Weights must be non-negative.
+    """
+    n = len(indptr) - 1
+    dist = [math.inf] * n
+    prev_edge = [-1] * n
+    done = [False] * n
+    remaining = set(targets) if targets is not None else None
+    dist[source] = 0.0
+    heap = [(0.0, source)]
+    settled = 0
 
     while heap:
-        d_u, u = heapq.heappop(heap)
-
-        # Lazy deletion: if a shorter path to u was found after this heap entry
-        # was pushed, skip it, the node has already been finalised.
-        if d_u > dist[u]:
+        d, u = heapq.heappop(heap)
+        if done[u]:
             continue
-
-        for v, weight in adj[u]:
-            candidate = dist[u] + weight
+        done[u] = True
+        settled += 1
+        if remaining is not None:
+            remaining.discard(u)
+            if not remaining:
+                break
+        for edge in range(indptr[u], indptr[u + 1]):
+            v = indices[edge]
+            candidate = d + weights[edge]
             if candidate < dist[v]:
                 dist[v] = candidate
-                prev[v] = u
+                prev_edge[v] = edge
                 heapq.heappush(heap, (candidate, v))
 
-    return dist, prev
+    return ShortestPaths(dist=dist, prev_edge=prev_edge, settled=settled)
 
 
-def _reconstruct_path(prev: list[int | None], target: int) -> list[int]:
-    path: list[int] = []
-    node: int | None = target
-    while node is not None:
-        path.append(node)
-        node = prev[node]
-    path.reverse()
-    # Guard against disconnected graphs: a valid path from the source (node 0)
-    # must start at a node with no predecessor. In practice, the complete
-    # Haversine graph is always fully connected so this never triggers.
-    if not path or prev[path[0]] is not None and len(path) == 1:
-        return []
-    return path
+@dataclass(frozen=True)
+class RoadTravel:
+    distance_km: float
+    duration_min: float
 
 
-# Public API
+class RoadGraph:
+    def __init__(
+        self,
+        lat: np.ndarray,
+        lon: np.ndarray,
+        indptr: np.ndarray,
+        indices: np.ndarray,
+        length_m: np.ndarray,
+        time_s: np.ndarray,
+    ) -> None:
+        self.lat, self.lon = np.asarray(lat, dtype=float), np.asarray(lon, dtype=float)
+        # The search loop runs in pure Python, where list indexing is several
+        # times faster than indexing numpy arrays element by element.
+        self.indptr = np.asarray(indptr).tolist()
+        self.indices = np.asarray(indices).tolist()
+        self.length_m = np.asarray(length_m, dtype=float).tolist()
+        self.time_s = np.asarray(time_s, dtype=float).tolist()
+        self.edge_source = np.repeat(np.arange(len(self.lat)), np.diff(indptr)).tolist()
+        # A flat projection is accurate to well under 1% across a city.
+        self._lat0 = math.radians(float(np.mean(self.lat))) if len(self.lat) else 0.0
+        self._tree = cKDTree(self._project(self.lat, self.lon))
+
+    @classmethod
+    def load(cls, path: Path) -> RoadGraph:
+        with np.load(path) as data:
+            return cls(**{key: data[key] for key in data.files})
+
+    @property
+    def node_count(self) -> int:
+        return len(self.lat)
+
+    def _project(self, lat, lon) -> np.ndarray:
+        metres_per_radian = EARTH_RADIUS_KM * 1000
+        x = np.radians(lon) * math.cos(self._lat0) * metres_per_radian
+        y = np.radians(lat) * metres_per_radian
+        return np.column_stack([x, y])
+
+    def nearest_nodes(self, points: Sequence[tuple[float, float]]) -> tuple[list[int], list[float]]:
+        """Closest junction to each (lat, lon) and the straight-line distance to it in metres."""
+        lats, lons = zip(*points, strict=True)
+        distance_m, nodes = self._tree.query(self._project(np.array(lats), np.array(lons)))
+        return np.atleast_1d(nodes).tolist(), np.atleast_1d(distance_m).tolist()
+
+    def path(self, paths: ShortestPaths, target: int) -> list[int]:
+        """Nodes on the shortest path from the search's source to `target`."""
+        if not paths.reached(target):
+            return []
+        nodes = [target]
+        edge = paths.prev_edge[target]
+        while edge != -1:
+            nodes.append(self.edge_source[edge])
+            edge = paths.prev_edge[self.edge_source[edge]]
+        return nodes[::-1]
+
+    def path_length_m(self, paths: ShortestPaths, target: int) -> float:
+        total = 0.0
+        edge = paths.prev_edge[target]
+        while edge != -1:
+            total += self.length_m[edge]
+            edge = paths.prev_edge[self.edge_source[edge]]
+        return total
+
+    def fastest_routes(
+        self, origin: tuple[float, float], destinations: Sequence[tuple[float, float]]
+    ) -> list[RoadTravel | None]:
+        """Drive time and distance of the fastest route to each destination, None if unreachable."""
+        if not destinations:
+            return []
+        (source,), (origin_snap_m,) = self.nearest_nodes([origin])
+        targets, snaps_m = self.nearest_nodes(destinations)
+        paths = dijkstra(self.indptr, self.indices, self.time_s, source, targets)
+
+        results: list[RoadTravel | None] = []
+        for target, snap_m in zip(targets, snaps_m, strict=True):
+            if not paths.reached(target):
+                results.append(None)
+                continue
+            access_m = origin_snap_m + snap_m
+            seconds = paths.dist[target] + access_m / (ACCESS_SPEED_KMH / 3.6)
+            metres = self.path_length_m(paths, target) + access_m
+            results.append(RoadTravel(distance_km=metres / 1000, duration_min=seconds / 60))
+        return results
 
 
-def shortest_paths_to_stations(
-    origin_lat: float,
-    origin_lon: float,
-    stations: list[Station],
-) -> dict[str, RouteResult]:
-    """Run Dijkstra from the origin to every station in the list."""
-    if not stations:
-        raise ValueError("At least one station must be provided.")
+@lru_cache(maxsize=1)
+def _load(path: Path) -> RoadGraph:
+    return RoadGraph.load(path)
 
-    _, adj = _build_graph(origin_lat, origin_lon, stations)
-    dist, prev = _dijkstra(adj, source=0)
 
-    results: dict[str, RouteResult] = {}
-    for idx, station in enumerate(stations):
-        node_idx = idx + 1  # stations are 1-indexed; node 0 is the origin
-        path = _reconstruct_path(prev, node_idx)
-        results[station.station_id] = RouteResult(
-            station_id=station.station_id,
-            distance_km=dist[node_idx],
-            path_nodes=path,
+def get_road_graph() -> RoadGraph:
+    path = settings.road_graph_path
+    if not path.is_file():
+        raise RoadGraphUnavailable(
+            f"Road graph not found at {path}. Build it with: "
+            "docker compose exec backend python -m scripts.build_road_graph"
         )
-
-    return results
-
-
-# demo
-
-if __name__ == "__main__":
-    demo_stations = [
-        Station(station_id="S1", lat=52.6270, lon=1.2960),
-        Station(station_id="S2", lat=52.6350, lon=1.3100),
-        Station(station_id="S3", lat=52.6400, lon=1.2800),
-    ]
-
-    origin = (52.6309, 1.2974)
-
-    print("Dijkstra shortest-path demo")
-    print(f"Origin: lat={origin[0]}, lon={origin[1]}\n")
-
-    results = shortest_paths_to_stations(origin[0], origin[1], demo_stations)
-
-    for station_id, result in sorted(results.items(), key=lambda kv: kv[1].distance_km):
-        path_str = " -> ".join("origin" if n == 0 else f"S{n}" for n in result.path_nodes)
-        print(f"  {station_id:>4}  {result.distance_km:6.3f} km   path: {path_str}")
-
-    best_id = min(results, key=lambda sid: results[sid].distance_km)
-    print(f"\nNearest station: {best_id} ({results[best_id].distance_km:.3f} km)")
+    return _load(path)

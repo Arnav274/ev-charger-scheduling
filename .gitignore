@@ -24,3 +24,6 @@ repomix-output.xml
 repomix.config.json
 .repomixignore
 repomix-output.txt
+
+# Built locally from the OSM extract (scripts/build_road_graph.py)
+backend/data/

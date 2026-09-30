@@ -2,7 +2,7 @@
   {
     "ID": 1,
     "AddressInfo": {
-      "Title": "Westminster Test Station",
+      "Title": "Victoria Street (offline sample)",
       "AddressLine1": "Victoria Street",
       "Latitude": 51.4975,
       "Longitude": -0.1357
@@ -12,7 +12,7 @@
   {
     "ID": 2,
     "AddressInfo": {
-      "Title": "Camden Test Station",
+      "Title": "Camden High Street (offline sample)",
       "AddressLine1": "Camden High Street",
       "Latitude": 51.5416,
       "Longitude": -0.1420

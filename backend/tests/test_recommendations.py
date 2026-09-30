@@ -4,9 +4,13 @@ from datetime import timedelta
 
 import pytest
 
+import app.algorithms as algorithms
 import app.recommendation as recommendation
+from app.config import settings
+from app.dijkstra import RoadGraphUnavailable
 from app.models import Reservation
 from app.routing_osrm import TravelMetric
+from tests.road_graphs import grid_graph
 
 ORIGIN = {"origin_lat": 51.5074, "origin_lon": -0.1278}
 
@@ -15,6 +19,15 @@ ORIGIN = {"origin_lat": 51.5074, "origin_lon": -0.1278}
 def no_osrm(monkeypatch):
     """Tests use the straight-line fallback unless they install their own road distances."""
     monkeypatch.setattr(recommendation, "route_one_to_many", lambda **_: None)
+
+
+# A street grid over the test area, 0.0025 degrees (~280 m by ~170 m) per block.
+TEST_GRAPH = grid_graph(rows=90, cols=4, spacing_deg=0.0025, lat0=51.50, lon0=-0.1353)
+
+
+@pytest.fixture(autouse=True)
+def road_graph(monkeypatch):
+    monkeypatch.setattr(algorithms, "get_road_graph", lambda: TEST_GRAPH)
 
 
 def post(client, **body):
@@ -38,6 +51,28 @@ def test_every_strategy_returns_ranked_results(client, make_station, algorithm) 
         assert row["travel_distance_km"] > 0
         assert 0 <= row["probability_of_delay"] <= 1
         assert row["predicted_wait_min"] >= 0
+
+
+def test_dijkstra_reports_the_route_it_found(client, make_station) -> None:
+    make_station(lat=51.53, name="North")
+    row = post(client, algorithm="dijkstra", top_k=1).json()[0]
+
+    # ~2.5 km north along the grid at 10 m/s, plus short access legs at either end.
+    assert row["travel_distance_km"] == pytest.approx(2.5, abs=0.2)
+    assert row["travel_time_min"] == pytest.approx(row["score"])
+    assert row["travel_time_min"] == pytest.approx(2.5 * 1000 / 10 / 60, rel=0.15)
+
+
+def test_dijkstra_without_a_built_graph_is_503(client, make_station, monkeypatch) -> None:
+    make_station()
+
+    def missing():
+        raise RoadGraphUnavailable(f"Road graph not found at {settings.road_graph_path}")
+
+    monkeypatch.setattr(algorithms, "get_road_graph", missing)
+    response = post(client, algorithm="dijkstra")
+    assert response.status_code == 503
+    assert "Road graph not found" in response.json()["detail"]
 
 
 def test_unknown_algorithm_is_rejected(client) -> None:

@@ -11,8 +11,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 
 from app.config import ENERGY_CONSUMPTION_KWH_PER_KM
-from app.dijkstra import Station as GraphStation
-from app.dijkstra import shortest_paths_to_stations
+from app.dijkstra import get_road_graph
 from app.queueing import WaitPrediction, predict_wait
 
 
@@ -68,6 +67,8 @@ class Ranked:
     station: StationInfo
     score: float
     prediction: WaitPrediction
+    # Set when the strategy computed its own route rather than using ctx.travel.
+    travel: Travel | None = None
 
 
 @dataclass(frozen=True)
@@ -186,29 +187,40 @@ class RangeAwareStrategy(SelectionStrategy):
         return prediction.wait_min / norm.wait + penalty
 
 
-Router = Callable[[float, float, Sequence[StationInfo]], dict[str, float]]
+# Given an origin and candidate stations, the drive to each station, or None if unreachable.
+Router = Callable[[float, float, Sequence[StationInfo]], dict[str, Travel | None]]
 
 
-def straight_line_router(
+def road_graph_router(
     origin_lat: float, origin_lon: float, stations: Sequence[StationInfo]
-) -> dict[str, float]:
-    results = shortest_paths_to_stations(
-        origin_lat, origin_lon, [GraphStation(s.id, s.lat, s.lon) for s in stations]
-    )
-    return {sid: r.distance_km for sid, r in results.items()}
+) -> dict[str, Travel | None]:
+    routes = get_road_graph().fastest_routes((origin_lat, origin_lon), [(s.lat, s.lon) for s in stations])
+    return {
+        s.id: Travel(r.distance_km, r.duration_min) if r else None
+        for s, r in zip(stations, routes, strict=True)
+    }
 
 
 class DijkstraStrategy(SelectionStrategy):
-    """Shortest path computed by our own Dijkstra implementation."""
+    """Fastest drive, found by our own Dijkstra search over the OpenStreetMap road graph.
 
-    def __init__(self, router: Router = straight_line_router) -> None:
+    Where NearestStrategy minimises road distance as reported by OSRM, this
+    minimises drive time from a search we run ourselves, and reports the
+    distance and time of the route it found.
+    """
+
+    def __init__(self, router: Router = road_graph_router) -> None:
         self.router = router
 
     def rank(self, stations, ctx):
         if not stations:
             return []
-        path_costs = self.router(ctx.origin_lat, ctx.origin_lon, stations)
-        ranked = [Ranked(s, path_costs[s.id], self.predict(s, ctx)) for s in stations]
+        routes = self.router(ctx.origin_lat, ctx.origin_lon, stations)
+        ranked = [
+            Ranked(s, route.duration_min, self.predict(s, ctx), travel=route)
+            for s in stations
+            if (route := routes.get(s.id)) is not None
+        ]
         ranked.sort(key=lambda r: (r.score, r.station.id))
         return ranked
 

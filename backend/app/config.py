@@ -1,11 +1,14 @@
 import logging
 import os
+from pathlib import Path
 
 # Queueing and energy model parameters. Sources and sensitivity ranges are in
 # docs/parameter_justification.md.
 ARRIVAL_RATE_PER_HOUR_DEFAULT: float = 0.75  # Hecht et al. (2022)
 MEAN_SERVICE_MINUTES_DEFAULT: float = 40.0  # DoE EERE FOTW #1319 (2023)
 ENERGY_CONSUMPTION_KWH_PER_KM: float = 0.2  # Weiss et al. (2024)
+
+BACKEND_DIR = Path(__file__).resolve().parents[1]
 
 DEV_JWT_SECRET = "dev-only-secret-do-not-use-in-production"
 
@@ -20,6 +23,9 @@ class Settings:
             "DATABASE_URL", "postgresql+psycopg2://evuser:evpass@localhost:5433/evdb"
         )
         self.osrm_base_url = os.getenv("OSRM_BASE_URL", "http://osrm:5000")
+        # The OSM extract is shared with OSRM through the osrmdata volume.
+        self.osm_pbf_path = Path(os.getenv("OSM_PBF_PATH", "/osm/london.osm.pbf"))
+        self.road_graph_path = Path(os.getenv("ROAD_GRAPH_PATH", BACKEND_DIR / "data" / "road_graph.npz"))
         self.jwt_secret_key = os.getenv("JWT_SECRET_KEY") or DEV_JWT_SECRET
         self.jwt_algorithm = "HS256"
         self.jwt_expire_minutes = int(os.getenv("JWT_EXPIRE_MINUTES", "10080"))

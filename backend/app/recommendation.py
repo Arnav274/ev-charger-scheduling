@@ -146,18 +146,25 @@ def recommend(db: Session, req: RecommendationRequest, now: datetime) -> list[Re
         battery_level_percent=req.battery_level_percent,
         battery_capacity_kwh=req.battery_capacity_kwh,
     )
-    return [
-        RecommendationOut(
-            station_id=r.station.id,
-            station_name=r.station.name,
-            score=r.score,
-            travel_distance_km=travel[r.station.id].distance_km,
-            travel_time_min=travel[r.station.id].duration_min,
-            arrival_time_est=arrival_at[r.station.id],
-            predicted_wait_min=r.prediction.wait_min,
-            probability_of_delay=r.prediction.probability_of_delay,
-            price_pence_per_kwh=r.station.price_pence_per_kwh,
-            current_occupancy=occupancy.get(r.station.id, 0),
+    results = []
+    for r in strategy.rank(stations, ctx)[: req.top_k]:
+        # Dijkstra reports the route it found itself; other strategies use OSRM's.
+        route = r.travel or travel[r.station.id]
+        arrival = arrival_at[r.station.id]
+        if r.travel and not req.arrival_time_target:
+            arrival = departure + timedelta(minutes=route.duration_min)
+        results.append(
+            RecommendationOut(
+                station_id=r.station.id,
+                station_name=r.station.name,
+                score=r.score,
+                travel_distance_km=route.distance_km,
+                travel_time_min=route.duration_min,
+                arrival_time_est=arrival,
+                predicted_wait_min=r.prediction.wait_min,
+                probability_of_delay=r.prediction.probability_of_delay,
+                price_pence_per_kwh=r.station.price_pence_per_kwh,
+                current_occupancy=occupancy.get(r.station.id, 0),
+            )
         )
-        for r in strategy.rank(stations, ctx)[: req.top_k]
-    ]
+    return results

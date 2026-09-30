@@ -1,0 +1,4972 @@
+[
+ {
+  "id": "bdcbbd20-a7a0-4f94-9ecd-8ecd99fd5cf5",
+  "name": "Ubitricity Balfe Street",
+  "lat": 51.5332753197636,
+  "lon": -0.12070558710252044,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ee50dd19-f994-4a2c-b07f-32f04a299261",
+  "name": "Concert Hall Approach",
+  "lat": 51.50463,
+  "lon": -0.11455,
+  "chargers": 1,
+  "price_pence_per_kwh": 20.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8917450f-067f-4968-bf4c-c3981f116331",
+  "name": "Lloyds Head Office",
+  "lat": 51.517476,
+  "lon": -0.093712,
+  "chargers": 2,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f81f2e1f-fe0f-4a29-83cd-133c284f0241",
+  "name": "Kings Place Management",
+  "lat": 51.534858,
+  "lon": -0.12198,
+  "chargers": 1,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c66a0f49-dde1-4f5a-8cad-416725c67791",
+  "name": "Saint John Street 327",
+  "lat": 51.528326,
+  "lon": -0.104895,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "bee21cb9-d495-4343-84f2-d75281f967bb",
+  "name": "Bowling Green Lane",
+  "lat": 51.524483,
+  "lon": -0.107519,
+  "chargers": 3,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "605c94f8-f4c9-462a-aec7-c4c64c204b19",
+  "name": "Britton Street",
+  "lat": 51.522255,
+  "lon": -0.104873,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "fdab275a-1049-4469-ba4b-0ad66169d08b",
+  "name": "Mylne Street",
+  "lat": 51.530783,
+  "lon": -0.109522,
+  "chargers": 3,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e9058e5b-f9ea-4d15-b775-51331745ac0e",
+  "name": "Saint John Street 29",
+  "lat": 51.52056,
+  "lon": -0.101815,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "830c7c59-afce-4b3e-abdd-0a4ff0a671f1",
+  "name": "Cowcross Street",
+  "lat": 51.520115,
+  "lon": -0.103218,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4726b207-1b37-4fc0-b409-c0b5b570ab32",
+  "name": "Central Street 32",
+  "lat": 51.524874,
+  "lon": -0.0961,
+  "chargers": 3,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a2a4c375-ea0f-44ad-b828-a9aca1c5c310",
+  "name": "Percival Street",
+  "lat": 51.526167,
+  "lon": -0.102087,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "489a3341-043d-4109-a9e9-48121b89b1bc",
+  "name": "Central Street 49",
+  "lat": 51.525626,
+  "lon": -0.096429,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "1cdc2dd3-bca9-4071-822f-8d82e41cf6b4",
+  "name": "Hall Street",
+  "lat": 51.529344,
+  "lon": -0.101118,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "3c082a90-3c4f-4c2e-938c-90b7e764f513",
+  "name": "Great Sutton Street",
+  "lat": 51.523663,
+  "lon": -0.099639,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "285c1bdc-9f4c-4a2b-b632-74ea76b4cbae",
+  "name": "Ironmonger Row",
+  "lat": 51.527206,
+  "lon": -0.094619,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "70e0e05b-c7ec-447d-9aa3-d6245d436fd6",
+  "name": "Berry Street",
+  "lat": 51.523367,
+  "lon": -0.100228,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "7b2b7827-6bec-4766-a1a6-e096adcd03d9",
+  "name": "Bunyan Court Car Park",
+  "lat": 51.520546,
+  "lon": -0.097765,
+  "chargers": 4,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "68d4d1cc-a687-4eca-a962-6487bfd0f5b7",
+  "name": "Thomas More House Car Park",
+  "lat": 51.518345,
+  "lon": -0.09627,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "0a1d5c4d-22b4-4d15-a81e-2e8316390e90",
+  "name": "Saint Martins Lane Hotel",
+  "lat": 51.510475,
+  "lon": -0.126729,
+  "chargers": 2,
+  "price_pence_per_kwh": 79.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "44dfa455-4304-4583-911e-b2752cc6b7dd",
+  "name": "5 Cavendish Square",
+  "lat": 51.5167634,
+  "lon": -0.1439865,
+  "chargers": 3,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "71176c68-7cd1-479c-88d4-8ae8cc5bb36c",
+  "name": "Malet Street",
+  "lat": 51.5225936698,
+  "lon": -0.131569826997,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "db64bd87-ffa3-45ed-a63b-3cef6a188497",
+  "name": "St James Square",
+  "lat": 51.507729,
+  "lon": -0.13457,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "398803a4-266d-42b7-920d-73b7631c4cec",
+  "name": "Q-Park Oxford Street",
+  "lat": 51.516201,
+  "lon": -0.145986,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8abcdfc4-8e98-4dda-9fd3-aec76d56ac69",
+  "name": "Q-Park Oxford Street Car Park",
+  "lat": 51.516525,
+  "lon": -0.144647,
+  "chargers": 2,
+  "price_pence_per_kwh": 79.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "2bc96f30-bdbc-4579-8dc2-052b261c4a20",
+  "name": "Cornwall Road, Lambeth",
+  "lat": 51.50542,
+  "lon": -0.11099,
+  "chargers": 2,
+  "price_pence_per_kwh": 20.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "b861b839-bd86-4da2-b413-c82f6cc5a322",
+  "name": "Camley Street",
+  "lat": 51.538365,
+  "lon": -0.130881,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c35dab35-f1e8-44bd-bf84-cc7ec8705ef3",
+  "name": "Berkeley Square",
+  "lat": 51.509472,
+  "lon": -0.14487,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "539e18b4-07a9-406f-b8a7-b5e924765104",
+  "name": "Westminster-Lincoln's Inn Fields",
+  "lat": 51.515375,
+  "lon": -0.116745,
+  "chargers": 2,
+  "price_pence_per_kwh": 17.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "448135db-1b88-4ffa-a6ff-2acb5f748258",
+  "name": "Imperial Hotels - The President",
+  "lat": 51.522299,
+  "lon": -0.123915,
+  "chargers": 4,
+  "price_pence_per_kwh": 15.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8a529fca-1946-433c-9ccd-9869780f6470",
+  "name": "181 Queen Victoria Street",
+  "lat": 51.511371,
+  "lon": -0.103942,
+  "chargers": 4,
+  "price_pence_per_kwh": 30.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "50fdcda3-9af1-4d39-8903-82df7264a66a",
+  "name": "Brittania Street",
+  "lat": 51.529595,
+  "lon": -0.119504,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6744b55a-d656-48cf-8fd2-31851b0ac7fd",
+  "name": "Herbrand Street",
+  "lat": 51.523192,
+  "lon": -0.125116,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c259e5de-4503-466f-955c-c462f87243e9",
+  "name": "Carlisle Street",
+  "lat": 51.515133,
+  "lon": -0.132938,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "43c32c1e-5d2f-4e9e-9007-11fa023d51c5",
+  "name": "Moreland Street",
+  "lat": 51.528819,
+  "lon": -0.099799,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9c87ab3f-67a4-46b2-b93a-c38a8f29660a",
+  "name": "Q-Park Chinatown",
+  "lat": 51.512299,
+  "lon": -0.129615,
+  "chargers": 10,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a1ce2684-6ee1-47b6-95c3-0aea242c0318",
+  "name": "Asset No. KC510",
+  "lat": 51.538627,
+  "lon": -0.106842,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "1253e351-f0fa-4780-a9a2-b4267aa2b249",
+  "name": "St James's Square",
+  "lat": 51.50773,
+  "lon": -0.13457,
+  "chargers": 1,
+  "price_pence_per_kwh": 9.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "17dbc4ac-018a-4f5e-ac3a-aa01572d9533",
+  "name": "Crestfield Street, Camden",
+  "lat": 51.529518,
+  "lon": -0.122535,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6af235aa-bb58-4d3b-af3d-a3b569f9fbd0",
+  "name": "Greenland Street, Camden",
+  "lat": 51.538454,
+  "lon": -0.141029,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "2b213856-bf86-4a8e-9a0d-4944446deb75",
+  "name": "Bingfield Street",
+  "lat": 51.539231,
+  "lon": -0.118675,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "075adf8c-496a-43a5-a887-032651139c98",
+  "name": "Portland Place",
+  "lat": 51.52046,
+  "lon": -0.145034,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "79cdf267-c76f-43da-9dfc-e403d3b4311a",
+  "name": "Golden Square",
+  "lat": 51.511818,
+  "lon": -0.137617,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "7837b14f-9755-4bfe-9736-f78b80a946fa",
+  "name": "The Cut, Southwark",
+  "lat": 51.503518,
+  "lon": -0.106169,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "0350a870-2e3c-4cb7-82f5-94c1e37aceeb",
+  "name": "Asset No. LC 6",
+  "lat": 51.508647,
+  "lon": -0.150289,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "223f7fae-4394-4881-8969-bd332666fad8",
+  "name": "Frazier St o/s santley house",
+  "lat": 51.499947,
+  "lon": -0.110097,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "7b1fbb34-c689-4124-95db-3d469afe6e77",
+  "name": "Nicholson St",
+  "lat": 51.50519,
+  "lon": -0.103733,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a43443ae-c8a1-4be9-8293-e69771e2755b",
+  "name": "Seymour St 79",
+  "lat": 51.513954,
+  "lon": -0.162314,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f4b68cfe-3708-4985-8408-2042198ec39e",
+  "name": "Gloucester Place 29",
+  "lat": 51.517474,
+  "lon": -0.15779,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "3183f633-5c3c-48f9-a400-1502e0c06a5a",
+  "name": "Adeline Pl 15",
+  "lat": 51.517603,
+  "lon": -0.129837,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4e5ae585-ee26-4e40-81a5-6097f39d649b",
+  "name": "Gloucester Place 37",
+  "lat": 51.517734,
+  "lon": -0.157879,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "3c428b61-69e2-4f31-9bf7-aa65d1abaf9a",
+  "name": "Adeline Pl 12",
+  "lat": 51.517782,
+  "lon": -0.130023,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "1a3b594d-508b-44a0-acef-09074d5019d2",
+  "name": "Blandford Street 61",
+  "lat": 51.518266,
+  "lon": -0.155109,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "72c32b53-cb94-4122-9e7a-42f0404dd121",
+  "name": "77 York St",
+  "lat": 51.519877,
+  "lon": -0.162811,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "79f23915-563a-4362-b198-34f0a729153a",
+  "name": "Upper Wimpole St 22",
+  "lat": 51.520719,
+  "lon": -0.149381,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "1309d654-e312-489c-8a0b-e6071e0015bf",
+  "name": "Upper Wimpole St 13",
+  "lat": 51.521287,
+  "lon": -0.149635,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6659984d-92f4-4561-8387-acd9659c2117",
+  "name": "Devonshire Pl 36",
+  "lat": 51.52182,
+  "lon": -0.149928,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "aced6812-fb6b-4ecc-b25f-9a3dbbd5b854",
+  "name": "12 Devonshire St",
+  "lat": 51.521965,
+  "lon": -0.146617,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9185bbb8-0540-47f6-bb57-8e5d2c6c4ddc",
+  "name": "Devonshire Pl 9",
+  "lat": 51.522135,
+  "lon": -0.149921,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "7741063d-bc60-4a95-a63a-35f755b789ed",
+  "name": "Harewood Ave 10",
+  "lat": 51.523161,
+  "lon": -0.164591,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4732403e-c649-4c80-aa37-520cccce15de",
+  "name": "Broadley St 15",
+  "lat": 51.523482,
+  "lon": -0.167571,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "018b3b5c-1984-4cfe-88cf-8d6497c7c948",
+  "name": "Whitfield St 143",
+  "lat": 51.523691,
+  "lon": -0.138698,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8411044f-07c6-429f-934e-84c18c9b8e34",
+  "name": "Harewood Ave 15",
+  "lat": 51.52377,
+  "lon": -0.165018,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4cd79268-f427-481d-be73-6fdca6c14480",
+  "name": "Harewood Ave 39c",
+  "lat": 51.524337,
+  "lon": -0.165298,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f4580505-a66a-4a3b-9c49-4be1ac642a95",
+  "name": "Lever St (Telfer House)",
+  "lat": 51.526685,
+  "lon": -0.098967,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8c875071-f117-437c-8071-4accd95ece43",
+  "name": "NW1 3QL",
+  "lat": 51.528867,
+  "lon": -0.142614,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4c426edf-7b15-46b6-ae78-477ae9c63ff7",
+  "name": "WC1X 9EE",
+  "lat": 51.528919,
+  "lon": -0.114267,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ef4636de-bef3-4bab-a390-2cdc4ee5f58f",
+  "name": "Cumberland Market (outside Grisdale)",
+  "lat": 51.529084,
+  "lon": -0.142585,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c6748d36-a4c8-4420-850d-e1e167d5cb29",
+  "name": "WC1X 9EE",
+  "lat": 51.529469,
+  "lon": -0.115034,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "d890f4e0-d6eb-46db-b2f4-6227860de9a5",
+  "name": "Chalton street",
+  "lat": 51.532667,
+  "lon": -0.133123,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f62e94fd-1e1d-4c33-bf19-1917308c2fa0",
+  "name": "Albert St 67",
+  "lat": 51.535587,
+  "lon": -0.142735,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "fd1d042a-2f90-4ac1-b1d8-294a4930ad7a",
+  "name": "Parkway 105",
+  "lat": 51.536914,
+  "lon": -0.145977,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "54a37676-3d1b-4440-8f25-768e229cae04",
+  "name": "Barnsbury Rd 125",
+  "lat": 51.537043,
+  "lon": -0.110754,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5ba62c90-305d-45cf-bab0-3cccd56d0ba7",
+  "name": "Barnsbury Rd 164",
+  "lat": 51.538246,
+  "lon": -0.110482,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "02c3c93a-4f6c-44b4-baca-5e2c150a243d",
+  "name": "College Pl 112a",
+  "lat": 51.538567,
+  "lon": -0.136594,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "1411f393-3217-47f4-a9d7-fd9a4f66bb64",
+  "name": "Oval Rd 13",
+  "lat": 51.538767,
+  "lon": -0.147251,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "3c36ab19-d06d-48eb-8e08-69069e7d3185",
+  "name": "St Pancras Way 109",
+  "lat": 51.541668,
+  "lon": -0.135499,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e0c8b915-e437-489d-9d7c-4aae1c458291",
+  "name": "Hyde Park Estate",
+  "lat": 51.517757,
+  "lon": -0.167079,
+  "chargers": 1,
+  "price_pence_per_kwh": 79.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "19b3dd9a-b81b-445a-8830-5cdc347ced8d",
+  "name": "Bryanston Square",
+  "lat": 51.517895,
+  "lon": -0.161411,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9ce21f46-b275-4d1e-8dcc-5df67652ac4f",
+  "name": "Coutts Bank",
+  "lat": 51.50890313863235,
+  "lon": -0.12553378823179173,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5422c217-2f50-4eb4-8612-490f4743b95f",
+  "name": "Liverpool Road",
+  "lat": 51.536587,
+  "lon": -0.10705,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e47932a6-0319-4ed3-88c1-4756e61f764e",
+  "name": "Liverpool Road",
+  "lat": 51.536587,
+  "lon": -0.10705,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f16042c0-5252-4b29-bd2e-7e1326f46166",
+  "name": "Park Plaza Westminster Bridge Hotel",
+  "lat": 51.5014098,
+  "lon": -0.117240600000059,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "3a5f737b-4b8f-426b-8f37-dddaad49b6f0",
+  "name": "Golden Lane (Outside Peabody Buildings), Islington",
+  "lat": 51.522781,
+  "lon": -0.094463,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ecd611b2-00f5-4326-a1c4-a2864dfb56ea",
+  "name": "Charrington Street",
+  "lat": 51.534712,
+  "lon": -0.133626,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "559228ed-a139-410e-a128-1b3fc48256c3",
+  "name": "Brecknock Road",
+  "lat": 51.541052,
+  "lon": -0.130828,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "3c99b823-1f9f-46d1-9291-044b29480585",
+  "name": "Gloucester Way, Clerkenwell",
+  "lat": 51.52760067965514,
+  "lon": -0.10653312554063632,
+  "chargers": 1,
+  "price_pence_per_kwh": 29.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "0c6498a3-c9ef-4312-927b-6d9b698d03a4",
+  "name": "17 Meredith Street",
+  "lat": 51.527094469580334,
+  "lon": -0.10509267390284549,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "d3a5b03c-a9d3-46d4-9c60-ead438fe3b00",
+  "name": "Westminster-Whitehall Place",
+  "lat": 51.506477,
+  "lon": -0.12377,
+  "chargers": 2,
+  "price_pence_per_kwh": 17.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "fb5d371d-47b4-407a-9974-ab5f86ee07a4",
+  "name": "Camley St Parking/Charging",
+  "lat": 51.5399152223292,
+  "lon": -0.131563202138636,
+  "chargers": 1,
+  "price_pence_per_kwh": 79.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4daf9d2c-6277-4015-bf6c-0c5616ad5624",
+  "name": "21 Prince Albert Road",
+  "lat": 51.53749,
+  "lon": -0.153773,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ab8b5144-9d07-4257-a38a-06357183bb80",
+  "name": "31 Oval Road",
+  "lat": 51.539739,
+  "lon": -0.147833,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5e48b4bf-210e-4163-9cf8-5fa113054f8a",
+  "name": "77 Jamestown Road",
+  "lat": 51.540094,
+  "lon": -0.147201,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "45f47518-2f93-467a-b2f9-70f60ac1c4e3",
+  "name": "18 Gloucester Crescent",
+  "lat": 51.538518,
+  "lon": -0.145542,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "558c7cdc-62ab-4d57-a585-56e2e35a1932",
+  "name": "49 Mornington Terrace",
+  "lat": 51.535871,
+  "lon": -0.144386,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "fb6acbbc-7515-4eb8-852b-267c74051c72",
+  "name": "29 Mornington Terrace",
+  "lat": 51.535056,
+  "lon": -0.143487,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "77c3fd96-e4a5-433f-9210-24f02327e4f3",
+  "name": "30 Augustus Street",
+  "lat": 51.531195,
+  "lon": -0.141883,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "394373a5-6b39-4015-9234-2380bdf680bd",
+  "name": "69 Mornington Street",
+  "lat": 51.535019,
+  "lon": -0.141875,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e26b3870-18de-4e11-8a9c-a9d4cc7ae340",
+  "name": "33a Conway Street",
+  "lat": 51.52357,
+  "lon": -0.141419,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ba2b5a20-ea5b-4a8f-8d7a-d6d1d23d5640",
+  "name": "19 Mornington Place",
+  "lat": 51.533607,
+  "lon": -0.141407,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "7eece665-16e8-48ab-8119-b8560210bae2",
+  "name": "11a Fitzroy Square",
+  "lat": 51.523643,
+  "lon": -0.140151,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a15073dd-5afe-403d-8553-3d65fad65ee3",
+  "name": "Grafton Way",
+  "lat": 51.522974,
+  "lon": -0.139037,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "70a2a269-dd44-4053-b0c0-5b506eadf98b",
+  "name": "68 Grafton Way",
+  "lat": 51.523222,
+  "lon": -0.138459,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9f4d0d98-0b79-4759-9ee0-1e4a83770473",
+  "name": "2 Rochester Square",
+  "lat": 51.542861,
+  "lon": -0.134956,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "d245ab50-4092-49d5-b882-c994f569ba5e",
+  "name": "15 Rochester Square",
+  "lat": 51.543111,
+  "lon": -0.1341,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6ec0edaf-2ba3-4cf7-9715-e276e90073b1",
+  "name": "Huntley Street",
+  "lat": 51.521479,
+  "lon": -0.133093,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "2bb25d06-b181-4b05-ab72-e12d91b3fcb5",
+  "name": "19-21 Ridgmount Street",
+  "lat": 51.52082,
+  "lon": -0.13177,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "cc0caf32-b509-4957-b2f6-f31d050dbfb9",
+  "name": "24 Doric Way",
+  "lat": 51.529281,
+  "lon": -0.131312,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "d5ca55ee-9a4e-4ec6-89df-34fca8bc5a36",
+  "name": "6 Endsleigh Street",
+  "lat": 51.525514,
+  "lon": -0.130188,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6e195631-430d-4d85-b8f8-7987a468390e",
+  "name": "39 Ossulston Street",
+  "lat": 51.529944,
+  "lon": -0.128982,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "be668f1b-dcb2-4e94-8809-400007daaccd",
+  "name": "38 Bedford Way",
+  "lat": 51.522762,
+  "lon": -0.127384,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ddf765d5-3d1d-4040-80e6-389ec6e3bb02",
+  "name": "24 Little Russell Street",
+  "lat": 51.518054,
+  "lon": -0.12494,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "cab0c200-273c-4752-a21f-7f81a22ad957",
+  "name": "17 Southampton Place",
+  "lat": 51.517947,
+  "lon": -0.121831,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5f245ef8-c9ec-4f00-a2fa-ec0ed7a5f374",
+  "name": "20 Great Queen Street",
+  "lat": 51.515614,
+  "lon": -0.120802,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "68d397e7-f8fa-498d-91ba-59c98fc1ce98",
+  "name": "23 Great Ormond Street",
+  "lat": 51.522196,
+  "lon": -0.119192,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e6ff1e7c-2bf0-4aa7-9a9a-2fe467e32176",
+  "name": "11 Calthorpe Street",
+  "lat": 51.524426,
+  "lon": -0.115426,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a09c55d4-91dc-446b-95da-498b05c286ba",
+  "name": "10-16 Elm Street",
+  "lat": 51.522851,
+  "lon": -0.113537,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "90f1458e-0694-475b-a165-323131a32afc",
+  "name": "14 St George Street",
+  "lat": 51.512844,
+  "lon": -0.143349,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f9132b07-952e-45b5-86d8-b9d989ce8122",
+  "name": "7 Cosway Street",
+  "lat": 51.521294,
+  "lon": -0.1657,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8558bbae-664c-4137-b8df-9581c4c101fb",
+  "name": "Carnegie Street",
+  "lat": 51.535512,
+  "lon": -0.115555,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "817a9058-5dd6-46ac-b88e-561283e645a1",
+  "name": "23 Queen Anne's Gate",
+  "lat": 51.500544,
+  "lon": -0.133597,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "24066af0-bce7-49f3-be03-b16a6286ebee",
+  "name": "opposite 45",
+  "lat": 51.522368,
+  "lon": -0.153284,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ce12724e-4a31-4090-8968-6f0e733b1079",
+  "name": "1A Tresham Cres",
+  "lat": 51.526536,
+  "lon": -0.166144,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "320e2f4e-ec72-4aa3-b41d-ca3f15604996",
+  "name": "NCP Portman Square",
+  "lat": 51.5155903,
+  "lon": -0.1586108,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e8d8a874-1fa5-42e2-8125-0654ee462ac6",
+  "name": "Temple Place",
+  "lat": 51.5116935,
+  "lon": -0.113055249442683,
+  "chargers": 5,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "b2be0223-dc21-4a21-bc22-1a44483a0b43",
+  "name": "Exeter Street",
+  "lat": 51.51229585,
+  "lon": -0.119148037008377,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "fca19f55-bcf3-43eb-b86f-e1619620f987",
+  "name": "Holland Street",
+  "lat": 51.5070413145021,
+  "lon": -0.100876875221729,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "cee4dcb5-ea9c-4dd6-a527-20a3934c29c1",
+  "name": "Postmark-Peterborough House",
+  "lat": 51.5243643,
+  "lon": -0.11235095,
+  "chargers": 13,
+  "price_pence_per_kwh": 25.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a25a2d5e-783c-44b2-8c66-b2c61b65ebd6",
+  "name": "Apcoa Parking",
+  "lat": 51.514208,
+  "lon": -0.157273,
+  "chargers": 1,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "70c408a4-4bf2-4ab3-91ac-880241f7e951",
+  "name": "Adeline Place",
+  "lat": 51.51798,
+  "lon": -0.130288,
+  "chargers": 2,
+  "price_pence_per_kwh": 39.6,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8afcdd17-4551-4cb2-9b4a-c6462808a68b",
+  "name": "Opp.",
+  "lat": 51.514586,
+  "lon": -0.142564,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "79c6140a-69c8-4a66-a8a9-332a824e8bd7",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.531837,
+  "lon": -0.098799,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "888cf9c2-cbee-43b9-8e25-414340ebe805",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.532086,
+  "lon": -0.099063,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "0eeb9012-f3d0-4b01-8991-23eefe8109cb",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.53262,
+  "lon": -0.103906,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "673cff84-8834-40fc-a4c0-50f53335e8fb",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.537504,
+  "lon": -0.113704,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a6a049e0-0561-4b7a-a59d-52dedbec4dcd",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.539246,
+  "lon": -0.113716,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f9a8c7c2-c32a-42dc-a9b6-fa1dedb2919b",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.539412,
+  "lon": -0.113529,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "2b34a173-0e15-4fa0-a5cd-f0ff3dd2c02e",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.540535,
+  "lon": -0.113616,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8397301b-1033-4697-8c30-27fa7a8947b1",
+  "name": "Rowland Hill House",
+  "lat": 51.5032571,
+  "lon": -0.1031196,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "cc75876d-dd64-443a-a6eb-0ef3b6f83db1",
+  "name": "Opposite 9 Valentine Place",
+  "lat": 51.5014286,
+  "lon": -0.1064933,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "7c54d9de-3d21-4e3d-a8e9-cb7be6ce9643",
+  "name": "Hatfields",
+  "lat": 51.5056487,
+  "lon": -0.1066798,
+  "chargers": 2,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "b69512b0-494e-4ad8-92ee-8023b005ec47",
+  "name": "Opposite Bastille Court",
+  "lat": 51.5066487,
+  "lon": -0.1060581,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c0f4cbe4-e1e7-4662-b8ae-c46b3039d204",
+  "name": "Opposite 86 Scoresby Street",
+  "lat": 51.5043941,
+  "lon": -0.10355,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "14e4c356-851e-432c-9984-2791c2add0d7",
+  "name": "Bankside Lofts",
+  "lat": 51.5073407,
+  "lon": -0.1023252,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8767bd47-76b8-4cc8-a1a4-2bfd2005aa10",
+  "name": "Tennis Court 2",
+  "lat": 51.505192,
+  "lon": -0.1059383,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e244c558-a7fa-4e8e-ad16-293c207da21f",
+  "name": "Opposite 18 Nicholson Street",
+  "lat": 51.5051932,
+  "lon": -0.1034235,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "3e473b42-665b-4a45-af33-9c1553e783dc",
+  "name": "29 Dolben Street",
+  "lat": 51.5048223,
+  "lon": -0.1019588,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "95204a72-dee1-4b14-9c69-d95f2c060306",
+  "name": "Friars Close",
+  "lat": 51.5060198,
+  "lon": -0.1024637,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4301ffe4-67f9-4cbb-85be-76931d2751a4",
+  "name": "15 Scoresby Street",
+  "lat": 51.5043992,
+  "lon": -0.1038835,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6368eee0-8ee2-4d99-bec7-534dcf28dca3",
+  "name": "Hopton Gardens",
+  "lat": 51.5068159,
+  "lon": -0.1023129,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "16232da8-6eef-46cd-8341-5d5364633fbc",
+  "name": "Meson Don Felipe",
+  "lat": 51.5029337,
+  "lon": -0.1072352,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "2d21f35b-7395-40f2-93b8-548af3736b39",
+  "name": "Treveris Street",
+  "lat": 51.5055511,
+  "lon": -0.1029543,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "cf79c25e-81c2-4e95-a5cf-b434cb631dfe",
+  "name": "Great Peter Street",
+  "lat": 51.496731,
+  "lon": -0.132808,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "76cd1621-11fe-4a96-aae4-563a1fddce3f",
+  "name": "Great Peter St 16",
+  "lat": 51.496866,
+  "lon": -0.129591,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4aea8f2f-683b-45f1-8fb0-1bbfa4e28182",
+  "name": "Great Peter St 31",
+  "lat": 51.496887,
+  "lon": -0.127973,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e1204c55-c968-463a-8ab5-27a28d8cb257",
+  "name": "Great Peter St 41",
+  "lat": 51.496895,
+  "lon": -0.128714,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4b8eb999-60a8-4ef6-a233-98b4ba50cad9",
+  "name": "27 Great Peter Street",
+  "lat": 51.496896,
+  "lon": -0.127436,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "99874d0b-4d0d-4026-b16e-b4a5a0b5ef0e",
+  "name": "Q-Park Westminster",
+  "lat": 51.4977,
+  "lon": -0.126443,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "3b8ff47f-8143-427a-aa93-cb9964f1050b",
+  "name": "22 Caxton Street",
+  "lat": 51.498522,
+  "lon": -0.13584,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "1196754b-7dfc-471d-b5ad-a9f9d913be6a",
+  "name": "14 Stafford Place",
+  "lat": 51.498965,
+  "lon": -0.141783,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5be12b32-f348-4371-9b21-00cf7cd62afd",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.501,
+  "lon": -0.13328,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ed8288d6-8c99-41c6-b3fa-82d3fe6a2a71",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.50175,
+  "lon": -0.10832,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "0aec778c-1d08-4972-a673-f53817b468f0",
+  "name": "opp.",
+  "lat": 51.502446,
+  "lon": -0.107545,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "dceb3f42-cbca-4637-aa9d-8595ac86d8a2",
+  "name": "21 Curzon Street",
+  "lat": 51.506313,
+  "lon": -0.15048,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ea2d59ee-2bb3-4ff0-9d49-f08057dc5ef2",
+  "name": "BMM-CP-000504",
+  "lat": 51.507351,
+  "lon": -0.127758,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9c865117-56f2-4ef0-8c0f-9407b31404b1",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.508257,
+  "lon": -0.146484,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a50fa352-782e-47af-8805-f41649c94287",
+  "name": "South St 51",
+  "lat": 51.508812,
+  "lon": -0.149514,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c9297c04-7440-4a0e-ba64-b85bc8bf221f",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.509,
+  "lon": -0.1526,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "92cfecf5-ecca-4e9d-ada9-2d63133eff20",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.50908,
+  "lon": -0.143872,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "425414eb-1af7-4cb1-ac89-18e09bc73e6c",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.509231,
+  "lon": -0.14889,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c349f985-81e9-44cb-a63b-88f7b87395e3",
+  "name": "Junc. Park Street",
+  "lat": 51.51,
+  "lon": -0.15461,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "b0707563-94ce-460e-ba8d-46b244817bc1",
+  "name": "Junc. Bedfordbury",
+  "lat": 51.510492,
+  "lon": -0.125554,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "1bdbbb93-56d6-4ca4-aaa4-fea60355cf86",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.51107,
+  "lon": -0.153803,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "66bd4396-84bf-48f0-bffc-7badf098f47a",
+  "name": "Temple Place site 2",
+  "lat": 51.511407,
+  "lon": -0.112471,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "d5631f12-008f-434a-8227-e626bc582381",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.511428,
+  "lon": -0.135708,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c694910a-63f0-43c4-9b89-b32d4ee991ec",
+  "name": "Opp.",
+  "lat": 51.511441,
+  "lon": -0.145558,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "30d432c0-7116-44f7-8815-c2b71969b2cc",
+  "name": "Exeter Street",
+  "lat": 51.511902,
+  "lon": -0.119569,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6a928bae-abec-4285-a1b1-17619ccd63f9",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.511983,
+  "lon": -0.146098,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e28af74d-ac92-4e33-a1a4-3af5d9c9549b",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.512,
+  "lon": -0.15625,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a291a20a-3514-415b-ba8e-5dc4d2a97cdc",
+  "name": "Baynard House Car Park",
+  "lat": 51.512047,
+  "lon": -0.101338,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "25bbfe0d-6aee-4123-8a95-1165d09a17a8",
+  "name": "5 Upper St Martin's Lane",
+  "lat": 51.512373,
+  "lon": -0.12711,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "30ed57ca-0730-4483-b087-ac03f3fb49d5",
+  "name": "Opp.",
+  "lat": 51.512568,
+  "lon": -0.142311,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "efb51b85-2ea9-4739-bd36-9d28608f7bdb",
+  "name": "Q-Park Chinatown",
+  "lat": 51.512699,
+  "lon": -0.130012,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f9f252d8-7fa8-4524-a1d0-6c8e31047594",
+  "name": "Q-Park Chinatown",
+  "lat": 51.512798,
+  "lon": -0.130113,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9d03d00c-c201-4f13-b6a2-922be1518843",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.514418,
+  "lon": -0.134767,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "95e2c2b4-6b3d-4a8d-8ad9-c965cc9bbbcf",
+  "name": "Connaught Street",
+  "lat": 51.51442,
+  "lon": -0.16601,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f656934c-8faf-4990-ab5e-f9f734a3d1ec",
+  "name": "Seymour St 50",
+  "lat": 51.514528,
+  "lon": -0.160607,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "da76251b-513d-45f7-a981-0d0df26a61d4",
+  "name": "Seymour St. 32",
+  "lat": 51.514776,
+  "lon": -0.158767,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "833b6a9c-9bd0-40e5-b9c4-6d1fe03abe79",
+  "name": "Seymour St 7",
+  "lat": 51.514889,
+  "lon": -0.157174,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ab8542c7-6776-4d5c-9106-477cdc8a7532",
+  "name": "Soho Square South Side",
+  "lat": 51.514955000000526,
+  "lon": -0.13209300000221447,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e920de6e-c313-4382-b832-0bb5cf91e5ee",
+  "name": "Seymour St 7",
+  "lat": 51.515018,
+  "lon": -0.157229,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9df7f88c-f704-4678-9517-eaa1bb7b5043",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.5151,
+  "lon": -0.167172,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5d779861-8f76-4626-b9cd-47b3a2f84317",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.515309,
+  "lon": -0.166809,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "7acfc5bd-18e1-4d1a-af24-3e1ad16ead0f",
+  "name": "22 Upper Berkeley Street",
+  "lat": 51.515464,
+  "lon": -0.160756,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9635253b-c5f8-4762-ac10-802d1ce2f703",
+  "name": "Opp.",
+  "lat": 51.515556,
+  "lon": -0.166289,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "0859dd58-17ff-4215-a98d-949e152559a9",
+  "name": "Opp.",
+  "lat": 51.516,
+  "lon": -0.13187,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e9815e56-33f2-4452-94e4-2cdee59b8202",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.516004,
+  "lon": -0.148667,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4e2f5417-5361-4534-902e-1a8d688678f4",
+  "name": "NCP Portman Square",
+  "lat": 51.516102,
+  "lon": -0.157942,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "407c30f0-5129-4efd-b4f8-69c0cb4a6934",
+  "name": "LC 3",
+  "lat": 51.516159,
+  "lon": -0.158722,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "7fedfd19-f93e-4c98-a39d-5f8030a72f69",
+  "name": "LC 3",
+  "lat": 51.516197,
+  "lon": -0.160337,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "830f4ad0-05c2-40c7-887f-82bff5f63cc5",
+  "name": "NCP Portman Square",
+  "lat": 51.516201,
+  "lon": -0.157996,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ed2d8bdc-179d-4176-9faf-336f21b07181",
+  "name": "opp. Cumberland Mansion",
+  "lat": 51.516286,
+  "lon": -0.162044,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "27927612-df83-4727-b83c-d352475c4762",
+  "name": "Almacantar",
+  "lat": 51.516312,
+  "lon": -0.129476,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ae9f14c6-50b7-4128-89f6-7185c688d5d2",
+  "name": "LC 2",
+  "lat": 51.516442,
+  "lon": -0.160206,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f83c54a3-63b4-4b44-bb1b-68f9a016a0cb",
+  "name": "Fitzhardinge St 5",
+  "lat": 51.516442,
+  "lon": -0.154128,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "7453166c-27f3-4508-8e4a-1002552bce16",
+  "name": "Manchester Square 8",
+  "lat": 51.516448,
+  "lon": -0.152936,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e6efc8ab-94fa-441b-9274-e610928cda37",
+  "name": "16 Montagu Street",
+  "lat": 51.5165,
+  "lon": -0.158802,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5b2eb130-589a-44a3-a189-aba2087c215e",
+  "name": "Manchester Square 3",
+  "lat": 51.516527,
+  "lon": -0.151946,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "73d67319-4810-4409-b5e2-e277ef0caaee",
+  "name": "Fitzhardinge St 18",
+  "lat": 51.516571,
+  "lon": -0.153405,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6bace812-0a4c-49d4-9ef0-33e7bdd3cc54",
+  "name": "Manchester Square 25",
+  "lat": 51.516821,
+  "lon": -0.152165,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "b28482d3-757a-4896-97b6-f1b5cd049c9c",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.516905,
+  "lon": -0.160951,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "43db5bac-ac46-434f-85dd-85cea4e414f7",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.517,
+  "lon": -0.1612,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "829779bf-e259-4fc6-9f96-f8238477ee4a",
+  "name": "75 George Street",
+  "lat": 51.517152,
+  "lon": -0.156784,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5e81d594-7f09-4ced-8ae9-a7ecea5da568",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.517199,
+  "lon": -0.158678,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ff8111d7-a3f0-4024-a0fe-b520e07d2be3",
+  "name": "94 George Street",
+  "lat": 51.517343,
+  "lon": -0.156316,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6efce514-d748-4171-bc0b-9b2a534ff7bc",
+  "name": "Newmans Row",
+  "lat": 51.5175,
+  "lon": -0.115606,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "452d5a47-b6ce-4617-8f19-d16c490ad6fc",
+  "name": "St Pauls Court",
+  "lat": 51.517508,
+  "lon": -0.153473,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9818888d-ac58-4092-91be-4e6a6bfc44b3",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.517584,
+  "lon": -0.159421,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a9972304-39db-4bde-a582-fd1eacc264e0",
+  "name": "opposite Molyneux Street",
+  "lat": 51.517638,
+  "lon": -0.163856,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "2446c0cc-101c-44f3-bb13-4e37e54b6159",
+  "name": "22 Harley Street",
+  "lat": 51.518042,
+  "lon": -0.146497,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5cc42eeb-83d3-4ccc-9f5b-a064d9ca8bc3",
+  "name": "2 Bury Place",
+  "lat": 51.518144,
+  "lon": -0.12398,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "86396415-dca2-4802-9279-60c7663d55ae",
+  "name": "57 Gloucester Place",
+  "lat": 51.51827,
+  "lon": -0.158123,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "af8064dd-7337-49a9-838c-3a3a55bbb5a2",
+  "name": "57 Wells street",
+  "lat": 51.518365,
+  "lon": -0.139669,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "7f6b22e0-9ca7-4ae6-a30d-b5d51294054a",
+  "name": "28 Blandford Street",
+  "lat": 51.518387,
+  "lon": -0.15286,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "67f5844d-aa8a-4d4a-b8a7-97033d84f85e",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.518409,
+  "lon": -0.14572,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9b4f37e7-a614-429e-aa03-aef37c7966ce",
+  "name": "Blandford Street 46",
+  "lat": 51.518437,
+  "lon": -0.154088,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a7f67fc5-ca9e-4530-a864-d6744dde25c6",
+  "name": "47 wells street",
+  "lat": 51.518485,
+  "lon": -0.139881,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "1de3f265-eaf2-4839-b012-79f44e079976",
+  "name": "47 Wells Street",
+  "lat": 51.518602,
+  "lon": -0.14007,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c041c087-b9e8-4425-88b3-6a697ccb43ea",
+  "name": "32 New Cavendish Street",
+  "lat": 51.518828,
+  "lon": -0.150543,
+  "chargers": 1,
+  "price_pence_per_kwh": 45.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4528c6bb-5abc-4590-826e-25618d437edd",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.519,
+  "lon": -0.16512,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c7e26d73-1a8d-485d-af65-8e3d7a44b7b8",
+  "name": "Smithfield Car Park",
+  "lat": 51.519379,
+  "lon": -0.101743,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "3241823b-e104-47e0-9c0a-2f80cb3483ce",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.519579,
+  "lon": -0.140208,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "77469f68-a144-4459-8ec1-dd6d45bcddcb",
+  "name": "107 Great Portland Street",
+  "lat": 51.519591,
+  "lon": -0.14255,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "03bfd6c5-ca08-495f-8296-18b6366c0019",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.519752,
+  "lon": -0.154766,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4b88494c-4604-4bd6-b2b6-cb400e57e254",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.519871,
+  "lon": -0.149048,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "149b93c2-dd8e-43ee-8fcf-e90467a0e4aa",
+  "name": "Princeton Street",
+  "lat": 51.519887,
+  "lon": -0.116387,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "bc1d12e7-0811-4185-ba9c-b9d0eb4a5f4b",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.519929,
+  "lon": -0.141256,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f4706411-5cb9-4a8d-9edd-b1b8e2292884",
+  "name": "68 York St",
+  "lat": 51.520081,
+  "lon": -0.161759,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "fc9ccc25-9bee-41df-9064-9972aef26692",
+  "name": "Weymouth St 59",
+  "lat": 51.520128,
+  "lon": -0.150757,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "93004e12-4325-48e9-aaf0-31f713362097",
+  "name": "66 York St",
+  "lat": 51.520142,
+  "lon": -0.161447,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e60659e2-7c09-4928-935c-db73605d4c4c",
+  "name": "Defoe House Car Park",
+  "lat": 51.52018,
+  "lon": -0.09637,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "7d7ba61d-55ae-432c-a116-bd4c230213ca",
+  "name": "Weymouth St 51",
+  "lat": 51.520192,
+  "lon": -0.150435,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6ea2369e-26a3-4b0f-b248-52b634566b98",
+  "name": "Thomas Moore Car Park",
+  "lat": 51.52025,
+  "lon": -0.09703,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5cc6d7f8-24ee-4f51-8165-70f0fbf60765",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.520343,
+  "lon": -0.159974,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a0fdfa50-2a3a-4b1d-8b77-21390453c49a",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.520535,
+  "lon": -0.143672,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "7cfd551e-5b53-48da-a0b4-f7a8ba8a2b07",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.520629,
+  "lon": -0.142295,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "b6b7fc0b-ae24-48aa-acd3-0e8d8fd7ab23",
+  "name": "sign post column",
+  "lat": 51.520637,
+  "lon": -0.160654,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f1003e0b-f7b0-4a57-85f4-ef3aa9b78aab",
+  "name": "Wone International Ltd",
+  "lat": 51.520638,
+  "lon": -0.151649,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a194abbc-c05a-49da-a2e1-d36683622e73",
+  "name": "New Cavendish St 115",
+  "lat": 51.520653,
+  "lon": -0.140274,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "819a3a36-9e25-47d2-8f96-dd9a8e5b9437",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.520808,
+  "lon": -0.150589,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "228ef19a-5734-4f05-85e4-009816269448",
+  "name": "Weymouth St 24",
+  "lat": 51.520848,
+  "lon": -0.146447,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "14d1630c-8d42-4506-8c3e-65b86cfc7444",
+  "name": "3 York St",
+  "lat": 51.52085,
+  "lon": -0.157426,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "99b7180a-3fa6-4511-a5ca-2fe7898e3eb8",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.521,
+  "lon": -0.14468,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "3f392843-e98a-4155-b7c7-6db9afc2316c",
+  "name": "junc.  Hanson Street",
+  "lat": 51.521,
+  "lon": -0.14107,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "2ec72b6f-03d2-4ca4-a137-5c676884b7bb",
+  "name": "Opp.",
+  "lat": 51.52111,
+  "lon": -0.141474,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "edbe7a1c-5280-4b5b-b093-58611559179c",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.521112,
+  "lon": -0.153112,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "089137ae-15e8-40b1-ab87-fb05e0461337",
+  "name": "Bunyan Court Car Park",
+  "lat": 51.521126,
+  "lon": -0.096646,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "1038d7e7-32cd-4e1b-914a-a24bd53c2f08",
+  "name": "Devonshire Street",
+  "lat": 51.52113,
+  "lon": -0.151084,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "58d6d14f-20f7-40c5-afc5-c151c564b42b",
+  "name": "o/s Sheringham House",
+  "lat": 51.521211,
+  "lon": -0.166904,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f4676ba0-2c5f-475b-bbac-73ae31cefd68",
+  "name": "Opp. Junc Bingham Place",
+  "lat": 51.521267,
+  "lon": -0.153642,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a3ff10da-b59d-403e-bc3a-9770484d916e",
+  "name": "80 Portland Place",
+  "lat": 51.521281,
+  "lon": -0.145618,
+  "chargers": 1,
+  "price_pence_per_kwh": 45.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8a68fcc8-984c-4fad-8fe0-c997d4bec47d",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.52132,
+  "lon": -0.152492,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "45f7af5c-0891-45ba-8f67-9f8d5c941d03",
+  "name": "14 Orde Hall Street",
+  "lat": 51.521527,
+  "lon": -0.119138,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f0d40ca3-3e57-4721-b635-1f9e97a5bae5",
+  "name": "Opp. Albert Mansions",
+  "lat": 51.521641,
+  "lon": -0.154111,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ff8935cb-57a1-46bd-a980-8a0c2f463627",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.521826,
+  "lon": -0.154134,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "fa55033b-c05d-491f-a332-2800116e243a",
+  "name": "opp.",
+  "lat": 51.522,
+  "lon": -0.14408,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c60fbd88-ed96-49b2-810d-ab3270ecd17b",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.522,
+  "lon": -0.14216,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "775930d9-69a1-4ef3-ac90-d3b00977b62e",
+  "name": "NCP Marylebone Road",
+  "lat": 51.522099,
+  "lon": -0.160129,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f95374af-6ff5-42d8-bfc4-9b9aca115d53",
+  "name": "(Taxis Only) Russell Square (North West side)",
+  "lat": 51.52203546304605,
+  "lon": -0.12749243112887143,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5786d5cc-fe54-437d-b626-727ee57e0806",
+  "name": "7 Devonshire St",
+  "lat": 51.522169,
+  "lon": -0.14507,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c0a2282d-18b7-4362-a188-e2261593e755",
+  "name": "19 - 20 Shroton Street",
+  "lat": 51.522376,
+  "lon": -0.167193,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "98d7031c-09d7-4603-9c12-9d5800cef84d",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.522387,
+  "lon": -0.148563,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e25be21b-a36a-43a9-8178-2bc30ec28fc4",
+  "name": "12 Glentworth Street",
+  "lat": 51.522431,
+  "lon": -0.158852,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ebc53ad9-8db5-4ac6-b1c8-617baa3ec120",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.522638,
+  "lon": -0.1445,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f980e5a2-16e3-4eb1-a8b8-77650ff07c4a",
+  "name": "RegentsPark",
+  "lat": 51.52269,
+  "lon": -0.14275,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4f318821-f24e-4ff1-9c32-ad86ffc4e8ce",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.522752,
+  "lon": -0.166746,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "108444a7-a605-4d4b-9795-8061f4b34da2",
+  "name": "Opp.",
+  "lat": 51.523,
+  "lon": -0.16268,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ab5f0ae1-277e-4720-b161-8097dd94fe21",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.523,
+  "lon": -0.1619,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "849c7101-4c11-4feb-8c55-e4051162e954",
+  "name": "junc. Melcombe Street",
+  "lat": 51.523,
+  "lon": -0.15911,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "aa60c3ca-42cf-4238-81e3-bf119a6d0146",
+  "name": "opp.",
+  "lat": 51.523,
+  "lon": -0.14348,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "de8cff0b-1448-4279-aadb-e287dd731686",
+  "name": "Opp.",
+  "lat": 51.523,
+  "lon": -0.14245,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "15e1bcd5-a8bb-4e11-be8b-45f7e219f419",
+  "name": "Opp.",
+  "lat": 51.523106,
+  "lon": -0.147377,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "1d36fa8b-6846-42ed-b89c-8ae1f92d36a0",
+  "name": "opp.",
+  "lat": 51.523134,
+  "lon": -0.159541,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9e353f3b-847a-46fb-b8fd-4255a9a89d7d",
+  "name": "Opp.",
+  "lat": 51.523597,
+  "lon": -0.162788,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8fa1495d-314d-49dc-8773-66f8c3fe6026",
+  "name": "Opp.",
+  "lat": 51.524,
+  "lon": -0.15975,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a104506f-0d77-46ff-8a42-a5c1747e82f6",
+  "name": "Opp.",
+  "lat": 51.52433,
+  "lon": -0.166918,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "fde4b10e-04f5-4376-b4a2-f5bc0c6f9d0a",
+  "name": "Albany Street, Camden",
+  "lat": 51.524472,
+  "lon": -0.144152,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f624ccd7-beeb-4c05-8161-550df28ada83",
+  "name": "Opp.",
+  "lat": 51.524504,
+  "lon": -0.163204,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "10fa851f-1b70-42fc-b727-3a9f9cb09062",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.524686,
+  "lon": -0.165963,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "95639332-ad3a-4764-9894-9a77b8d37d24",
+  "name": "(Taxis Only) West Bank",
+  "lat": 51.52471828213939,
+  "lon": -0.13860908297397145,
+  "chargers": 1,
+  "price_pence_per_kwh": 79.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6e7779bd-0c52-447e-9ac1-d2628e10cdab",
+  "name": "Osnaburgh Street",
+  "lat": 51.524895,
+  "lon": -0.143177,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "2bbc7209-385c-4c30-b392-33c2e810ae22",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.524933,
+  "lon": -0.162124,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "936d16fe-ec27-4790-81e5-24c612ab6d13",
+  "name": "9A Rossmore Road",
+  "lat": 51.525052,
+  "lon": -0.165058,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e7117ade-f34e-4334-a2a6-898b0e1de27e",
+  "name": "10-6 Rossmore Road, Westminster",
+  "lat": 51.525075,
+  "lon": -0.164654,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "67422997-3ad5-4784-91c5-245e2c24cc08",
+  "name": "opp.",
+  "lat": 51.525106,
+  "lon": -0.162751,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ebb66418-f008-4e53-9249-a4eafbb4d5ac",
+  "name": "12 Rossmore Road",
+  "lat": 51.525108,
+  "lon": -0.164733,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5c553843-3a46-48cc-8c48-bb3a75ffbd4c",
+  "name": "Taunton place",
+  "lat": 51.525149,
+  "lon": -0.163058,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "512b87b4-0054-4cd3-8ecd-b9ff094fdf09",
+  "name": "15 Rossmore Road",
+  "lat": 51.525153,
+  "lon": -0.163859,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f16c2483-b20e-4647-945e-7a5352b3411a",
+  "name": "60 Rossmore Road",
+  "lat": 51.52529,
+  "lon": -0.163088,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8ca1d9a8-ae1c-400f-891f-22635effa938",
+  "name": "59 Rossmore Road",
+  "lat": 51.52532,
+  "lon": -0.163606,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "3a9ced9e-9099-4482-a8ba-91c025152d52",
+  "name": "Opp.",
+  "lat": 51.525321,
+  "lon": -0.166109,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "30ea91ce-e8a0-4a31-a8f2-11f2fb4145b2",
+  "name": "Lever Street outside telfer house",
+  "lat": 51.526857,
+  "lon": -0.098214,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "eb4e353f-9177-4f5f-b5bc-28601286121d",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.52813,
+  "lon": -0.10291,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "2f5fb42e-3ac6-41f7-a0af-434d5761a931",
+  "name": "side of City University",
+  "lat": 51.528232,
+  "lon": -0.10232,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "31ba8b20-1b33-4bb2-b7d7-3941a6ef868a",
+  "name": "Spencer Street",
+  "lat": 51.52828,
+  "lon": -0.101919,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "1c5e4137-11a5-423e-94ad-e2a8cc7443c5",
+  "name": "Spencer Street (opposite City University)",
+  "lat": 51.528367,
+  "lon": -0.10173,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e28efa62-9f08-4da6-b140-b03e70988eeb",
+  "name": "Cumberland Market os thirlmere",
+  "lat": 51.529108,
+  "lon": -0.143416,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "2c5213b3-d74c-487f-888a-c919bb829214",
+  "name": "Great Percy Street Site 2",
+  "lat": 51.529329,
+  "lon": -0.11359,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6b8e61f3-28b2-41ff-aae5-d9fa0d9237eb",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.529425,
+  "lon": -0.110377,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "27d65094-cf18-49bb-877c-7f7ba1a8b1ee",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.529454,
+  "lon": -0.141411,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "71290ddf-0985-4d93-9a43-9c999acd026f",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.532702,
+  "lon": -0.118554,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6b19cc06-75a0-4b3e-9a2e-8217011b8056",
+  "name": "lamp column Jc 885",
+  "lat": 51.532981,
+  "lon": -0.121601,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "cbb66455-e73e-48ca-a0c9-30d67abf4de0",
+  "name": "127 Chalton Street Opp.",
+  "lat": 51.533073,
+  "lon": -0.133529,
+  "chargers": 1,
+  "price_pence_per_kwh": 45.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "fd2aa0c5-0aba-4d29-8558-e80865488165",
+  "name": "PEC Parkfield LTD",
+  "lat": 51.534073,
+  "lon": -0.106248,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f872b55e-e1c5-4330-b035-020e73572bdb",
+  "name": "PEC Parkfield LTD",
+  "lat": 51.534126,
+  "lon": -0.106292,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5f5e58e5-25cf-4ac9-b8b9-e8c9ef6fb177",
+  "name": "Albert St 87",
+  "lat": 51.536163,
+  "lon": -0.143204,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "7a16eae1-0618-4131-9c32-4517e4a0b829",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.537594,
+  "lon": -0.104592,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4f3013be-254e-493d-a868-bb81d11326f0",
+  "name": "Barnsbury Rd 144",
+  "lat": 51.537777,
+  "lon": -0.110337,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "d08c3b42-f39c-4a86-b669-9c44014288a0",
+  "name": "Liverpool Rd 88",
+  "lat": 51.537819,
+  "lon": -0.106911,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "359f09e0-a6e7-4170-8201-f45b2f7d5fc7",
+  "name": "Camley Street (Opp IMS Smithfield)",
+  "lat": 51.540094,
+  "lon": -0.130843,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "76d6a13c-8bc8-46fb-8036-676270ae403f",
+  "name": "Freight Lane Camden",
+  "lat": 51.5406,
+  "lon": -0.12596,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f6b18c55-9f1f-4869-bd74-928c69b293ed",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.541117,
+  "lon": -0.113404,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "747dead6-4a96-4687-8163-1e5cea54e161",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.541301,
+  "lon": -0.136364,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "78e5076a-dc55-49ef-ad55-7076f50f49ff",
+  "name": "6 St Augustine's Road",
+  "lat": 51.543371,
+  "lon": -0.131042,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "fe1a09ce-d77d-4fe9-8ff7-dfc62ca7906e",
+  "name": "26 Rochester Square",
+  "lat": 51.54353,
+  "lon": -0.134932,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c5d58605-5ddb-4a54-9ace-4dbb8fa9963d",
+  "name": "32 New Cavendish Street",
+  "lat": 51.518828,
+  "lon": -0.150543,
+  "chargers": 1,
+  "price_pence_per_kwh": 45.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "2cbeda1a-a9dc-433c-9f96-6259da8289c0",
+  "name": "80 Portland Place",
+  "lat": 51.521281,
+  "lon": -0.145618,
+  "chargers": 1,
+  "price_pence_per_kwh": 45.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e26f68cf-5a24-4ae4-a747-7519d831af9f",
+  "name": "Chalton Street",
+  "lat": 51.533073,
+  "lon": -0.133529,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "89d4e36e-eb88-4a4d-837b-c48d6168023d",
+  "name": "Car Club Bays",
+  "lat": 51.5068637,
+  "lon": -0.1060779,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "afac7239-aaff-4c54-ad2e-f7832f787707",
+  "name": "Opposite 25 Ufford Street",
+  "lat": 51.5024402,
+  "lon": -0.106436,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e6f2e134-2e75-4fb4-a14e-462556c2ac54",
+  "name": "Opposite 29 Ufford Street",
+  "lat": 51.5023477,
+  "lon": -0.1066136,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e52e8796-d6a1-4e74-8593-81e9ab8902e3",
+  "name": "St Andrews Church",
+  "lat": 51.5024409,
+  "lon": -0.1068531,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "fb3209e8-9e47-4458-9cb0-dd03d7f106c6",
+  "name": "16 Hatfields",
+  "lat": 51.5064914,
+  "lon": -0.1070171,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "b12f5a34-0c97-4b3f-9453-fd182ad92d68",
+  "name": "19 Hatfields",
+  "lat": 51.5059876,
+  "lon": -0.1068167,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9963b031-11f4-4035-81fe-47d422ded32a",
+  "name": "London-Paris Ev Rally",
+  "lat": 51.512804,
+  "lon": -0.099706,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "44dd7392-3a28-456b-a8e1-6a7909a078d5",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.512003,
+  "lon": -0.15015,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "107aa71d-58f6-423f-b35d-c9b25e38be8b",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.514,
+  "lon": -0.1643,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8f1b7839-9a33-4d4f-8909-cb48402fe2a8",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.515,
+  "lon": -0.1637,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e5ba30ed-f0d9-4ba5-b1dc-5687c8ca3589",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.516,
+  "lon": -0.15286,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "2edd44d4-b843-4efd-b527-eabdb463a553",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.517,
+  "lon": -0.15009,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "cdd071fb-f7be-480e-b9f1-cd1ec368cae8",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.518,
+  "lon": -0.16237,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "99afea66-a735-4380-9fc8-043a347cbc4a",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.518,
+  "lon": -0.1597,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ae31d2e4-5940-4d26-ab0d-9f9cf95a0f50",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.518,
+  "lon": -0.15369,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "d714d46a-9215-4085-8055-dcefccc92200",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.519,
+  "lon": -0.16147,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "7a0cd39e-172f-4378-b06a-ee82c70a39be",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.519,
+  "lon": -0.15504,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "858bb512-464f-4449-8f70-05c42f269cfd",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.519,
+  "lon": -0.14875,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "af7bb193-a1ad-424e-b986-5c6631485391",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.519,
+  "lon": -0.14362,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6e8e4260-b589-411c-93d6-12f910dd48e1",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.519,
+  "lon": -0.14093,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f6d8a3fc-529d-4638-8e60-53375b82d461",
+  "name": "Opp.",
+  "lat": 51.521,
+  "lon": -0.15602,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "21186e18-49e7-425a-a5bb-8985114bbd81",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.524,
+  "lon": -0.1619,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e71d6fb5-748b-4469-a1b0-5acad4ae5cac",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.535168,
+  "lon": -0.108681,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "877dff37-287d-41ab-978b-93bbc08d7d90",
+  "name": "Shell Recharge/Ubitricity",
+  "lat": 51.537539,
+  "lon": -0.106034,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c5a93a65-1914-47af-8718-0a9b76e21f85",
+  "name": "Hatfields",
+  "lat": 51.5056487,
+  "lon": -0.1066798,
+  "chargers": 1,
+  "price_pence_per_kwh": 65.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "04baa044-6870-4a6b-90c6-e60f75416a04",
+  "name": "Grosvenor Street",
+  "lat": 51.512165,
+  "lon": -0.145341,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "746c1a28-efbb-4dc2-b2fb-ac1be5403300",
+  "name": "Park West Place",
+  "lat": 51.51612,
+  "lon": -0.165359,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6058cd80-9fd8-4fd8-b6fe-5f2e7a097633",
+  "name": "Stephens Street",
+  "lat": 51.517475,
+  "lon": -0.133047,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6d35edb1-105f-48ed-85fa-5950caebed62",
+  "name": "George Street",
+  "lat": 51.51752,
+  "lon": -0.154709,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9852fa1c-c997-4a76-80e9-10d895dd1d46",
+  "name": "Portpool Lane",
+  "lat": 51.5208,
+  "lon": -0.112255,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "87e315a4-7260-4777-9aa3-0a86c6ff34a0",
+  "name": "Fitzroy Street Site 2",
+  "lat": 51.521873,
+  "lon": -0.138201,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c6100d6a-d574-4cbc-80fa-6a9b9ef81135",
+  "name": "Whitfield Street",
+  "lat": 51.52236,
+  "lon": -0.137215,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ce6e1133-941e-49f3-9771-5f9d80ca31d6",
+  "name": "Melcombe Place",
+  "lat": 51.52238,
+  "lon": -0.161778,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "95c36e6f-a707-4330-a65c-264bff34326b",
+  "name": "Dufferin Street",
+  "lat": 51.522648,
+  "lon": -0.092503,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "513843fc-aa11-42ca-812f-27638de380f6",
+  "name": "Gordon Street",
+  "lat": 51.525513,
+  "lon": -0.132949,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "476e2d6f-f2c9-40dd-bfab-7bd9950b1ce5",
+  "name": "Heathcote Street",
+  "lat": 51.526318,
+  "lon": -0.119235,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "d42c5a16-7156-455b-8576-ec430921f4f0",
+  "name": "Attneave Street",
+  "lat": 51.526478,
+  "lon": -0.111214,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "d75ea205-f595-47b2-a307-52a9d6af1cc3",
+  "name": "Cubbitt Street",
+  "lat": 51.52684,
+  "lon": -0.115451,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "13d8efb1-67a9-46bd-a429-435d4926a35f",
+  "name": "Cartwright Gardens",
+  "lat": 51.527348,
+  "lon": -0.126877,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9f0ae9fb-5412-4f2f-bc53-f28c87343d9b",
+  "name": "Harrison Street",
+  "lat": 51.52737,
+  "lon": -0.122061,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "cba3d808-2ac4-4fcb-9d33-50f640c96ccf",
+  "name": "Varndell Street",
+  "lat": 51.529373,
+  "lon": -0.140519,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "583ddc6b-527d-4795-9e0c-64145e6f4f1d",
+  "name": "Mackworth Street",
+  "lat": 51.530468,
+  "lon": -0.140503,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "37568784-3888-4a3f-843b-5fa7ee9e8fce",
+  "name": "City Garden Row",
+  "lat": 51.531128,
+  "lon": -0.098607,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "bdd9ea3a-d570-4699-84d2-5268e25bbbde",
+  "name": "Aldenham Street",
+  "lat": 51.531612,
+  "lon": -0.134805,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "3cd82cbf-213d-472e-b2b2-37f1441e86eb",
+  "name": "Collier Street",
+  "lat": 51.532406,
+  "lon": -0.115856,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "87485058-eaa8-434f-b81c-20837baf1385",
+  "name": "Noel Road",
+  "lat": 51.533215,
+  "lon": -0.100193,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6fabe632-84f6-4045-ab8d-244de4b4457c",
+  "name": "Duncan Street",
+  "lat": 51.533363,
+  "lon": -0.103431,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "19d29215-832b-4604-bdb9-ad396df2f05b",
+  "name": "Wynford Road",
+  "lat": 51.534225,
+  "lon": -0.115637,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "0d769c0d-4def-43b8-85c5-8399d817465b",
+  "name": "Mornington Terrace",
+  "lat": 51.534378,
+  "lon": -0.142593,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c3718b3a-bd58-4b8c-8b23-dafac391e1f6",
+  "name": "Arlington Road",
+  "lat": 51.53567,
+  "lon": -0.141286,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "50103df7-14bf-471b-8373-54f16e3b2f66",
+  "name": "Plender Street",
+  "lat": 51.536423,
+  "lon": -0.138155,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8d70294e-a14d-48cc-a6d3-441383c36aac",
+  "name": "Cloudesley Road",
+  "lat": 51.536606,
+  "lon": -0.109655,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c64f5341-858c-4b14-9c68-790876b2b73d",
+  "name": "College Place",
+  "lat": 51.537033,
+  "lon": -0.135347,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "0ae65660-a457-4dc7-9e80-87bcb29c4d5a",
+  "name": "Twyford Street",
+  "lat": 51.538,
+  "lon": -0.118769,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "639fcb6d-bf50-4364-9f2f-2edbacc17d5b",
+  "name": "Gloucester Avenue",
+  "lat": 51.538254,
+  "lon": -0.148867,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c64173d9-a385-4337-bcda-c6db501e4e82",
+  "name": "Boxworth Grove",
+  "lat": 51.538578,
+  "lon": -0.112789,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "d699a5cf-d003-4127-a2b2-fa77fb82c45a",
+  "name": "Jamestown Road",
+  "lat": 51.54013,
+  "lon": -0.145921,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "17859208-e773-42b8-9197-b0fabdebe590",
+  "name": "Gifford Street",
+  "lat": 51.541092,
+  "lon": -0.120429,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e123656f-4f30-4a5c-bebf-c9c93baa2ad1",
+  "name": "Broadfield Lane",
+  "lat": 51.54226,
+  "lon": -0.125948,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "2dceb80b-1aed-4d80-93ae-b549ead6a9f4",
+  "name": "Imperial Hotels-Royal National Hotel",
+  "lat": 51.523654,
+  "lon": -0.127568,
+  "chargers": 3,
+  "price_pence_per_kwh": 15.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8726740f-a8d2-41e3-95e9-b5ba08198826",
+  "name": "33 King Charles Street",
+  "lat": 51.501845,
+  "lon": -0.127892,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e91b960c-767e-4b91-a9e2-0da3f652ec87",
+  "name": "7 Buckingham Palace Rd",
+  "lat": 51.508123,
+  "lon": -0.14861,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9d27bea0-ce5e-4ff7-9003-0f8bf33eac1d",
+  "name": "YPML SEA CONTAINERS3",
+  "lat": 51.508426,
+  "lon": -0.10639,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "aaf3f785-9cf9-440b-9bdb-ed7c92a2bb64",
+  "name": "15 Grosvenor Square",
+  "lat": 51.512186,
+  "lon": -0.151515,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5c97b5dc-e1f5-4034-bee7-6882b280d612",
+  "name": "10 Transept Street",
+  "lat": 51.519199,
+  "lon": -0.166878,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "b3991af3-1872-41a5-9a2e-e7448f2b3c83",
+  "name": "29 Harcourt Street",
+  "lat": 51.519709,
+  "lon": -0.16424,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "0c0667e6-9353-49b5-b72c-9206ba166c6f",
+  "name": "Allsop Place",
+  "lat": 51.52327,
+  "lon": -0.156206,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "06ca8456-6422-44ba-b239-0ffab96e5721",
+  "name": "YPML LYNTON HOUSE 1",
+  "lat": 51.52557,
+  "lon": -0.127476,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "bc788df7-5c7a-437d-9bdc-9f6f2a8fbcca",
+  "name": "Quick Street",
+  "lat": 51.532074,
+  "lon": -0.102028,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "06f36ddb-2c97-465c-b3c9-97cdd606149b",
+  "name": "Stonefield Street",
+  "lat": 51.538654,
+  "lon": -0.108143,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "24912cc3-7182-41c6-a91c-929b225ccbff",
+  "name": "Sainsbury's Camden",
+  "lat": 51.540221,
+  "lon": -0.141349,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f22b1254-66c3-48ff-aa19-aeca118f48d1",
+  "name": "Sainsbury's Camden",
+  "lat": 51.540259,
+  "lon": -0.141412,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "1bdf7afc-9e0d-425e-84df-d01f40ece01f",
+  "name": "5 Ogle Street",
+  "lat": 51.52005014610637,
+  "lon": -0.1398122201227352,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4b7c1c1b-71dd-4840-ad88-358582ee520a",
+  "name": "Ogle Street",
+  "lat": 51.52049031472211,
+  "lon": -0.13998855024124168,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "82d8feda-7e2a-4a91-97a5-01ba6a1aab08",
+  "name": "148 New Cavendish Street",
+  "lat": 51.520577619587215,
+  "lon": -0.1398402937229548,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "312cb1a5-c33b-49d1-8aad-925e33f24aac",
+  "name": "Sainsbury's Islington",
+  "lat": 51.5341286392735,
+  "lon": -0.10874441373744,
+  "chargers": 4,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "bac763fa-139f-409c-b4f6-7baabb30df34",
+  "name": "70 Acton Street",
+  "lat": 51.5283068937474,
+  "lon": -0.118677020072937,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a3d1202b-419f-4e48-9611-381f135abae1",
+  "name": "Hinde Street (on street)",
+  "lat": 51.5168983880498,
+  "lon": -0.151432156562805,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "3313e0f9-40b3-4cd5-a9b0-3b9721e9ca60",
+  "name": "Euston Station Car Park",
+  "lat": 51.5271454796726,
+  "lon": -0.134217739105225,
+  "chargers": 6,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9d41188d-3e19-400c-b78f-2cbdb962f33c",
+  "name": "Lincolns Inn Fields, Westminster",
+  "lat": 51.5152860135492,
+  "lon": -0.116643905639648,
+  "chargers": 5,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "444a8160-64ed-4514-b3bc-a1a004166ecd",
+  "name": "Herbrand Street RCP Car Park",
+  "lat": 51.523868,
+  "lon": -0.12557,
+  "chargers": 2,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f380c80c-b6a6-455f-bd16-ab4860692500",
+  "name": "Masterpark Abingdon Car Park",
+  "lat": 51.497528,
+  "lon": -0.127409,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c92e7ee4-798c-425d-8f21-008192c1ce8d",
+  "name": "76 Upper Ground",
+  "lat": 51.5068393098305,
+  "lon": -0.111933946609497,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "00be3f45-08c3-443f-b53b-41c7f568dbe1",
+  "name": "NCP Hilton Hotel",
+  "lat": 51.505596,
+  "lon": -0.150176,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6db12627-4189-4b82-bebf-88036e6a6800",
+  "name": "Masterpark Trafalgar Square Car Park",
+  "lat": 51.507291,
+  "lon": -0.128896,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "b35eb4cb-918e-4edd-827f-6ec69693398f",
+  "name": "Q-Park Leicester Square Car Park",
+  "lat": 51.509162,
+  "lon": -0.13065,
+  "chargers": 4,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8560d33f-eb85-41c2-8f1e-5af64672c04f",
+  "name": "Albemarle Street",
+  "lat": 51.5096839873231,
+  "lon": -0.142478942871094,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "2b8eea47-3efc-452c-a51b-1dda98c68caf",
+  "name": "NCP Grosvenor Hill",
+  "lat": 51.510944,
+  "lon": -0.146848,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5693619c-235f-4fdb-98ee-db10d43a231e",
+  "name": "NCP Grosvenor Hill",
+  "lat": 51.510944,
+  "lon": -0.146848,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "dedbf3bb-ae2f-443e-8c42-43d3c80b263d",
+  "name": "NCP Brewer Street - Chargepost 1",
+  "lat": 51.511865,
+  "lon": -0.134884,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6a3cdb5a-8fd5-4097-b17a-679e2f89511a",
+  "name": "Masterpark Chinatown Car Park",
+  "lat": 51.512046,
+  "lon": -0.129753,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "66286173-7b41-4bf2-9a77-75bd661d6f6d",
+  "name": "Marble Arch Car Park",
+  "lat": 51.512517,
+  "lon": -0.159597,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "2946f12d-1891-4809-8417-16f2e849a5dd",
+  "name": "Broadwick Road Carpark",
+  "lat": 51.513645,
+  "lon": -0.137168,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6257dc5b-6818-4901-a0c4-95e416a448b7",
+  "name": "Lincolns Inn",
+  "lat": 51.51643,
+  "lon": -0.114483,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "47855d0f-da6c-4087-9ea0-da6f31b555ae",
+  "name": "NCP Water Gardens",
+  "lat": 51.516658,
+  "lon": -0.165698,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "0978c68c-026c-491d-8531-4a5ba4f778e8",
+  "name": "Manchester Square",
+  "lat": 51.517068,
+  "lon": -0.152821,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "16c3a2e4-9c66-4475-9d62-1a56bf383cbb",
+  "name": "Baynard House Car Park",
+  "lat": 51.518005,
+  "lon": -0.103962,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6acd0710-42a1-4936-835c-725abb9869da",
+  "name": "Bloomsbury Square Car Park",
+  "lat": 51.5190133,
+  "lon": -0.12224600000001828,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "feb0e894-bbba-4715-9cc6-474771d57d4a",
+  "name": "Charlotte Street",
+  "lat": 51.519293,
+  "lon": -0.135446,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "87fa1161-81fb-4e85-9d1e-86f78fa55fa7",
+  "name": "Cramer Street Car Park",
+  "lat": 51.519725,
+  "lon": -0.152477,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "b3e8aa56-cb2e-4d27-b29d-b10420458735",
+  "name": "Masterpark Chiltern Car Park",
+  "lat": 51.520279,
+  "lon": -0.155659,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "78183e5d-b593-436d-ba17-fcfd9ad87a60",
+  "name": "NCP Portman Square - Chargepost 1",
+  "lat": 51.521129,
+  "lon": -0.159386,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8d200f52-4921-4027-8a61-da9fc6529a1a",
+  "name": "Clipstone Car Park",
+  "lat": 51.521616,
+  "lon": -0.140827,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5dba71d4-43eb-4754-beb6-83d9f8415f2d",
+  "name": "5 Spenser Street",
+  "lat": 51.497912,
+  "lon": -0.136349,
+  "chargers": 4,
+  "price_pence_per_kwh": 17.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "d1b0ab96-4d0d-4b6b-b548-c46eb5f08fb1",
+  "name": "4 Arundel Street",
+  "lat": 51.51232110346069,
+  "lon": -0.11432518712229012,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "81da361c-e03c-43bd-968d-13db519cbd84",
+  "name": "20 Soho Square",
+  "lat": 51.515559717462054,
+  "lon": -0.13189368249868494,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "3f5e282d-4507-4566-aa02-2bd13d405e1f",
+  "name": "15 Berkeley Square",
+  "lat": 51.509871967635604,
+  "lon": -0.1453217303424026,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "429be9a3-3eda-4770-9422-3066d3438314",
+  "name": "Tolpuddle Street",
+  "lat": 51.5343204088342,
+  "lon": -0.109595060348511,
+  "chargers": 2,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6abee555-9e03-4569-ab50-f3cbb4b1d23f",
+  "name": "NCP Saffron Hill",
+  "lat": 51.5211089,
+  "lon": -0.1073366,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "1af3ff18-ccc3-4a74-bceb-3bf7df22a90c",
+  "name": "Southampton Street",
+  "lat": 51.5109927464186,
+  "lon": -0.122040510177612,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "d84ee181-d1e5-463e-9766-e2a08318f13e",
+  "name": "Warren Street",
+  "lat": 51.5235198315238,
+  "lon": -0.142149912303122,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6a43d59f-dea1-450c-ab73-e7c24be151c8",
+  "name": "John Street",
+  "lat": 51.521318,
+  "lon": -0.114743,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "70921a64-898b-4d07-b9ed-b18823409a30",
+  "name": "CItadines Holborn Convent Garden London",
+  "lat": 51.51831126747871,
+  "lon": -0.11879508988772614,
+  "chargers": 1,
+  "price_pence_per_kwh": 75.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "b1614d50-a870-4ff2-a169-7b6f2591012f",
+  "name": "Bernard Street",
+  "lat": 51.523416,
+  "lon": -0.12332,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "059775db-fe0a-4d81-8acc-de0562cdc415",
+  "name": "Q-Park Park Lane, London",
+  "lat": 51.5093,
+  "lon": -0.156662,
+  "chargers": 34,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ab122ef1-1a8f-4ec8-be72-85dc78c8f731",
+  "name": "NCP Berners Street",
+  "lat": 51.518002,
+  "lon": -0.137539,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "d472bfa4-ba66-4e8f-b183-b665c0edb1e8",
+  "name": "NCP Park Road",
+  "lat": 51.526001,
+  "lon": -0.162612,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "732c036c-785e-464d-b337-cfc65273b945",
+  "name": "NCP Marble Arch",
+  "lat": 51.514999,
+  "lon": -0.159734,
+  "chargers": 4,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4449ed3a-78c0-4571-bb96-1ba2baec1fd2",
+  "name": "Q-Park Trafalgar Car Park",
+  "lat": 51.507099,
+  "lon": -0.130117,
+  "chargers": 8,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "3fcb83a4-ada6-4616-b45a-abb274107cd8",
+  "name": "Q-Park Westminster",
+  "lat": 51.4975281,
+  "lon": -0.127408500000001,
+  "chargers": 6,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "cebc6f9f-b27b-4b33-83d0-9ba901d69418",
+  "name": "Q-Park Burlington Street",
+  "lat": 51.510632,
+  "lon": -0.14051870000003,
+  "chargers": 4,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9c518f41-d424-45e5-8a3d-9ff87f144a9f",
+  "name": "NCP Carrington Street",
+  "lat": 51.506001,
+  "lon": -0.146775,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "2f51857d-4341-4315-a335-88c7747bc717",
+  "name": "Berners Street",
+  "lat": 51.517235,
+  "lon": -0.136815,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5acc3da8-c087-467c-9ec6-3230448db16c",
+  "name": "Montagu Mansions",
+  "lat": 51.520454,
+  "lon": -0.157968,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "454a1ab6-73a5-4539-a876-00b052326e1c",
+  "name": "Q-Park Soho",
+  "lat": 51.514198,
+  "lon": -0.136689,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "bf1c38a8-e19b-44ca-9376-83b26d7deb14",
+  "name": "Berkeley Square",
+  "lat": 51.509495,
+  "lon": -0.144767,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "03e0932a-b676-436e-ac43-779a1660c959",
+  "name": "NCP Aldersgate",
+  "lat": 51.5181749210381,
+  "lon": -0.0972906984862987,
+  "chargers": 4,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "14858e36-8454-487f-89d9-8fda6002a96b",
+  "name": "Q-Park Oxford Street",
+  "lat": 51.5166,
+  "lon": -0.1444,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "bb4b9e38-c278-4fd2-ba2e-60baae27c2fb",
+  "name": "NCP Car Park Drury Lane",
+  "lat": 51.51422,
+  "lon": -0.12136,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e917730f-a83c-4c7c-81a2-b6d9d477c6e7",
+  "name": "Smithfield Market Car Park",
+  "lat": 51.518753,
+  "lon": -0.101256,
+  "chargers": 3,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "8baa017d-11f3-4898-bc11-381b19cbbd5c",
+  "name": "London Wall Car Park",
+  "lat": 51.517667,
+  "lon": -0.095277,
+  "chargers": 10,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9f833423-c791-40a1-8b49-8cb6fb5edef3",
+  "name": "City of London Baynard House Car Park",
+  "lat": 51.511987,
+  "lon": -0.1005,
+  "chargers": 10,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "92218a3c-f6d1-4490-ae8c-715a8708696e",
+  "name": "Sardinia Street",
+  "lat": 51.5151901467396,
+  "lon": -0.118159841802967,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "0562752d-d1c5-46c5-8668-9f60df211c62",
+  "name": "Store Street, London WC1",
+  "lat": 51.5201029380956,
+  "lon": -0.131020545959473,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "9733ae87-ded8-4142-800c-816d61256fca",
+  "name": "Camden Transport Services",
+  "lat": 51.5405040833944,
+  "lon": -0.126926303704866,
+  "chargers": 1,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "74ed4699-78a1-4b8c-af76-47d5fa46687e",
+  "name": "Sainsburys Camden",
+  "lat": 51.5405185,
+  "lon": -0.1408004,
+  "chargers": 4,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "4127e048-abb8-4fc0-b0cb-d549c4d19362",
+  "name": "Belvedere Road Car Park",
+  "lat": 51.5052551,
+  "lon": -0.1168898,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "45f64f87-26d5-4099-96fb-f528edf61d30",
+  "name": "Holborn NCP Car Park",
+  "lat": 51.5181387,
+  "lon": -0.1255737,
+  "chargers": 4,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "327dc5b0-5010-4325-b8ec-adf3890a1f25",
+  "name": "Society of Motor Traders",
+  "lat": 51.496653,
+  "lon": -0.13111,
+  "chargers": 5,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a512d993-2228-4f82-9567-6a2ed22284b5",
+  "name": "Argent LLP-Canal Reach",
+  "lat": 51.536229,
+  "lon": -0.125580300000024,
+  "chargers": 4,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "449985b1-df00-4b88-9e72-79b514e1aba2",
+  "name": "Trenchard House",
+  "lat": 51.513535,
+  "lon": -0.135519,
+  "chargers": 4,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ba47fb0d-dda7-4646-9b97-fd76b929eb86",
+  "name": "Foley Street",
+  "lat": 51.519737,
+  "lon": -0.139248,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "87ebaf0f-24e3-49c0-98ab-8a5c4568b8a2",
+  "name": "Bank of America Merrill Lynch",
+  "lat": 51.516428,
+  "lon": -0.101677,
+  "chargers": 8,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "bca0f7f2-8c9c-4bbb-bfca-8d5f2e537917",
+  "name": "The Mayfair Car Park",
+  "lat": 51.50497,
+  "lon": -0.151181,
+  "chargers": 1,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "6e65f6f9-32a2-418d-8cc6-21566bf12f90",
+  "name": "Q-Park Harley Street",
+  "lat": 51.517933,
+  "lon": -0.145537,
+  "chargers": 2,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f9c43695-1cf3-44d7-8e3c-1659bd95bb7f",
+  "name": "Q-Park Oxford Street",
+  "lat": 51.516593,
+  "lon": -0.144297,
+  "chargers": 2,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "ec9fc0a2-4f55-4074-a713-52364b152e52",
+  "name": "London Business School",
+  "lat": 51.525685,
+  "lon": -0.160383,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f2573060-17f3-4316-a161-8c656f24c83a",
+  "name": "Dornan Engineering",
+  "lat": 51.498136,
+  "lon": -0.142448,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "adec8a1a-53eb-4e75-9fee-9df6242d8ad9",
+  "name": "Investec-Gresham Street",
+  "lat": 51.516701,
+  "lon": -0.095897,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "07ec6810-a9b0-4cf7-b8a7-2d62005e8e97",
+  "name": "Citipark Clipstone Street",
+  "lat": 51.521862,
+  "lon": -0.140954,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "eea51efc-70ea-424b-968b-fa9c18017bac",
+  "name": "Grosvenor Square",
+  "lat": 51.5106839403,
+  "lon": -0.151771698031,
+  "chargers": 3,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e1d756e0-344d-4565-8ff1-17c8e22443ac",
+  "name": "Dunraven Street",
+  "lat": 51.512731211,
+  "lon": -0.157295046235,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "c33ba1d2-600d-4134-8382-9078c819736f",
+  "name": "Smithfield Buyers Walk W Market",
+  "lat": 51.518017,
+  "lon": -0.102353,
+  "chargers": 6,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "451c4b5e-374d-432b-b191-807430e445e3",
+  "name": "Brownings Garage LTD",
+  "lat": 51.530069,
+  "lon": -0.111071,
+  "chargers": 1,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e340e5d6-10dc-41ae-9e71-8ec6bc69ab32",
+  "name": "Upper Street Car Park",
+  "lat": 51.53541,
+  "lon": -0.10461,
+  "chargers": 4,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "a7744c17-0681-4837-98af-6de3d7f5f670",
+  "name": "170 Marylebone Road Car Park",
+  "lat": 51.522022,
+  "lon": -0.159412,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "943a9e51-6f40-4369-aeb2-4bf0b8099efe",
+  "name": "Q-Park Harley Street",
+  "lat": 51.517899,
+  "lon": -0.145713,
+  "chargers": 20,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "acd539a9-ea1d-4faf-bbe0-3177d4fac128",
+  "name": "Grosvenor Square",
+  "lat": 51.510791,
+  "lon": -0.151436,
+  "chargers": 3,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "b9881864-3140-472c-b175-d0f7aff1baeb",
+  "name": "Islamic Relief UK",
+  "lat": 51.500361,
+  "lon": -0.113099,
+  "chargers": 1,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "f6f78997-915e-4ba5-9b05-007f04337a19",
+  "name": "Doughty Street",
+  "lat": 51.5246415446,
+  "lon": -0.117358646832,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "0a800a82-ecb7-4408-97ad-53d9e32de7e1",
+  "name": "Red Lion Square",
+  "lat": 51.5194932157,
+  "lon": -0.118752916363,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e6e41973-b2b8-49a9-a8c5-5877bcfcff15",
+  "name": "The Chiltern Place",
+  "lat": 51.520291,
+  "lon": -0.155384,
+  "chargers": 10,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "5c557e23-e86a-457e-a1bb-1c45be43ab96",
+  "name": "Ubitricity Upper Montagu Street",
+  "lat": 51.519061821184565,
+  "lon": -0.1598695608520262,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "e7eb2b91-cad8-4aa6-bfe3-58f95e53b18f",
+  "name": "Upper Grosvenor Street",
+  "lat": 51.51029,
+  "lon": -0.155519,
+  "chargers": 2,
+  "price_pence_per_kwh": 17.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "84b549a3-8b2d-43bc-abda-8546d5e5c1ad",
+  "name": "Palace Street",
+  "lat": 51.497297,
+  "lon": -0.139462,
+  "chargers": 2,
+  "price_pence_per_kwh": 17.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "10bb7112-baa7-4d39-9296-c80fdeba7082",
+  "name": "3 Lidlington Place (Taxi Only)",
+  "lat": 51.5328525328075,
+  "lon": -0.137291209787003,
+  "chargers": 1,
+  "price_pence_per_kwh": 79.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "926b5bfe-6571-4795-8d2e-a0a78d15162f",
+  "name": "Intercontinental London Park Lane",
+  "lat": 51.503851,
+  "lon": -0.150187,
+  "chargers": 2,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "fe155615-fe51-4c64-8321-fd869baeb359",
+  "name": "Stirling Square",
+  "lat": 51.506042,
+  "lon": -0.133653,
+  "chargers": 4,
+  "price_pence_per_kwh": 0.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ },
+ {
+  "id": "7b97516a-460d-4ba1-bc56-ffb2868ce245",
+  "name": "Bow Bells House",
+  "lat": 51.513237,
+  "lon": -0.094463,
+  "chargers": 1,
+  "price_pence_per_kwh": 59.0,
+  "arrival_rate_per_hour": 0.75,
+  "mean_service_minutes": 40.0
+ }
+]

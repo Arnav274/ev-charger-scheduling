@@ -113,6 +113,16 @@ class TestSuggestSlot:
         )
         assert response.json()[0]["wait_from_desired_minutes"] == 60
 
+    def test_never_offers_a_slot_that_has_already_started(self, client, make_station) -> None:
+        station = make_station(chargers=1)
+        an_hour_ago = datetime.now(UTC) - timedelta(hours=1)
+        response = client.post(
+            f"/stations/{station.id}/suggest-slot",
+            json={"desired_arrival": an_hour_ago.isoformat(), "duration_minutes": 30},
+        )
+        start = datetime.fromisoformat(response.json()[0]["suggested_start"])
+        assert start >= datetime.now(UTC) - timedelta(seconds=1)
+
     def test_fully_booked_station_offers_nothing(self, client, db, make_station, user) -> None:
         station = make_station(chargers=1)
         db.add(
@@ -176,6 +186,27 @@ class TestReservations:
     def test_end_before_start_is_rejected(self, client, auth_headers, make_station, now) -> None:
         charger_id = make_station(chargers=1).chargers[0].id
         assert self._book(client, auth_headers, charger_id, now, minutes=-15).status_code == 400
+
+    def test_bookings_in_the_past_are_rejected(self, client, auth_headers, make_station, now) -> None:
+        charger_id = make_station(chargers=1).chargers[0].id
+        response = self._book(client, auth_headers, charger_id, now - timedelta(hours=2))
+        assert response.status_code == 400
+        assert "future" in response.json()["detail"]
+
+    def test_bookings_longer_than_twelve_hours_are_rejected(
+        self, client, auth_headers, make_station, now
+    ) -> None:
+        charger_id = make_station(chargers=1).chargers[0].id
+        assert self._book(client, auth_headers, charger_id, now, minutes=13 * 60).status_code == 400
+        assert self._book(client, auth_headers, charger_id, now, minutes=12 * 60).status_code == 201
+
+    def test_upcoming_bookings_per_user_are_capped(self, client, auth_headers, make_station, now) -> None:
+        charger_id = make_station(chargers=1).chargers[0].id
+        for i in range(10):
+            assert self._book(client, auth_headers, charger_id, now + timedelta(hours=i)).status_code == 201
+        response = self._book(client, auth_headers, charger_id, now + timedelta(hours=10))
+        assert response.status_code == 409
+        assert "10 upcoming" in response.json()["detail"]
 
     def test_unknown_charger_is_404(self, client, auth_headers, now) -> None:
         assert self._book(client, auth_headers, uuid.uuid4(), now).status_code == 404

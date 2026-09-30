@@ -1,6 +1,6 @@
 import uuid
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, text
@@ -73,14 +73,16 @@ def next_slot_boundary(dt: datetime) -> datetime:
 def suggest_slot(
     station_id: uuid.UUID, payload: SlotRequest, db: Session = Depends(get_db)
 ) -> list[SlotSuggestion]:
-    """Earliest free half-hour-aligned slot on each charger within the next four hours."""
+    """Earliest free half-hour-aligned slot on each charger within four hours of the desired arrival."""
     station = _get_station(db, station_id)
     chargers = station.chargers
     if payload.charger_id is not None:
         chargers = [c for c in chargers if c.id == payload.charger_id]
 
     desired = ensure_utc(payload.desired_arrival)
-    horizon_end = desired + SLOT_SEARCH_HORIZON
+    # Never offer a slot that has already started, whatever time was asked for.
+    earliest = max(desired, datetime.now(UTC))
+    horizon_end = earliest + SLOT_SEARCH_HORIZON
     duration = timedelta(minutes=payload.duration_minutes)
 
     rows = db.execute(
@@ -89,7 +91,7 @@ def suggest_slot(
         .where(
             Charger.station_id == station.id,
             Reservation.start_time < horizon_end,
-            Reservation.end_time > desired,
+            Reservation.end_time > earliest,
         )
     )
     booked: dict[str, list[tuple[datetime, datetime]]] = defaultdict(list)
@@ -99,7 +101,7 @@ def suggest_slot(
     suggestions = []
     for charger in chargers:
         existing = booked[str(charger.id)]
-        start = next_slot_boundary(desired)
+        start = next_slot_boundary(earliest)
         while start + duration <= horizon_end:
             end = start + duration
             if not any(b_start < end and b_end > start for b_start, b_end in existing):

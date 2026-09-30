@@ -20,6 +20,7 @@ known-third-party = ["alembic"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 markers = [
     "integration: integration tests requiring a running Postgres/PostGIS container",
 ]

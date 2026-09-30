@@ -14,7 +14,9 @@ from sqlalchemy import text
 from app.database import SessionLocal
 
 BACKGROUND_USER_ID = "b0000001-0000-4000-8000-000000000001"
-BACKGROUND_USER_EMAIL = "background.bookings@example.com"
+# The .invalid domain is reserved and fails registration's email check, so no
+# real account can ever share this address.
+BACKGROUND_USER_EMAIL = "background.bookings@seed.invalid"
 
 
 def next_full_hour_utc(now: datetime) -> datetime:
@@ -27,12 +29,10 @@ def main() -> None:
     try:
         # No password hash, so nobody can sign in as this account.
         db.execute(
-            text("INSERT INTO users (id, email) VALUES (:id, :email) ON CONFLICT (email) DO NOTHING"),
+            text("INSERT INTO users (id, email) VALUES (:id, :email) ON CONFLICT (id) DO NOTHING"),
             {"id": BACKGROUND_USER_ID, "email": BACKGROUND_USER_EMAIL},
         )
-        user_id = db.execute(
-            text("SELECT id FROM users WHERE email = :email"), {"email": BACKGROUND_USER_EMAIL}
-        ).scalar_one()
+        user_id = BACKGROUND_USER_ID
 
         # Pick a small set of stations with the most chargers to make the hotspot visually obvious.
         station_rows = db.execute(

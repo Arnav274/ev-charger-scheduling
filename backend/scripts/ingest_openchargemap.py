@@ -90,12 +90,11 @@ def ingest(records: list[dict], *, enforce_min_stations: bool = True) -> None:
                 text(
                     """
                     INSERT INTO stations (
-                        id, source, source_id, name, borough, address, lat, lon, location,
+                        id, source, source_id, name, borough, address, lat, lon,
                         price_pence_per_kwh, arrival_rate_per_hour, mean_service_minutes, raw_json
                     )
                     VALUES (
                         :station_id, :source, :source_id, :name, :borough, :address, :lat, :lon,
-                        ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography,
                         :price, :arrival_rate, :service_min, CAST(:raw_json AS JSON)
                     )
                     ON CONFLICT (source_id) DO UPDATE SET
@@ -104,7 +103,6 @@ def ingest(records: list[dict], *, enforce_min_stations: bool = True) -> None:
                       address = EXCLUDED.address,
                       lat = EXCLUDED.lat,
                       lon = EXCLUDED.lon,
-                      location = EXCLUDED.location,
                       raw_json = EXCLUDED.raw_json
                     RETURNING id;
                     """

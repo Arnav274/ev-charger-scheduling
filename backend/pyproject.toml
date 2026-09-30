@@ -18,6 +18,7 @@ known-first-party = ["app", "experiments", "scripts"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 markers = [
     "integration: integration tests requiring a running Postgres/PostGIS container",
 ]

@@ -157,6 +157,8 @@ def recommend(db: Session, req: RecommendationRequest, now: datetime) -> list[Re
             RecommendationOut(
                 station_id=r.station.id,
                 station_name=r.station.name,
+                lat=r.station.lat,
+                lon=r.station.lon,
                 score=r.score,
                 travel_distance_km=route.distance_km,
                 travel_time_min=route.duration_min,

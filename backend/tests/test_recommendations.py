@@ -48,6 +48,7 @@ def test_every_strategy_returns_ranked_results(client, make_station, algorithm) 
     assert len(rows) == 3
     assert [r["score"] for r in rows] == sorted(r["score"] for r in rows)
     for row in rows:
+        assert row["lat"] > 51.5
         assert row["travel_distance_km"] > 0
         assert 0 <= row["probability_of_delay"] <= 1
         assert row["predicted_wait_min"] >= 0

@@ -4,9 +4,8 @@
 **/.pytest_cache/
 frontend/node_modules/
 
-# Local / submission-only materials (do not publish)
+# Local only
 presentation/
-useful content/
 
 # Build artifacts
 frontend/dist/
@@ -20,10 +19,6 @@ frontend/dist/
 # Local editor and tooling artefacts
 .claude/
 .vscode/
-repomix-output.xml
-repomix.config.json
-.repomixignore
-repomix-output.txt
 
 # Built locally from the OSM extract (scripts/build_road_graph.py)
 backend/data/

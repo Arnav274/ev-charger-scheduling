@@ -122,7 +122,20 @@ def test_re_ingesting_keeps_bookings_and_updates_power(db, make_station, user, n
 def test_re_ingesting_adds_and_removes_chargers(db, make_station) -> None:
     station = make_station(chargers=2)  # named C1 and C2
     sync_chargers(db, station.id, wanted=4, power_kw=7.0)
-    assert charger_names(db, station) == ["C1", "C2", "Charger 3", "Charger 4"]
+    assert charger_names(db, station) == ["C1", "C2", "Charger 1", "Charger 2"]
 
     sync_chargers(db, station.id, wanted=1, power_kw=7.0)
     assert charger_names(db, station) == ["C1"]
+
+
+def test_unbooked_chargers_are_removed_before_booked_ones(db, make_station, user, now) -> None:
+    station = make_station(chargers=2)  # C1 unbooked, C2 booked
+    c2 = station.chargers[1]
+    db.add(Reservation(charger_id=c2.id, user_id=user.id, start_time=now, end_time=now + timedelta(hours=1)))
+    db.flush()
+
+    sync_chargers(db, station.id, wanted=1, power_kw=7.0)
+
+    assert charger_names(db, station) == ["C2"]
+    sync_chargers(db, station.id, wanted=2, power_kw=7.0)
+    assert charger_names(db, station) == ["C2", "Charger 1"]

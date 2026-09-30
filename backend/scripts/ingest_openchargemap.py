@@ -103,30 +103,39 @@ def sync_chargers(db, station_id, wanted: int, power_kw: float) -> None:
     """Bring a station's chargers up to date without disturbing their bookings.
 
     Existing chargers keep their ids, so reservations on them survive a
-    re-ingest. Missing chargers are added; if the station now has fewer, the
-    highest-numbered ones are removed along with their bookings.
+    re-ingest. Missing chargers are added. If the station now has fewer,
+    chargers without upcoming bookings are removed before booked ones.
     """
-    existing = (
-        db.execute(
-            text("SELECT id FROM chargers WHERE station_id = :sid ORDER BY length(name), name"),
-            {"sid": station_id},
-        )
-        .scalars()
-        .all()
-    )
+    existing = db.execute(
+        text(
+            """
+            SELECT c.id, c.name
+            FROM chargers c
+            WHERE c.station_id = :sid
+            ORDER BY
+                EXISTS (SELECT 1 FROM reservations r WHERE r.charger_id = c.id AND r.end_time > now()) DESC,
+                length(c.name), c.name
+            """
+        ),
+        {"sid": station_id},
+    ).all()
     db.execute(
         text("UPDATE chargers SET power_kw = :power WHERE station_id = :sid"),
         {"sid": station_id, "power": power_kw},
     )
-    for number in range(len(existing) + 1, wanted + 1):
+
+    taken = {row.name for row in existing}
+    free_names = (f"Charger {n}" for n in range(1, wanted + len(existing) + 1) if f"Charger {n}" not in taken)
+    for name, _ in zip(free_names, range(wanted - len(existing)), strict=False):
         db.execute(
             text(
                 "INSERT INTO chargers (id, station_id, name, power_kw, connector_type) "
                 "VALUES (gen_random_uuid(), :sid, :name, :power, 'Type2')"
             ),
-            {"sid": station_id, "name": f"Charger {number}", "power": power_kw},
+            {"sid": station_id, "name": name, "power": power_kw},
         )
-    surplus = [str(charger_id) for charger_id in existing[wanted:]]
+
+    surplus = [str(row.id) for row in existing[wanted:]]
     if surplus:
         params = {"ids": surplus}
         db.execute(text("DELETE FROM reservations WHERE charger_id = ANY(CAST(:ids AS uuid[]))"), params)

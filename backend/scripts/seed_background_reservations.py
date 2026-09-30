@@ -63,12 +63,13 @@ def main() -> None:
             {"station_ids": station_ids},
         ).all()
 
-        # Clear prior demo hotspot reservations for determinism.
+        # Replace any earlier seed at these stations, including the bookings older
+        # versions of this script made as the demo user.
         db.execute(
             text(
                 """
                 DELETE FROM reservations
-                WHERE user_id = :user_id
+                WHERE user_id IN (:user_id, (SELECT id FROM users WHERE email = 'demo.user@example.com'))
                   AND charger_id IN (
                     SELECT id FROM chargers WHERE station_id = ANY(CAST(:station_ids AS uuid[]))
                   )
@@ -82,11 +83,12 @@ def main() -> None:
         # hour, staggered by up to 25 minutes, so a request arriving then finds
         # them fully booked and queue_aware steers away while static_queue does not.
         # Slots someone has already booked are skipped rather than failing the seed.
+        booked = 0
         for idx, row in enumerate(charger_rows):
             charger_id = str(row.id)
             start = anchor + timedelta(minutes=(idx % 6) * 5)
             end = start + timedelta(minutes=75)
-            db.execute(
+            booked += db.execute(
                 text(
                     """
                     INSERT INTO reservations (id, charger_id, user_id, start_time, end_time)
@@ -101,13 +103,13 @@ def main() -> None:
                     "start_time": start,
                     "end_time": end,
                 },
-            )
+            ).rowcount
 
         db.commit()
 
         # Print reproducible demo parameters.
         demo_origin = {"lat": 51.5074, "lon": -0.1278}  # central London
-        print("Seeded background reservations for hotspot demo.")
+        print(f"Booked {booked} of {len(charger_rows)} chargers at the three largest stations.")
         print(f"Hotspot stations: {station_ids}")
         print("Suggested demo request payload:")
         print(

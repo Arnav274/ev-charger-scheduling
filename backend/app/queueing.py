@@ -7,6 +7,7 @@ utilisation is ρ = a/c.
 """
 
 from dataclasses import dataclass
+from functools import lru_cache
 
 # When ρ >= 1 arrivals outpace service and the expected wait is unbounded. We
 # report a finite ceiling instead: four hours is long enough that no driver
@@ -64,8 +65,13 @@ def erlang_c_wait_minutes(arrival_rate_per_hour: float, mean_service_minutes: fl
     return min(wait_hours * 60.0, SATURATED_WAIT_MINUTES)
 
 
+@lru_cache(maxsize=4096)
 def predict_wait(arrival_rate_per_hour: float, mean_service_minutes: float, chargers: int) -> WaitPrediction:
-    """Expected wait and probability of waiting for a station with `chargers` free chargers."""
+    """Expected wait and probability of waiting for a station with `chargers` free chargers.
+
+    Cached: stations share a handful of parameter combinations, and ranking
+    calls this once per candidate station for every request.
+    """
     chargers = max(1, chargers)
     return WaitPrediction(
         wait_min=erlang_c_wait_minutes(arrival_rate_per_hour, mean_service_minutes, chargers),

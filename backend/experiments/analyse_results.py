@@ -1,276 +1,356 @@
-from pathlib import Path
+"""Summarise the simulation: tables, paired significance tests, charts and findings.json.
 
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import seaborn as sns
-from scipy import stats
+    docker compose exec backend python -m experiments.analyse_results
 
-OUT_DIR = Path(__file__).parent / "outputs"
+The unit of analysis is a simulated day. Every algorithm faced the same days,
+so algorithms are compared with paired tests over (scenario, day) pairs rather
+than by treating thousands of drivers from the same day as independent.
+"""
 
-ALL_ALGORITHMS = ["nearest", "cost_optimized", "queue_aware", "static_queue", "dijkstra", "range_aware"]
+from __future__ import annotations
+
+import json
+from itertools import combinations
+
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
+from scipy import stats  # noqa: E402
+
+from experiments.config import ALGORITHMS, DATA_DIR, OUTPUT_DIR, REPLICATES, SEED, VARIANTS  # noqa: E402
+
+BOOTSTRAP_RESAMPLES = 2000
+METRICS = [
+    "journey_min",
+    "wait_min",
+    "p95_wait_min",
+    "share_waited",
+    "distance_km",
+    "drive_min",
+    "predicted_wait_min",
+    "background_wait_min",
+    "busiest_station_share",
+]
+LABELS = {
+    "nearest": "Nearest",
+    "dijkstra": "Dijkstra (fastest)",
+    "cost_optimized": "Cost optimised",
+    "static_queue": "Static queue",
+    "queue_aware": "Queue aware",
+    "range_aware": "Range aware",
+}
+# One colour per algorithm on every chart (validated categorical order, light surface).
+COLOURS = dict(
+    zip(ALGORITHMS, ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300"], strict=True)
+)
+INK, INK_MUTED, GRID, SURFACE = "#0b0b0b", "#52514e", "#e4e3df", "#fcfcfb"
 
 
-def bootstrap_ci(series: pd.Series, n_boot: int = 1000, alpha: float = 0.05) -> tuple[float, float]:
-    samples = [series.sample(frac=1.0, replace=True).mean() for _ in range(n_boot)]
-    lower = pd.Series(samples).quantile(alpha / 2)
-    upper = pd.Series(samples).quantile(1 - alpha / 2)
-    return float(lower), float(upper)
+def bootstrap_ci(values: np.ndarray, rng: np.random.Generator) -> tuple[float, float]:
+    """Percentile bootstrap 95% interval for the mean."""
+    means = rng.choice(values, size=(BOOTSTRAP_RESAMPLES, len(values)), replace=True).mean(axis=1)
+    return float(np.percentile(means, 2.5)), float(np.percentile(means, 97.5))
+
+
+def holm(p_values: list[float]) -> list[float]:
+    """Holm-Bonferroni adjusted p-values (step-down, monotone)."""
+    order = np.argsort(p_values)
+    adjusted = np.empty(len(p_values))
+    running = 0.0
+    for rank, i in enumerate(order):
+        running = max(running, min(1.0, (len(p_values) - rank) * p_values[i]))
+        adjusted[i] = running
+    return adjusted.tolist()
+
+
+def summarise(df: pd.DataFrame, rng: np.random.Generator) -> pd.DataFrame:
+    rows = []
+    for (variant, scenario, algorithm), group in df.groupby(["variant", "scenario", "algorithm"], sort=False):
+        row = {"variant": variant, "scenario": scenario, "algorithm": algorithm, "days": len(group)}
+        for metric in METRICS:
+            row[metric] = group[metric].mean()
+        for metric in ("journey_min", "wait_min"):
+            row[f"{metric}_ci_low"], row[f"{metric}_ci_high"] = bootstrap_ci(group[metric].to_numpy(), rng)
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def pooled(df: pd.DataFrame, variant: str, rng: np.random.Generator) -> dict[str, dict]:
+    """Per-algorithm means over every scenario and day of one variant."""
+    out = {}
+    subset = df[df["variant"] == variant]
+    for algorithm in ALGORITHMS:
+        group = subset[subset["algorithm"] == algorithm]
+        entry = {metric: float(group[metric].mean()) for metric in METRICS}
+        entry["journey_ci"] = bootstrap_ci(group["journey_min"].to_numpy(), rng)
+        entry["wait_ci"] = bootstrap_ci(group["wait_min"].to_numpy(), rng)
+        out[algorithm] = entry
+    return out
+
+
+def paired_tests(df: pd.DataFrame, variant: str, metric: str, rng: np.random.Generator) -> pd.DataFrame:
+    wide = df[df["variant"] == variant].pivot_table(
+        index=["scenario", "replicate"], columns="algorithm", values=metric
+    )
+    rows = []
+    for a, b in combinations(ALGORITHMS, 2):
+        diff = (wide[a] - wide[b]).to_numpy()
+        sd = diff.std(ddof=1)
+        ci_low, ci_high = bootstrap_ci(diff, rng)
+        rows.append(
+            {
+                "variant": variant,
+                "metric": metric,
+                "a": a,
+                "b": b,
+                "mean_a": wide[a].mean(),
+                "mean_b": wide[b].mean(),
+                "mean_diff": diff.mean(),
+                "diff_ci_low": ci_low,
+                "diff_ci_high": ci_high,
+                # Cohen's d_z: the mean paired difference in units of its own spread.
+                "cohens_dz": diff.mean() / sd if sd > 0 else 0.0,
+                "p_ttest": stats.ttest_rel(wide[a], wide[b]).pvalue if sd > 0 else 1.0,
+                "p_wilcoxon": stats.wilcoxon(diff).pvalue if np.any(diff != 0) else 1.0,
+                "pairs": len(diff),
+            }
+        )
+    table = pd.DataFrame(rows)
+    table["p_holm"] = holm(table["p_wilcoxon"].tolist())
+    return table
+
+
+def calibration(drivers: pd.DataFrame) -> dict[str, dict]:
+    """Mean Erlang-C prediction shown to drivers against the wait they then had."""
+    return {
+        algorithm: {
+            "predicted_wait_min": float(group["predicted_wait_min"].mean()),
+            "simulated_wait_min": float(group["wait_min"].mean()),
+        }
+        for algorithm, group in drivers.groupby("algorithm")
+    }
+
+
+def _style(ax) -> None:
+    ax.set_facecolor(SURFACE)
+    for side in ("top", "right", "left"):
+        ax.spines[side].set_visible(False)
+    ax.spines["bottom"].set_color(GRID)
+    ax.tick_params(colors=INK_MUTED, length=0)
+    ax.grid(axis="x", color=GRID, linewidth=0.8)
+    ax.set_axisbelow(True)
+
+
+def plot_journeys(summary: pd.DataFrame, path) -> None:
+    """Dot plot of mean journey time with 95% intervals, one panel per scenario and demand level."""
+    scenarios = list(dict.fromkeys(summary["scenario"]))
+    variants = [("baseline", "200 app drivers a day"), ("high_demand", "600 app drivers a day")]
+    fig, axes = plt.subplots(
+        len(variants), len(scenarios), figsize=(12, 6.2), sharex=True, sharey=True, facecolor=SURFACE
+    )
+    y = np.arange(len(ALGORITHMS))[::-1]
+    for r, (variant, variant_label) in enumerate(variants):
+        for c, scenario in enumerate(scenarios):
+            ax = axes[r, c]
+            _style(ax)
+            cell = summary[(summary["variant"] == variant) & (summary["scenario"] == scenario)].set_index(
+                "algorithm"
+            )
+            for yi, algorithm in zip(y, ALGORITHMS, strict=True):
+                row = cell.loc[algorithm]
+                ax.plot(
+                    [row["journey_min_ci_low"], row["journey_min_ci_high"]],
+                    [yi, yi],
+                    color=COLOURS[algorithm],
+                    linewidth=2,
+                    solid_capstyle="round",
+                )
+                ax.scatter(
+                    row["journey_min"],
+                    yi,
+                    s=64,
+                    color=COLOURS[algorithm],
+                    edgecolor=SURFACE,
+                    linewidth=2,
+                    zorder=3,
+                )
+                ax.annotate(
+                    f"{row['journey_min']:.0f}" if row["journey_min"] >= 10 else f"{row['journey_min']:.1f}",
+                    (row["journey_min"], yi),
+                    xytext=(8, 0),
+                    textcoords="offset points",
+                    va="center",
+                    fontsize=8,
+                    color=INK_MUTED,
+                )
+            ax.set_xscale("log")
+            ax.set_yticks(y, [LABELS[a] for a in ALGORITHMS], color=INK)
+            if r == 0:
+                ax.set_title(scenario.capitalize(), color=INK, fontsize=11, loc="left")
+            if c == 0:
+                ax.set_ylabel(variant_label, color=INK_MUTED, fontsize=9)
+    fig.supxlabel("Mean journey time, drive plus wait (minutes, log scale)", color=INK_MUTED, fontsize=9)
+    fig.suptitle(
+        "Journey time by strategy: mean over 30 simulated days, with 95% intervals",
+        x=0.01,
+        ha="left",
+        color=INK,
+        fontsize=13,
+    )
+    fig.tight_layout()
+    fig.savefig(path, dpi=160, facecolor=SURFACE)
+    plt.close(fig)
+
+
+def plot_load_sensitivity(summary: pd.DataFrame, path) -> None:
+    """Mean wait against background load, one line per algorithm, directly labelled."""
+    order = [("load_0.5x", 0.5), ("baseline", 1.0), ("load_1.5x", 1.5), ("load_2x", 2.0)]
+    fig, ax = plt.subplots(figsize=(8, 5), facecolor=SURFACE)
+    _style(ax)
+    ax.grid(axis="y", color=GRID, linewidth=0.8)
+    ends = []
+    for algorithm in ALGORITHMS:
+        waits = [
+            summary[(summary["variant"] == v) & (summary["algorithm"] == algorithm)]["wait_min"].mean()
+            for v, _ in order
+        ]
+        xs = [m for _, m in order]
+        ax.plot(xs, waits, color=COLOURS[algorithm], linewidth=2, marker="o", markersize=6)
+        ends.append((waits[-1], algorithm))
+    ax.set_yscale("symlog", linthresh=1)
+    ax.set_xticks([m for _, m in order], ["0.5x", "1x", "1.5x", "2x"])
+    ax.set_xlim(0.4, 2.55)
+    fig.canvas.draw()
+    # Direct labels at the line ends, nudged apart where lines finish close together.
+    px_per_pt = fig.dpi / 72
+    min_gap = 13 * px_per_pt
+    placed: list[float] = []
+    for value, algorithm in sorted(ends):
+        y_px = ax.transData.transform((order[-1][1], value))[1]
+        offset = max([0.0] + [p + min_gap - y_px for p in placed])
+        placed.append(y_px + offset)
+        ax.annotate(
+            LABELS[algorithm],
+            (order[-1][1], value),
+            xytext=(8, offset / px_per_pt),
+            textcoords="offset points",
+            va="center",
+            fontsize=9,
+            color=INK,
+        )
+    ax.set_xlabel(
+        "Background arrival rate, relative to 0.75 per station per hour", color=INK_MUTED, fontsize=9
+    )
+    ax.set_ylabel("Mean wait of app drivers (minutes)", color=INK_MUTED, fontsize=9)
+    ax.set_title("Wait as the network gets busier", color=INK, fontsize=12, loc="left")
+    fig.tight_layout()
+    fig.savefig(path, dpi=160, facecolor=SURFACE)
+    plt.close(fig)
+
+
+def comparison_table(stats_by_algorithm: dict[str, dict], title: str) -> str:
+    lines = [
+        f"### {title}",
+        "",
+        "| Strategy | Journey (min) | 95% CI | Wait (min) | 95th pct wait | Waited at all | Drive (km) | "
+        "Others' wait (min) |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
+    ]
+    for algorithm in sorted(ALGORITHMS, key=lambda a: stats_by_algorithm[a]["journey_min"]):
+        s = stats_by_algorithm[algorithm]
+        lo, hi = s["journey_ci"]
+        lines.append(
+            f"| `{algorithm}` | {s['journey_min']:.1f} | {lo:.1f} to {hi:.1f} | {s['wait_min']:.1f} | "
+            f"{s['p95_wait_min']:.0f} | {s['share_waited']:.0%} | {s['distance_km']:.2f} | "
+            f"{s['background_wait_min']:.1f} |"
+        )
+    return "\n".join(lines)
 
 
 def main() -> None:
-    df = pd.read_csv(OUT_DIR / "experiment_results.csv")
-    metrics_path = OUT_DIR / "experiment_summary_metrics.csv"
-    metrics_df = pd.read_csv(metrics_path) if metrics_path.exists() else None
+    rng = np.random.default_rng(SEED)
+    df = pd.read_csv(OUTPUT_DIR / "replicates.csv")
+    drivers = pd.read_csv(OUTPUT_DIR / "drivers_baseline.csv.gz")
+    manifest = json.loads((DATA_DIR / "manifest.json").read_text(encoding="utf-8"))
 
-    summary_rows = []
-    for (variant, scenario, algorithm), group in df.groupby(["variant", "scenario", "algorithm"]):
-        d_ci = bootstrap_ci(group["distance_km"])
-        w_ci = bootstrap_ci(group["wait_min"])
-        if "probability_of_delay" in group.columns:
-            p_ci = bootstrap_ci(group["probability_of_delay"])
-        else:
-            p_ci = (0.0, 0.0)
-        summary_rows.append(
-            {
-                "variant": variant,
-                "scenario": scenario,
-                "algorithm": algorithm,
-                "distance_mean": group["distance_km"].mean(),
-                "distance_ci_low": d_ci[0],
-                "distance_ci_high": d_ci[1],
-                "wait_mean": group["wait_min"].mean(),
-                "wait_ci_low": w_ci[0],
-                "wait_ci_high": w_ci[1],
-                "pdelay_mean": group["probability_of_delay"].mean()
-                if "probability_of_delay" in group.columns
-                else 0.0,
-                "pdelay_ci_low": p_ci[0],
-                "pdelay_ci_high": p_ci[1],
-                "runtime_ms_mean": group["runtime_ms"].mean(),
-                "reservation_accept_rate": group["reservation_accepted"].mean(),
-            }
-        )
-    summary_df = pd.DataFrame(summary_rows)
-    if metrics_df is not None:
-        summary_df = summary_df.merge(metrics_df, on=["variant", "scenario", "algorithm"], how="left")
-    summary_df.to_csv(OUT_DIR / "summary_ci.csv", index=False)
+    summary = summarise(df, rng)
+    summary.to_csv(OUTPUT_DIR / "summary_ci.csv", index=False, float_format="%.6g")
 
-    baseline_df = df[df["variant"] == "baseline_equal"]
-    wait_groups = [g["wait_min"].values for _, g in baseline_df.groupby("algorithm")]
-    f_stat, p_value = stats.f_oneway(*wait_groups)
-    grand_mean = baseline_df["wait_min"].mean()
-    ss_between = sum(
-        len(group) * ((group.mean() - grand_mean) ** 2)
-        for _, group in baseline_df.groupby("algorithm")["wait_min"]
+    tests = pd.concat(
+        [paired_tests(df, variant, "journey_min", rng) for variant in ("baseline", "high_demand")],
+        ignore_index=True,
     )
-    ss_total = ((baseline_df["wait_min"] - grand_mean) ** 2).sum()
-    eta_squared = float(ss_between / ss_total) if ss_total else 0.0
-    (OUT_DIR / "anova.txt").write_text(
-        "One-way ANOVA wait times (baseline_equal)\n"
-        f"F={f_stat:.4f}\np={p_value:.8f}\neta_squared={eta_squared:.6f}\n",
-        encoding="utf-8",
-    )
-    posthoc_rows = []
-    alg_groups = {name: grp["wait_min"].values for name, grp in baseline_df.groupby("algorithm")}
-    names = list(alg_groups.keys())
-    n_comparisons = max(1, len(names) * (len(names) - 1) // 2)
-    for i in range(len(names)):
-        for j in range(i + 1, len(names)):
-            a, b = names[i], names[j]
-            t_stat, p_raw = stats.ttest_ind(alg_groups[a], alg_groups[b], equal_var=False)
-            p_adj = min(1.0, p_raw * n_comparisons)  # Bonferroni correction
-            posthoc_rows.append(
-                {
-                    "group_a": a,
-                    "group_b": b,
-                    "t_stat": t_stat,
-                    "p_raw": p_raw,
-                    "p_bonferroni": p_adj,
-                    "cohen_d": (
-                        (alg_groups[a].mean() - alg_groups[b].mean())
-                        / ((((alg_groups[a].std(ddof=1) ** 2) + (alg_groups[b].std(ddof=1) ** 2)) / 2) ** 0.5)
-                        if (alg_groups[a].std(ddof=1) > 0 or alg_groups[b].std(ddof=1) > 0)
-                        else 0.0
-                    ),
-                }
-            )
-    pd.DataFrame(posthoc_rows).to_csv(OUT_DIR / "posthoc_wait.csv", index=False)
+    tests.to_csv(OUTPUT_DIR / "paired_tests.csv", index=False, float_format="%.6g")
 
-    # Optional: ANOVA for probability of delay (risk metric).
-    if "probability_of_delay" in baseline_df.columns:
-        pdelay_groups = [g["probability_of_delay"].values for _, g in baseline_df.groupby("algorithm")]
-        f2, p2 = stats.f_oneway(*pdelay_groups)
-        grand_mean2 = baseline_df["probability_of_delay"].mean()
-        ss_between2 = sum(
-            len(group) * ((group.mean() - grand_mean2) ** 2)
-            for _, group in baseline_df.groupby("algorithm")["probability_of_delay"]
-        )
-        ss_total2 = ((baseline_df["probability_of_delay"] - grand_mean2) ** 2).sum()
-        eta2 = float(ss_between2 / ss_total2) if ss_total2 else 0.0
-        (OUT_DIR / "anova_pdelay.txt").write_text(
-            "One-way ANOVA probability_of_delay (baseline_equal)\n"
-            f"F={f2:.4f}\np={p2:.8f}\neta_squared={eta2:.6f}\n",
-            encoding="utf-8",
-        )
-    sensitivity_rows = []
-    for (variant, algorithm), group in df.groupby(["variant", "algorithm"]):
-        sensitivity_rows.append(
-            {
-                "variant": variant,
-                "algorithm": algorithm,
-                "mean_wait_min": group["wait_min"].mean(),
-                "mean_distance_km": group["distance_km"].mean(),
-                "acceptance_rate": group["reservation_accepted"].mean(),
-            }
-        )
-    pd.DataFrame(sensitivity_rows).to_csv(OUT_DIR / "sensitivity_summary.csv", index=False)
-    (OUT_DIR / "analysis_notes.md").write_text(
-        "\n".join(
+    baseline = pooled(df, "baseline", rng)
+    high = pooled(df, "high_demand", rng)
+    (OUTPUT_DIR / "comparison_table.md").write_text(
+        "\n\n".join(
             [
-                "# Analysis Notes",
-                "",
-                "- Random seed fixed at `42` in `run_experiments.py`.",
-                "- Scenarios vary by geographic origin range and session duration (urban/mixed/highway).",
-                "- Sensitivity variants cover distance-priority weights, load stress and top-k sampling.",
-                "- When `rho >= 1`, `erlang_c_wait_minutes` returns `1e6` as a saturation penalty.",
-                "- ANOVA eta-squared is in `anova.txt` (baseline variant).",
-                "- Post-hoc pairwise comparisons use Welch t-test with Bonferroni correction and Cohen's d.",
-                "- Boxplot capped at p95; Pareto y-axis uses log10(wait) for readability.",
+                "# Strategy comparison",
+                f"Means over every scenario and simulated day ({REPLICATES} days x 3 scenarios each). "
+                "Journey is drive plus wait. 'Others' wait' is the mean wait of the background drivers "
+                "who do not use the app.",
+                comparison_table(baseline, "Baseline: 200 app drivers a day"),
+                comparison_table(high, "High demand: 600 app drivers a day"),
             ]
-        ),
+        )
+        + "\n",
         encoding="utf-8",
     )
 
-    sns.set_theme(style="whitegrid")
-    plot_df = baseline_df.copy()
-    # Keep figures readable when unstable-queue penalties (1e6) dominate the axis.
-    cap_value = float(plot_df["wait_min"].quantile(0.95))
-    plot_df["wait_min_capped"] = plot_df["wait_min"].clip(upper=cap_value)
-    plt.figure(figsize=(8, 5))
-    sns.boxplot(data=plot_df, x="algorithm", y="wait_min_capped")
-    plt.title("Wait Time by Algorithm (baseline_equal, capped at p95)")
-    plt.ylabel("wait_min (capped)")
-    plt.tight_layout()
-    plt.savefig(OUT_DIR / "boxplot_wait_time.png", dpi=180)
-    plt.close()
+    plot_journeys(summary, OUTPUT_DIR / "journey_time_by_strategy.png")
+    plot_load_sensitivity(summary, OUTPUT_DIR / "load_sensitivity.png")
 
-    plt.figure(figsize=(8, 5))
-    grouped = baseline_df.groupby("algorithm")[["distance_km", "wait_min"]].mean().reset_index()
-    grouped["wait_min_log10"] = grouped["wait_min"].apply(lambda x: 0.0 if x <= 0 else float(np.log10(x)))
-    sns.scatterplot(data=grouped, x="distance_km", y="wait_min_log10", hue="algorithm", s=120)
-    label_offsets = {
-        "nearest": (6, 6),
-        "cost_optimized": (8, 10),
-        "queue_aware": (8, -12),
-        "static_queue": (8, -20),
-        "dijkstra": (6, 14),
-        "range_aware": (6, -6),
+    def lookahead(variant: str) -> dict:
+        row = tests[
+            (tests["variant"] == variant) & (tests["a"] == "static_queue") & (tests["b"] == "queue_aware")
+        ]
+        row = row.iloc[0]
+        return {
+            "static_queue_journey_min": row["mean_a"],
+            "queue_aware_journey_min": row["mean_b"],
+            "saving_min": row["mean_diff"],
+            "saving_ci": [row["diff_ci_low"], row["diff_ci_high"]],
+            "cohens_dz": row["cohens_dz"],
+            "p_holm": row["p_holm"],
+        }
+
+    best = min(ALGORITHMS, key=lambda a: baseline[a]["journey_min"])
+    findings = {
+        "study": {
+            "stations": manifest["stations"],
+            "chargers": manifest["chargers"],
+            "scenarios": manifest["scenarios"],
+            "days_per_scenario": REPLICATES,
+            "variants": list(VARIANTS),
+            "app_drivers_simulated": int(df["drivers"].sum() // len(ALGORITHMS)),
+        },
+        "best_strategy": best,
+        "vs_nearest": {
+            "journey_reduction_pct": 100
+            * (1 - baseline[best]["journey_min"] / baseline["nearest"]["journey_min"]),
+            "wait_reduction_pct": 100 * (1 - baseline[best]["wait_min"] / baseline["nearest"]["wait_min"]),
+            "extra_distance_km": baseline[best]["distance_km"] - baseline["nearest"]["distance_km"],
+        },
+        "lookahead": {"baseline": lookahead("baseline"), "high_demand": lookahead("high_demand")},
+        "baseline": baseline,
+        "high_demand": high,
+        "calibration": calibration(drivers),
     }
-    for _, row in grouped.iterrows():
-        dx, dy = label_offsets.get(row["algorithm"], (6, 6))
-        plt.annotate(
-            row["algorithm"],
-            (row["distance_km"], row["wait_min_log10"]),
-            textcoords="offset points",
-            xytext=(dx, dy),
-        )
-    plt.title("Pareto-style Tradeoff (distance vs log10(wait))")
-    plt.ylabel("log10(wait_min)")
-    plt.tight_layout()
-    plt.savefig(OUT_DIR / "pareto_distance_wait.png", dpi=180)
-    plt.close()
-
-    generate_comparison_table(df)
-    plot_algorithm_comparison_bar(baseline_df)
-    plot_erlang_sensitivity(df)
-
-
-def generate_comparison_table(df: pd.DataFrame) -> None:
-    """Aggregate per-algorithm stats for the baseline_equal variant and write outputs/comparison_table.md."""
-    df = df[df["variant"] == "baseline_equal"]
-    rows = []
-    for algorithm, grp in df.groupby("algorithm"):
-        d_ci = bootstrap_ci(grp["distance_km"])
-        w_ci = bootstrap_ci(grp["wait_min"])
-        pdelay_mean = grp["probability_of_delay"].mean() if "probability_of_delay" in grp.columns else 0.0
-        rows.append(
-            {
-                "algorithm": algorithm,
-                "mean_distance_km": round(grp["distance_km"].mean(), 4),
-                "ci_low_dist": round(d_ci[0], 4),
-                "ci_high_dist": round(d_ci[1], 4),
-                "mean_wait_min": round(grp["wait_min"].mean(), 4),
-                "ci_low_wait": round(w_ci[0], 4),
-                "ci_high_wait": round(w_ci[1], 4),
-                "mean_pdelay": round(float(pdelay_mean), 4),
-                "acceptance_rate": round(float(grp["reservation_accepted"].mean()), 4),
-            }
-        )
-    tbl = pd.DataFrame(rows)
-    # Sort by mean_wait_min ascending so best performers appear first.
-    tbl = tbl.sort_values("mean_wait_min").reset_index(drop=True)
-
-    header = "| " + " | ".join(tbl.columns) + " |"
-    sep = "| " + " | ".join("---" for _ in tbl.columns) + " |"
-    body_lines = [
-        "| " + " | ".join(str(v) for v in row) + " |" for row in tbl.itertuples(index=False, name=None)
-    ]
-    md = "\n".join(["# Algorithm Comparison Table", "", header, sep] + body_lines + [""])
-    (OUT_DIR / "comparison_table.md").write_text(md, encoding="utf-8")
-
-
-def plot_algorithm_comparison_bar(baseline_df: pd.DataFrame) -> None:
-    """Grouped bar chart of mean wait_min per algorithm for the baseline_equal variant."""
-    if baseline_df.empty:
-        return
-    algorithms = sorted(baseline_df["algorithm"].unique())
-    scenarios = sorted(baseline_df["scenario"].unique())
-
-    x = np.arange(len(algorithms))
-    width = 0.8 / max(len(scenarios), 1)
-    fig, ax = plt.subplots(figsize=(10, 6))
-
-    for i, scenario in enumerate(scenarios):
-        means = []
-        for alg in algorithms:
-            sub = baseline_df[(baseline_df["algorithm"] == alg) & (baseline_df["scenario"] == scenario)]
-            means.append(sub["wait_min"].mean() if not sub.empty else 0.0)
-        ax.bar(x + i * width - (len(scenarios) - 1) * width / 2, means, width=width, label=scenario)
-
-    ax.set_xticks(x)
-    ax.set_xticklabels(algorithms, rotation=15, ha="right")
-    ax.set_ylabel("Mean wait time (min)")
-    ax.set_title("Algorithm Wait Time Comparison (baseline_equal)")
-    ax.legend(title="Scenario")
-    plt.tight_layout()
-    plt.savefig(OUT_DIR / "algorithm_comparison_bar.png", dpi=180)
-    plt.close()
-
-
-def plot_erlang_sensitivity(df: pd.DataFrame) -> None:
-    sens_df = df[df["variant"] == "erlang_sensitivity"].copy()
-    if sens_df.empty:
-        return
-    grouped = (
-        sens_df.groupby(["lambda_multiplier", "algorithm"])["wait_min"]
-        .mean()
-        .reset_index()
-        .rename(columns={"wait_min": "mean_wait_min"})
+    (OUTPUT_DIR / "findings.json").write_text(
+        json.dumps(findings, indent=2, default=float) + "\n", encoding="utf-8"
     )
-    plt.figure(figsize=(9, 5))
-    for algorithm, alg_df in grouped.groupby("algorithm"):
-        alg_df = alg_df.sort_values("lambda_multiplier")
-        plt.plot(alg_df["lambda_multiplier"], alg_df["mean_wait_min"], marker="o", label=algorithm)
-    plt.xlabel("Arrival-rate multiplier (λ scale factor)")
-    plt.ylabel("Mean wait time (min)")
-    plt.title("Erlang-C Sensitivity: mean wait vs arrival-rate multiplier")
-    plt.legend(title="Algorithm")
-    plt.tight_layout()
-    plt.savefig(OUT_DIR / "erlang_sensitivity_plot.png", dpi=180)
-    plt.close()
+    print((OUTPUT_DIR / "comparison_table.md").read_text(encoding="utf-8"))
+    print(
+        json.dumps(
+            {k: findings[k] for k in ("best_strategy", "vs_nearest", "lookahead")}, indent=2, default=float
+        )
+    )
 
 
 if __name__ == "__main__":
     main()
-    print("Analysis complete.")

@@ -210,3 +210,9 @@ def test_experiment_summary_serves_committed_results(client) -> None:
     rows = client.get("/stats/experiment-summary").json()["rows"]
     assert rows
     assert {"variant", "scenario", "algorithm"} <= rows[0].keys()
+
+
+def test_findings_are_served(client) -> None:
+    findings = client.get("/stats/findings").json()
+    assert findings["best_strategy"] in findings["baseline"]
+    assert {"baseline", "high_demand"} <= findings["lookahead"].keys()

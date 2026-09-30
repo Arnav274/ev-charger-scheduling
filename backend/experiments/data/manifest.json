@@ -1,0 +1,15 @@
+{
+  "built_at_utc": "2026-09-30T13:47:08+00:00",
+  "seed": 42,
+  "stations": 497,
+  "chargers": 751,
+  "origins_per_scenario": 200,
+  "scenarios": [
+    "spread",
+    "corridor",
+    "hotspot"
+  ],
+  "candidate_rule": "within 5 km, else the 25 nearest",
+  "osm_extract": "Geofabrik greater-london-260101.osm.pbf",
+  "station_source": "OpenChargeMap API"
+}

@@ -210,6 +210,42 @@ class TestReservations:
         assert response.status_code == 409
         assert "10 upcoming" in response.json()["detail"]
 
+    def test_bookings_that_have_already_ended_are_rejected(
+        self, client, auth_headers, make_station, now
+    ) -> None:
+        charger_id = make_station(chargers=1).chargers[0].id
+        response = self._book(client, auth_headers, charger_id, now - timedelta(minutes=4), minutes=3)
+        assert response.status_code == 400
+
+    def test_bookings_more_than_thirty_days_ahead_are_rejected(
+        self, client, auth_headers, make_station, now
+    ) -> None:
+        charger_id = make_station(chargers=1).chargers[0].id
+        assert self._book(client, auth_headers, charger_id, now + timedelta(days=31)).status_code == 400
+        assert self._book(client, auth_headers, charger_id, now + timedelta(days=29)).status_code == 201
+
+    def test_cancel_frees_the_slot(self, client, auth_headers, make_station, now) -> None:
+        charger_id = make_station(chargers=1).chargers[0].id
+        booking = self._book(client, auth_headers, charger_id, now).json()
+
+        assert client.delete(f"/reservations/{booking['id']}", headers=auth_headers).status_code == 204
+        assert client.get("/reservations/mine", headers=auth_headers).json() == []
+        assert self._book(client, auth_headers, charger_id, now).status_code == 201
+
+    def test_cannot_cancel_someone_elses_booking(self, client, auth_headers, make_station, now) -> None:
+        charger_id = make_station(chargers=1).chargers[0].id
+        booking = self._book(client, auth_headers, charger_id, now).json()
+        client.post("/auth/register", json={"email": "other@example.com", "password": PASSWORD})
+        token = client.post(
+            "/auth/login", data={"username": "other@example.com", "password": PASSWORD}
+        ).json()["access_token"]
+
+        response = client.delete(
+            f"/reservations/{booking['id']}", headers={"Authorization": f"Bearer {token}"}
+        )
+        assert response.status_code == 404
+        assert len(client.get("/reservations/mine", headers=auth_headers).json()) == 1
+
     def test_unknown_charger_is_404(self, client, auth_headers, now) -> None:
         assert self._book(client, auth_headers, uuid.uuid4(), now).status_code == 404
 

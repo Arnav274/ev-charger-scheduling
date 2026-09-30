@@ -17,6 +17,7 @@ router = APIRouter(prefix="/reservations", tags=["reservations"])
 
 # Limits that stop one account from blocking chargers indefinitely.
 MAX_BOOKING = timedelta(hours=12)
+MAX_ADVANCE = timedelta(days=30)
 MAX_UPCOMING_PER_USER = 10
 # Allowance for clock differences between the browser and the server.
 CLOCK_SKEW = timedelta(minutes=5)
@@ -32,8 +33,12 @@ def create_reservation(
     now = datetime.now(UTC)
     if end <= start:
         raise HTTPException(status_code=400, detail="end_time must be after start_time")
-    if start < now - CLOCK_SKEW:
+    if start < now - CLOCK_SKEW or end <= now:
         raise HTTPException(status_code=400, detail="Bookings must start in the future")
+    if start > now + MAX_ADVANCE:
+        raise HTTPException(
+            status_code=400, detail=f"Bookings can be made at most {MAX_ADVANCE.days} days ahead"
+        )
     if end - start > MAX_BOOKING:
         raise HTTPException(
             status_code=400, detail=f"Bookings can last at most {MAX_BOOKING.total_seconds() / 3600:g} hours"
@@ -64,6 +69,20 @@ def create_reservation(
         raise HTTPException(status_code=400, detail="Reservation creation failed") from exc
     db.refresh(reservation)
     return ReservationOut.model_validate(reservation, from_attributes=True)
+
+
+@router.delete("/{reservation_id}", status_code=204)
+def cancel_reservation(
+    reservation_id: uuid.UUID,
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+    db: Session = Depends(get_db),
+) -> None:
+    reservation = db.get(Reservation, reservation_id)
+    # Someone else's booking is reported as missing, so ids cannot be probed.
+    if reservation is None or reservation.user_id != user_id:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    db.delete(reservation)
+    db.commit()
 
 
 @router.get("/mine", response_model=list[ReservationDetailOut])

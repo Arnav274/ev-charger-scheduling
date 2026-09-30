@@ -199,8 +199,8 @@ upstream over time, so the results will then shift slightly.
 ## Tests
 
 ```bash
-docker compose exec backend pytest -q     # 181 tests
-cd frontend && npm test                   # 31 tests
+docker compose exec backend pytest -q     # 185 tests
+cd frontend && npm test                   # 33 tests
 ```
 
 The backend tests run the API against a real PostGIS test database, so the spatial queries and the

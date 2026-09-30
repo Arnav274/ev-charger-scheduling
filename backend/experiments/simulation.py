@@ -151,6 +151,7 @@ def choose_stations(
     bookings: dict[int, list[ReservationInterval]] = {}
     range_check = RangeAwareStrategy()
     window = timedelta(minutes=ARRIVAL_WINDOW_MINUTES)
+    uses_reservations = STRATEGIES[algorithm].uses_reservations
     choices = []
 
     for driver in day.drivers:
@@ -163,7 +164,7 @@ def choose_stations(
         }
 
         reserved = {}
-        if algorithm == "queue_aware":
+        if uses_reservations:
             for i in candidates:
                 if i in bookings:
                     arrive = _timestamp(driver.depart_min + float(inputs.osrm_min[o, i]))

@@ -3,6 +3,10 @@ import { forwardRef, useState } from "react";
 import { createReservation, suggestSlot } from "../api";
 import { formatDateTime, nextHalfHour, toDatetimeInput } from "../lib/time";
 
+// The API accepts bookings up to 30 days ahead.
+const MAX_ADVANCE_DAYS = 30;
+const latestStart = () => toDatetimeInput(new Date(Date.now() + MAX_ADVANCE_DAYS * 24 * 60 * 60 * 1000));
+
 const chargerLabel = (charger) => `${charger.name} (${charger.power_kw} kW)`;
 
 function SlotFinder({ station, onUseSlot }) {
@@ -150,6 +154,7 @@ const BookingPanel = forwardRef(function BookingPanel({ station, token, onBooked
               type="datetime-local"
               value={form.start}
               min={toDatetimeInput(new Date())}
+              max={latestStart()}
               onChange={(e) => setForm({ ...form, start: e.target.value })}
               required
             />

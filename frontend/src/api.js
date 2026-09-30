@@ -47,7 +47,7 @@ async function request(path, { method = "GET", json, form, token, failure }) {
     error.status = res.status;
     throw error;
   }
-  return res.json();
+  return res.status === 204 ? null : res.json();
 }
 
 export const registerUser = (email, password) =>
@@ -80,6 +80,13 @@ export const getRecommendations = (payload) =>
 
 export const createReservation = (payload, token) =>
   request("/reservations", { method: "POST", json: payload, token, failure: "Could not make the booking" });
+
+export const cancelReservation = (reservationId, token) =>
+  request(`/reservations/${reservationId}`, {
+    method: "DELETE",
+    token,
+    failure: "Could not cancel the booking",
+  });
 
 export const getMyReservations = (token) =>
   request("/reservations/mine", { token, failure: "Could not load your bookings" });

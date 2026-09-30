@@ -1,6 +1,6 @@
 import { forwardRef, useState } from "react";
 
-import { createVehicle } from "../api";
+import { cancelReservation, createVehicle } from "../api";
 import { formatDateTime } from "../lib/time";
 
 function SignInForm({ auth }) {
@@ -135,9 +135,21 @@ function Vehicles({ token, vehicles, onSaved, selectedId, onSelect }) {
 }
 
 const AccountPanel = forwardRef(function AccountPanel(
-  { auth, vehicles, onVehiclesChanged, selectedVehicleId, onSelectVehicle, reservations },
+  { auth, vehicles, onVehiclesChanged, selectedVehicleId, onSelectVehicle, reservations, onCancelled },
   ref,
 ) {
+  const [cancelError, setCancelError] = useState("");
+
+  async function cancel(reservation) {
+    try {
+      await cancelReservation(reservation.id, auth.token);
+      setCancelError("");
+      onCancelled();
+    } catch (err) {
+      setCancelError(err.message);
+    }
+  }
+
   return (
     <details className="sidebar-section auth-box" ref={ref}>
       <summary className="section-summary">My account</summary>
@@ -166,9 +178,22 @@ const AccountPanel = forwardRef(function AccountPanel(
                       <strong>{r.station_name}</strong>, {r.charger_name}
                       <br />
                       {formatDateTime(r.start_time)} to {formatDateTime(r.end_time)}
+                      <button
+                        type="button"
+                        className="btn-link"
+                        aria-label={`Cancel booking at ${r.station_name}`}
+                        onClick={() => cancel(r)}
+                      >
+                        Cancel
+                      </button>
                     </li>
                   ))}
                 </ul>
+                {cancelError && (
+                  <p className="status" role="alert">
+                    {cancelError}
+                  </p>
+                )}
               </div>
             )}
           </div>

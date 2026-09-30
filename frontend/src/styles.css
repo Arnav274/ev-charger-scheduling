@@ -511,10 +511,9 @@ button {
   background: #eff6ff;
 }
 
-.finding-card--nonresult {
+.finding-card--modest {
   border-color: #d97706;
   background: #fffbeb;
-  grid-column: 1 / -1;
 }
 
 .finding-value {
@@ -528,7 +527,7 @@ button {
   color: #1d4ed8;
 }
 
-.finding-card--nonresult .finding-value {
+.finding-card--modest .finding-value {
   color: #92400e;
 }
 
@@ -546,4 +545,27 @@ button {
   color: #64748b;
   margin-top: 3px;
   line-height: 1.4;
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin: 8px 0 16px;
+}
+
+.stats-table th,
+.stats-table td {
+  padding: 6px 8px;
+  text-align: right;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.stats-table th:first-child,
+.stats-table td:first-child {
+  text-align: left;
+}
+
+.stats-table td {
+  font-variant-numeric: tabular-nums;
 }

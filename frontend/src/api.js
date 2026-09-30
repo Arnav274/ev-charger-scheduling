@@ -60,6 +60,12 @@ export async function fetchExperimentSummary() {
   return res.json();
 }
 
+export async function fetchFindings() {
+  const res = await fetch(`${API_BASE}/stats/findings`);
+  if (!res.ok) throw new Error("Failed to load experiment findings");
+  return res.json();
+}
+
 export async function fetchNearbyStations(lat, lon, radiusKm = 5) {
   const url = `${API_BASE}/stations/nearby?lat=${lat}&lon=${lon}&radius_km=${radiusKm}`;
   let res;

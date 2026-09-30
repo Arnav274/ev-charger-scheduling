@@ -5,7 +5,6 @@ import {
   createReservation,
   createVehicle,
   fetchNearbyStations,
-  fetchExperimentSummary,
   fetchStation,
   fetchVehicles,
   getMyReservations,
@@ -59,8 +58,6 @@ function App() {
   const [form, setForm] = useState({ charger_id: "", start_time: "", end_time: "" });
   const [accessToken, setAccessToken] = useState(() => localStorage.getItem(TOKEN_KEY) || "");
   const [regs, setRegs] = useState({ email: "", password: "" });
-  const [statsRows, setStatsRows] = useState([]);
-  const [statsLoadError, setStatsLoadError] = useState("");
   const [authStatus, setAuthStatus] = useState("");
   const [reservationStatus, setReservationStatus] = useState("");
   const [showHotspots, setShowHotspots] = useState(false);
@@ -170,16 +167,6 @@ function App() {
       timers.forEach(clearTimeout);
     };
   }, []);
-
-  useEffect(() => {
-    if (tab !== "stats") return;
-    fetchExperimentSummary()
-      .then((data) => {
-        setStatsRows(data.rows || []);
-        setStatsLoadError("");
-      })
-      .catch((err) => setStatsLoadError(err.message || "fetch failed"));
-  }, [tab]);
 
   useEffect(() => {
     if (!recommendations.length) return;
@@ -453,7 +440,7 @@ function App() {
 
         {tab === "privacy" && <EthicsPanel />}
 
-        {tab === "stats" && <StatsDashboard rows={statsRows} loadError={statsLoadError} />}
+        {tab === "stats" && <StatsDashboard />}
 
         {tab === "map" && (
           <>

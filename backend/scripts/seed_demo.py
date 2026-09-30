@@ -12,7 +12,7 @@ DEMO_EMAIL = "demo.user@example.com"
 
 
 def main() -> None:
-    password = os.getenv("DEMO_PASSWORD", "DemoPass123!")
+    password = os.getenv("DEMO_PASSWORD") or "DemoPass123!"
     ph = hash_password(password)
     db = SessionLocal()
     try:

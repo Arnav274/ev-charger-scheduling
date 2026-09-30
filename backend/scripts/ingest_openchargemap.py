@@ -99,6 +99,40 @@ def fetch(latitude: float, longitude: float, distance_km: float, max_results: in
     return response.json()
 
 
+def sync_chargers(db, station_id, wanted: int, power_kw: float) -> None:
+    """Bring a station's chargers up to date without disturbing their bookings.
+
+    Existing chargers keep their ids, so reservations on them survive a
+    re-ingest. Missing chargers are added; if the station now has fewer, the
+    highest-numbered ones are removed along with their bookings.
+    """
+    existing = (
+        db.execute(
+            text("SELECT id FROM chargers WHERE station_id = :sid ORDER BY length(name), name"),
+            {"sid": station_id},
+        )
+        .scalars()
+        .all()
+    )
+    db.execute(
+        text("UPDATE chargers SET power_kw = :power WHERE station_id = :sid"),
+        {"sid": station_id, "power": power_kw},
+    )
+    for number in range(len(existing) + 1, wanted + 1):
+        db.execute(
+            text(
+                "INSERT INTO chargers (id, station_id, name, power_kw, connector_type) "
+                "VALUES (gen_random_uuid(), :sid, :name, :power, 'Type2')"
+            ),
+            {"sid": station_id, "name": f"Charger {number}", "power": power_kw},
+        )
+    surplus = [str(charger_id) for charger_id in existing[wanted:]]
+    if surplus:
+        params = {"ids": surplus}
+        db.execute(text("DELETE FROM reservations WHERE charger_id = ANY(CAST(:ids AS uuid[]))"), params)
+        db.execute(text("DELETE FROM chargers WHERE id = ANY(CAST(:ids AS uuid[]))"), params)
+
+
 def ingest(records: list[dict], *, prune: bool, min_stations: int = 0) -> int:
     usable = [r for r in records if is_usable(r)]
     # Check before touching the database: pruning against a short or failed
@@ -153,24 +187,7 @@ def ingest(records: list[dict], *, prune: bool, min_stations: int = 0) -> int:
             ).scalar_one()
             kept_ids.append(station_id)
 
-            # Chargers are rebuilt from the latest record, which drops their bookings.
-            db.execute(
-                text(
-                    "DELETE FROM reservations WHERE charger_id IN "
-                    "(SELECT id FROM chargers WHERE station_id = :sid)"
-                ),
-                {"sid": station_id},
-            )
-            db.execute(text("DELETE FROM chargers WHERE station_id = :sid"), {"sid": station_id})
-            power = max_power_kw(record)
-            for i in range(int(record.get("NumberOfPoints") or 1)):
-                db.execute(
-                    text(
-                        "INSERT INTO chargers (id, station_id, name, power_kw, connector_type) "
-                        "VALUES (gen_random_uuid(), :sid, :name, :power, 'Type2')"
-                    ),
-                    {"sid": station_id, "name": f"Charger {i + 1}", "power": power},
-                )
+            sync_chargers(db, station_id, int(record.get("NumberOfPoints") or 1), max_power_kw(record))
 
         if prune:
             # Stations that have left OpenChargeMap, or are now filtered out, go too.

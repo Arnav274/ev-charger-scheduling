@@ -1,6 +1,16 @@
-import pytest
+from datetime import timedelta
 
-from scripts.ingest_openchargemap import ingest, is_usable, max_power_kw, parse_price_pence_per_kwh
+import pytest
+from sqlalchemy import select
+
+from app.models import Charger, Reservation
+from scripts.ingest_openchargemap import (
+    ingest,
+    is_usable,
+    max_power_kw,
+    parse_price_pence_per_kwh,
+    sync_chargers,
+)
 
 
 def record(**overrides) -> dict:
@@ -86,3 +96,33 @@ def test_a_short_response_is_refused_before_anything_is_written(monkeypatch) -> 
     monkeypatch.setattr(module, "SessionLocal", no_database)
     with pytest.raises(SystemExit, match="Only 1 usable stations"):
         ingest([record()], prune=True, min_stations=50)
+
+
+def charger_names(db, station) -> list[str]:
+    return list(
+        db.scalars(select(Charger.name).where(Charger.station_id == station.id).order_by(Charger.name))
+    )
+
+
+def test_re_ingesting_keeps_bookings_and_updates_power(db, make_station, user, now) -> None:
+    station = make_station(chargers=2)
+    booked = Reservation(
+        charger_id=station.chargers[0].id, user_id=user.id, start_time=now, end_time=now + timedelta(hours=1)
+    )
+    db.add(booked)
+    db.flush()
+
+    sync_chargers(db, station.id, wanted=2, power_kw=50.0)
+    db.expire_all()
+
+    assert db.get(Reservation, booked.id) is not None
+    assert {c.power_kw for c in db.scalars(select(Charger).where(Charger.station_id == station.id))} == {50.0}
+
+
+def test_re_ingesting_adds_and_removes_chargers(db, make_station) -> None:
+    station = make_station(chargers=2)  # named C1 and C2
+    sync_chargers(db, station.id, wanted=4, power_kw=7.0)
+    assert charger_names(db, station) == ["C1", "C2", "Charger 3", "Charger 4"]
+
+    sync_chargers(db, station.id, wanted=1, power_kw=7.0)
+    assert charger_names(db, station) == ["C1"]

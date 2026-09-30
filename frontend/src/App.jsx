@@ -9,7 +9,7 @@ import StationMap from "./components/StationMap";
 import StrategyPicker from "./components/StrategyPicker";
 import EthicsPanel from "./EthicsPanel";
 import useAuth from "./hooks/useAuth";
-import useStations from "./hooks/useStations";
+import useStations, { parseSearch } from "./hooks/useStations";
 
 // The charts library is only needed on the Results tab, so it loads on demand.
 const StatsDashboard = lazy(() => import("./StatsDashboard"));
@@ -71,10 +71,16 @@ export default function App() {
   async function recommend(algorithm) {
     setStrategy(algorithm);
     const request = ++latestRequest.current;
+    // Recommend from what is typed in the search fields, the same place a search would use.
+    const where = parseSearch(finder.draft);
+    if (where.error) {
+      finder.setStatus(where.error);
+      return;
+    }
     const payload = {
-      origin_lat: finder.centre.lat,
-      origin_lon: finder.centre.lon,
-      radius_km: finder.radiusKm,
+      origin_lat: where.centre.lat,
+      origin_lon: where.centre.lon,
+      radius_km: where.radius,
       algorithm,
       top_k: 5,
     };

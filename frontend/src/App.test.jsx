@@ -149,7 +149,7 @@ describe("App", () => {
     await userEvent.clear(screen.getByLabelText("Latitude"));
     await userEvent.click(screen.getByRole("button", { name: "Find nearby stations" }));
 
-    expect(await screen.findByText("Enter a latitude between -90 and 90.")).toBeInTheDocument();
+    expect(await screen.findByText("Latitude must be a number, like 51.5074.")).toBeInTheDocument();
     expect(api.fetchNearbyStations).toHaveBeenCalledTimes(1);
   });
 
@@ -197,6 +197,28 @@ describe("App", () => {
     await userEvent.clear(screen.getByLabelText("Latitude"));
     await userEvent.type(screen.getByLabelText("Latitude"), "51,5074");
     await userEvent.click(screen.getByRole("button", { name: "Find nearby stations" }));
-    expect(await screen.findByText("Enter a latitude between -90 and 90.")).toBeInTheDocument();
+    expect(await screen.findByText("Latitude must be a number, like 51.5074.")).toBeInTheDocument();
+  });
+
+  it("recommends from the typed location without needing a search first", async () => {
+    render(<App />);
+    await screen.findByText("1 stations within 5 km.");
+    await userEvent.clear(screen.getByLabelText("Latitude"));
+    await userEvent.type(screen.getByLabelText("Latitude"), "53.48");
+    await userEvent.click(screen.getByRole("button", { name: "Nearest" }));
+
+    expect(api.getRecommendations).toHaveBeenCalledWith(expect.objectContaining({ origin_lat: 53.48 }));
+  });
+
+  it("rejects hex and exponent notation", async () => {
+    render(<App />);
+    await screen.findByText("1 stations within 5 km.");
+    for (const text of ["0x32", "5e1"]) {
+      await userEvent.clear(screen.getByLabelText("Latitude"));
+      await userEvent.type(screen.getByLabelText("Latitude"), text);
+      await userEvent.click(screen.getByRole("button", { name: "Find nearby stations" }));
+      expect(await screen.findByText("Latitude must be a number, like 51.5074.")).toBeInTheDocument();
+    }
+    expect(api.fetchNearbyStations).toHaveBeenCalledTimes(1);
   });
 });

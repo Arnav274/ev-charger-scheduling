@@ -79,6 +79,8 @@ class RecommendationRequest(BaseModel):
 class RecommendationOut(BaseModel):
     station_id: UUID
     station_name: str
+    lat: float
+    lon: float
     score: float
     travel_distance_km: float
     travel_time_min: float

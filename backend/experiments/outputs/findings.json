@@ -17,7 +17,7 @@
       "load_1.5x",
       "load_2x"
     ],
-    "app_drivers_simulated": 162000
+    "baseline_app_drivers": 18000
   },
   "best_strategy": "queue_aware",
   "vs_nearest": {

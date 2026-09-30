@@ -25,7 +25,7 @@ const findings = {
     stations: 497,
     days_per_scenario: 30,
     scenarios: ["spread", "hotspot"],
-    app_drivers_simulated: 18000,
+    baseline_app_drivers: 18000,
   },
   best_strategy: "queue_aware",
   vs_nearest: { journey_reduction_pct: 98.7, wait_reduction_pct: 99.9, extra_distance_km: 0.66 },

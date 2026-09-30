@@ -44,8 +44,8 @@ export function FindingsPanel({ findings }) {
       <div className="findings-title">What the simulation found</div>
       <div className="findings-sub">
         {study.stations} stations · {study.days_per_scenario} simulated days in each of{" "}
-        {study.scenarios.length} scenarios · {study.app_drivers_simulated.toLocaleString()} app drivers per
-        strategy
+        {study.scenarios.length} scenarios · {study.baseline_app_drivers.toLocaleString()} app drivers routed
+        by each strategy at baseline
       </div>
       <div className="findings-grid">
         <Finding

@@ -7,9 +7,9 @@ export function toDatetimeInput(date) {
   )}:${pad(date.getMinutes())}`;
 }
 
-export function nearestHalfHour(date = new Date()) {
+export function nextHalfHour(date = new Date()) {
   const halfHour = 30 * 60 * 1000;
-  return new Date(Math.round(date.getTime() / halfHour) * halfHour);
+  return new Date(Math.ceil(date.getTime() / halfHour) * halfHour);
 }
 
 export function formatDateTime(value) {

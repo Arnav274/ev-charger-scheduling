@@ -1,12 +1,12 @@
 import { forwardRef, useState } from "react";
 
 import { createReservation, suggestSlot } from "../api";
-import { formatDateTime, nearestHalfHour, toDatetimeInput } from "../lib/time";
+import { formatDateTime, nextHalfHour, toDatetimeInput } from "../lib/time";
 
 const chargerLabel = (charger) => `${charger.name} (${charger.power_kw} kW)`;
 
 function SlotFinder({ station, onUseSlot }) {
-  const [arrival, setArrival] = useState(() => toDatetimeInput(nearestHalfHour()));
+  const [arrival, setArrival] = useState(() => toDatetimeInput(nextHalfHour()));
   const [duration, setDuration] = useState("60");
   const [slots, setSlots] = useState([]);
   const [message, setMessage] = useState("");

@@ -35,7 +35,9 @@ async function request(path, { method = "GET", json, form, token, failure }) {
     const payload = await Promise.resolve()
       .then(() => res.json())
       .catch(() => ({}));
-    throw new Error(errorMessage(payload.detail, failure));
+    const error = new Error(errorMessage(payload.detail, failure));
+    error.status = res.status;
+    throw error;
   }
   return res.json();
 }

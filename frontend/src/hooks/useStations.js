@@ -18,7 +18,7 @@ export default function useStations() {
   }, []);
 
   const search = useCallback(
-    (at = centre) => load(at.lat, at.lon, radiusKm).catch((err) => setStatus(err.message)),
+    (at = centre, radius = radiusKm) => load(at.lat, at.lon, radius).catch((err) => setStatus(err.message)),
     [centre, radiusKm, load],
   );
 

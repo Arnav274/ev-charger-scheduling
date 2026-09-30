@@ -8,9 +8,9 @@ function SignInForm({ auth }) {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
-  async function submit(action) {
-    if (password.length < 8) {
-      setMessage("Passwords are at least 8 characters.");
+  async function submit(action, { newAccount = false } = {}) {
+    if (newAccount && password.length < 8) {
+      setMessage("Choose a password of at least 8 characters.");
       return;
     }
     try {
@@ -53,7 +53,11 @@ function SignInForm({ auth }) {
         <button type="submit" className="btn-primary">
           Sign in
         </button>
-        <button type="button" className="btn-secondary" onClick={() => submit(auth.register)}>
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => submit(auth.register, { newAccount: true })}
+        >
           Register
         </button>
       </div>

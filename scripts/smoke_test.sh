@@ -36,9 +36,13 @@ for algorithm in nearest dijkstra cost_optimized static_queue queue_aware range_
 done
 
 echo "== Accounts and booking"
-token=$(curl -sf -X POST "$API/auth/login" -H 'Content-Type: application/x-www-form-urlencoded' \
+demo=$(curl -sf -X POST "$API/auth/login" -H 'Content-Type: application/x-www-form-urlencoded' \
   -d 'username=demo.user@example.com&password=DemoPass123!' | json 'd["access_token"]')
-if [ -n "$token" ]; then ok "demo login"; else bad "demo login (run scripts.seed_demo)"; fi
+if [ -n "$demo" ]; then ok "demo login"; else bad "demo login (run scripts.seed_demo)"; fi
+# Book with a throwaway account, because the demo user already holds the seeded bookings.
+token=$(curl -sf -X POST "$API/auth/register" -H 'Content-Type: application/json' \
+  -d "{\"email\": \"smoke-$RANDOM$RANDOM@example.com\", \"password\": \"SmokeTest123\"}" | json 'd["access_token"]')
+if [ -n "$token" ]; then ok "registration"; else bad "registration"; fi
 station=$(curl -sf "$API/stations/nearby?lat=51.5074&lon=-0.1278&radius_km=1" | json 'd[0]["id"]')
 charger=$(curl -sf "$API/stations/$station" | json 'd["chargers"][0]["id"]')
 # A random hour far in the future, so repeated runs do not collide with their own bookings.

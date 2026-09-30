@@ -1,135 +1,149 @@
-"""Tests for app.dijkstra."""
+"""Tests for the Dijkstra search and the RoadGraph wrapper around it."""
 
+import math
+
+import numpy as np
 import pytest
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import dijkstra as scipy_dijkstra
 
-from app.dijkstra import (
-    RouteResult,
-    Station,
-    haversine_km,
-    shortest_paths_to_stations,
-)
-
-# Helpers
+from app.dijkstra import ACCESS_SPEED_KMH, RoadGraph, dijkstra
+from tests.road_graphs import grid_graph
 
 
-# Degree offset along a meridian: 1 degree latitude ≈ 111.195 km.
-# Using (0.0, 0.0) as origin keeps haversine symmetric and easy to reason about.
-_ORIGIN_LAT = 0.0
-_ORIGIN_LON = 0.0
-_KM_PER_DEG = 111.195
+def csr(n: int, edges: list[tuple[int, int, float]]):
+    """(indptr, indices, weights) for a directed graph given as (u, v, weight) edges."""
+    edges = sorted(edges)
+    indptr = [0] * (n + 1)
+    for u, _, _ in edges:
+        indptr[u + 1] += 1
+    for i in range(n):
+        indptr[i + 1] += indptr[i]
+    return indptr, [v for _, v, _ in edges], [w for _, _, w in edges]
 
 
-def _station_at_km(station_id: str, km: float) -> Station:
-    lat_offset = km / _KM_PER_DEG
-    return Station(station_id=station_id, lat=_ORIGIN_LAT + lat_offset, lon=_ORIGIN_LON)
+def two_way(edges):
+    return edges + [(v, u, w) for u, v, w in edges]
 
 
-# haversine_km sanity checks
+class TestDijkstra:
+    def test_takes_a_cheaper_detour_over_an_expensive_direct_edge(self) -> None:
+        indptr, indices, weights = csr(3, [(0, 1, 10.0), (0, 2, 1.0), (2, 1, 1.0)])
+        paths = dijkstra(indptr, indices, weights, source=0)
+        assert paths.dist == [0.0, 2.0, 1.0]
 
+    def test_respects_one_way_edges(self) -> None:
+        indptr, indices, weights = csr(2, [(0, 1, 5.0)])
+        assert dijkstra(indptr, indices, weights, source=0).dist[1] == 5.0
+        assert math.isinf(dijkstra(indptr, indices, weights, source=1).dist[0])
 
-class TestHaversine:
-    def test_same_point_is_zero(self):
-        assert haversine_km(51.0, 0.0, 51.0, 0.0) == pytest.approx(0.0)
+    def test_unreachable_nodes_stay_infinite(self) -> None:
+        indptr, indices, weights = csr(4, two_way([(0, 1, 1.0), (2, 3, 1.0)]))
+        paths = dijkstra(indptr, indices, weights, source=0)
+        assert paths.reached(1)
+        assert not paths.reached(2)
+        assert not paths.reached(3)
 
-    def test_symmetric(self):
-        d1 = haversine_km(0.0, 0.0, 1.0, 1.0)
-        d2 = haversine_km(1.0, 1.0, 0.0, 0.0)
-        assert d1 == pytest.approx(d2)
+    def test_stops_once_every_target_is_settled(self) -> None:
+        n = 1000
+        indptr, indices, weights = csr(n, two_way([(i, i + 1, 1.0) for i in range(n - 1)]))
+        paths = dijkstra(indptr, indices, weights, source=0, targets=[3])
+        assert paths.dist[3] == 3.0
+        assert paths.settled == 4  # nodes 0 to 3, nothing further along the line
+        assert math.isinf(paths.dist[10])
 
-    def test_known_distance(self):
-        # Norwich to London is roughly 160 km; just check order of magnitude.
-        d = haversine_km(52.63, 1.30, 51.50, 0.12)
-        assert 140.0 < d < 180.0
+    def test_unreachable_target_explores_everything_and_terminates(self) -> None:
+        indptr, indices, weights = csr(3, [(0, 1, 1.0)])
+        paths = dijkstra(indptr, indices, weights, source=0, targets=[2])
+        assert not paths.reached(2)
+        assert paths.settled == 2
 
+    def test_zero_weight_edges(self) -> None:
+        indptr, indices, weights = csr(3, [(0, 1, 0.0), (1, 2, 0.0)])
+        assert dijkstra(indptr, indices, weights, source=0).dist == [0.0, 0.0, 0.0]
 
-# shortest_paths_to_stations
+    def test_parallel_edges_use_the_cheapest(self) -> None:
+        indptr, indices, weights = csr(2, [(0, 1, 7.0), (0, 1, 3.0)])
+        assert dijkstra(indptr, indices, weights, source=0).dist[1] == 3.0
 
-
-class TestShortestPaths:
-    def test_nearest_station_identified_correctly(self):
-        stations = [
-            _station_at_km("far", 10.0),
-            _station_at_km("near", 1.0),
-            _station_at_km("mid", 5.0),
-        ]
-        results = shortest_paths_to_stations(_ORIGIN_LAT, _ORIGIN_LON, stations)
-
-        nearest_id = min(results, key=lambda sid: results[sid].distance_km)
-        assert nearest_id == "near"
-
-    def test_three_stations_ordering(self):
-        stations = [
-            _station_at_km("5km", 5.0),
-            _station_at_km("1km", 1.0),
-            _station_at_km("2km", 2.0),
-        ]
-        results = shortest_paths_to_stations(_ORIGIN_LAT, _ORIGIN_LON, stations)
-
-        ordered = sorted(results.values(), key=lambda r: r.distance_km)
-        assert [r.station_id for r in ordered] == ["1km", "2km", "5km"]
-
-    def test_three_stations_distances_approx(self):
-        stations = [
-            _station_at_km("1km", 1.0),
-            _station_at_km("2km", 2.0),
-            _station_at_km("5km", 5.0),
-        ]
-
-        results = shortest_paths_to_stations(_ORIGIN_LAT, _ORIGIN_LON, stations)
-
-        assert results["1km"].distance_km == pytest.approx(1.0, abs=0.05)
-        assert results["2km"].distance_km == pytest.approx(2.0, abs=0.05)
-        assert results["5km"].distance_km == pytest.approx(5.0, abs=0.05)
-
-    def test_single_station_distance_positive(self):
-        stations = [Station(station_id="only", lat=1.0, lon=1.0)]
-        results = shortest_paths_to_stations(_ORIGIN_LAT, _ORIGIN_LON, stations)
-
-        assert len(results) == 1
-        assert results["only"].distance_km > 0.0
-
-    def test_path_starts_at_origin_node(self):
-        stations = [
-            _station_at_km("A", 3.0),
-            _station_at_km("B", 7.0),
-            _station_at_km("C", 12.0),
-        ]
-        results = shortest_paths_to_stations(_ORIGIN_LAT, _ORIGIN_LON, stations)
-
-        for result in results.values():
-            assert result.path_nodes, f"path_nodes is empty for {result.station_id}"
-            assert result.path_nodes[0] == 0, (
-                f"Path for {result.station_id} starts at node {result.path_nodes[0]}, expected 0"
+    @pytest.mark.parametrize("seed", range(5))
+    def test_matches_scipy_on_random_directed_graphs(self, seed: int) -> None:
+        rng = np.random.default_rng(seed)
+        n = 80
+        edges = {
+            (int(u), int(v)): float(w)
+            for u, v, w in zip(
+                rng.integers(0, n, 600), rng.integers(0, n, 600), rng.uniform(0, 10, 600), strict=True
             )
+            if u != v
+        }
+        indptr, indices, weights = csr(n, [(u, v, w) for (u, v), w in edges.items()])
+        matrix = csr_matrix((weights, indices, indptr), shape=(n, n))
 
-    def test_path_ends_at_correct_station_node(self):
-        stations = [
-            _station_at_km("X", 2.0),
-            _station_at_km("Y", 4.0),
-        ]
-        results = shortest_paths_to_stations(_ORIGIN_LAT, _ORIGIN_LON, stations)
+        for source in rng.integers(0, n, 5):
+            ours = dijkstra(indptr, indices, weights, source=int(source)).dist
+            expected = scipy_dijkstra(matrix, directed=True, indices=int(source))
+            assert ours == pytest.approx(expected.tolist())
 
-        # Stations are indexed 1, 2
-        for idx, station in enumerate(stations, start=1):
-            path = results[station.station_id].path_nodes
-            assert path[-1] == idx, f"Path for {station.station_id} ends at node {path[-1]}, expected {idx}"
 
-    def test_returns_all_stations(self):
-        stations = [_station_at_km(f"S{i}", float(i)) for i in range(1, 6)]
-        results = shortest_paths_to_stations(_ORIGIN_LAT, _ORIGIN_LON, stations)
+class TestRoadGraph:
+    def test_snaps_points_to_the_nearest_junction(self) -> None:
+        graph = grid_graph()
+        nodes, distances = graph.nearest_nodes([(51.5, -0.1), (51.5021, -0.0989)])
+        assert nodes == [0, 2 * 4 + 1]
+        assert distances[0] == pytest.approx(0, abs=0.1)
+        assert distances[1] == pytest.approx(math.hypot(11.1, 6.9), rel=0.05)
 
-        assert set(results.keys()) == {s.station_id for s in stations}
+    def test_route_between_junctions_follows_the_grid(self) -> None:
+        graph = grid_graph()
+        (route,) = graph.fastest_routes((51.5, -0.1), [(51.503, -0.097)])
+        # Three blocks north and three east.
+        assert route.distance_km == pytest.approx((3 * 111.195 + 3 * 69.22) / 1000, rel=0.01)
+        assert route.duration_min == pytest.approx(route.distance_km * 1000 / 10 / 60, rel=0.01)
 
-    def test_empty_stations_raises(self):
-        with pytest.raises(ValueError):
-            shortest_paths_to_stations(_ORIGIN_LAT, _ORIGIN_LON, [])
+    def test_access_legs_are_added_at_the_access_speed(self) -> None:
+        graph = grid_graph()
+        (exact,) = graph.fastest_routes((51.5, -0.1), [(51.501, -0.1)])
+        (offset,) = graph.fastest_routes((51.5, -0.1), [(51.501, -0.1003)])  # ~21 m west of node 4
+        extra_m = (offset.distance_km - exact.distance_km) * 1000
+        assert extra_m == pytest.approx(20.8, abs=1)
+        assert (offset.duration_min - exact.duration_min) * 60 == pytest.approx(
+            extra_m / (ACCESS_SPEED_KMH / 3.6), rel=0.01
+        )
 
-    def test_route_result_fields(self):
-        stations = [_station_at_km("Z", 2.0)]
-        results = shortest_paths_to_stations(_ORIGIN_LAT, _ORIGIN_LON, stations)
-        r = results["Z"]
+    def test_path_reconstruction_walks_back_to_the_source(self) -> None:
+        graph = grid_graph()
+        paths = dijkstra(graph.indptr, graph.indices, graph.time_s, source=0)
+        path = graph.path(paths, 15)
+        assert path[0] == 0
+        assert path[-1] == 15
+        assert len(path) == 7  # six blocks, seven junctions
+        assert graph.path_length_m(paths, 15) == pytest.approx(3 * 111.195 + 3 * 69.22, rel=1e-3)
 
-        assert isinstance(r, RouteResult)
-        assert isinstance(r.station_id, str)
-        assert isinstance(r.distance_km, float)
-        assert isinstance(r.path_nodes, list)
+    def test_unreachable_destination_is_none(self) -> None:
+        lat, lon = np.array([51.5, 51.51]), np.array([-0.1, -0.1])
+        one_way = RoadGraph(
+            lat, lon, np.array([0, 1, 1]), np.array([1]), np.array([1000.0]), np.array([60.0])
+        )
+        assert one_way.fastest_routes((51.51, -0.1), [(51.5, -0.1)]) == [None]
+        assert one_way.fastest_routes((51.5, -0.1), [(51.51, -0.1)])[0] is not None
+
+    def test_no_destinations(self) -> None:
+        assert grid_graph().fastest_routes((51.5, -0.1), []) == []
+
+    def test_save_and_load_round_trip(self, tmp_path) -> None:
+        graph = grid_graph()
+        path = tmp_path / "graph.npz"
+        np.savez(
+            path,
+            lat=graph.lat,
+            lon=graph.lon,
+            indptr=np.array(graph.indptr),
+            indices=np.array(graph.indices),
+            length_m=np.array(graph.length_m),
+            time_s=np.array(graph.time_s),
+        )
+        loaded = RoadGraph.load(path)
+        assert loaded.fastest_routes((51.5, -0.1), [(51.503, -0.097)]) == graph.fastest_routes(
+            (51.5, -0.1), [(51.503, -0.097)]
+        )

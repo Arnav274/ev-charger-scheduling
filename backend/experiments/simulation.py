@@ -167,8 +167,8 @@ def choose_stations(
         if uses_reservations:
             for i in candidates:
                 if i in bookings:
-                    arrive = _timestamp(driver.depart_min + float(inputs.osrm_min[o, i]))
-                    reserved[inputs.stations[i].id] = booked_during_arrival(bookings[i], arrive, window)
+                    arrive_at = _timestamp(driver.depart_min + float(inputs.osrm_min[o, i]))
+                    reserved[inputs.stations[i].id] = booked_during_arrival(bookings[i], arrive_at, window)
 
         ctx = RecommendationContext(
             origin_lat=float(inputs.origins[o, 0]),

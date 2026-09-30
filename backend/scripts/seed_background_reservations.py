@@ -63,13 +63,12 @@ def main() -> None:
             {"station_ids": station_ids},
         ).all()
 
-        # Replace any earlier seed at these stations, including the bookings older
-        # versions of this script made as the demo user.
+        # Replace any earlier run of this seed.
         db.execute(
             text(
                 """
                 DELETE FROM reservations
-                WHERE user_id IN (:user_id, (SELECT id FROM users WHERE email = 'demo.user@example.com'))
+                WHERE user_id = :user_id
                   AND charger_id IN (
                     SELECT id FROM chargers WHERE station_id = ANY(CAST(:station_ids AS uuid[]))
                   )

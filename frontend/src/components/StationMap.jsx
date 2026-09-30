@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import L from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
+import { DEFAULT_CENTRE } from "../hooks/useStations";
 import HeatmapLayer from "./HeatmapLayer";
 
 function FitToStations({ stations }) {
@@ -13,7 +14,7 @@ function FitToStations({ stations }) {
   return null;
 }
 
-export default function StationMap({ centre, stations, recommendations, showHotspots, onSelectStation }) {
+export default function StationMap({ stations, recommendations, showHotspots, onSelectStation }) {
   const hotspots = useMemo(
     () =>
       recommendations.map((r) => ({
@@ -26,7 +27,8 @@ export default function StationMap({ centre, stations, recommendations, showHots
   );
 
   return (
-    <MapContainer center={[centre.lat, centre.lon]} zoom={12} className="map-container">
+    // The starting view only; FitToStations follows each search after that.
+    <MapContainer center={[DEFAULT_CENTRE.lat, DEFAULT_CENTRE.lon]} zoom={12} className="map-container">
       <FitToStations stations={stations} />
       <HeatmapLayer enabled={showHotspots} points={hotspots} />
       <TileLayer

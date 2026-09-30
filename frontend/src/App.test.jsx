@@ -274,4 +274,31 @@ describe("App", () => {
     await userEvent.click(screen.getByRole("button", { name: "Nearest" }));
     expect(api.fetchNearbyStations).toHaveBeenLastCalledWith(51.5074, -0.1278, 0.5);
   });
+
+  it("shows a recommendation failure with the results", async () => {
+    api.getRecommendations.mockRejectedValue(new Error("Could not get recommendations"));
+    render(<App />);
+    await screen.findByText("1 stations within 5 km.");
+    await userEvent.click(screen.getByRole("button", { name: "Nearest" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Could not get recommendations");
+    expect(screen.getByText("1 stations within 5 km.")).toBeInTheDocument();
+  });
+
+  it("offers no Cancel button for a booking that has ended", async () => {
+    localStorage.setItem("ev_access_token", "test-jwt");
+    api.getMyReservations.mockResolvedValue([
+      {
+        id: "old",
+        station_name: "Kings Cross Car Park",
+        charger_name: "Charger 1",
+        start_time: "2020-01-15T10:00:00Z",
+        end_time: "2020-01-15T11:00:00Z",
+      },
+    ]);
+    render(<App />);
+    await userEvent.click(screen.getByText("My account"));
+    expect(await screen.findByText("My bookings")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Cancel booking/ })).not.toBeInTheDocument();
+  });
 });

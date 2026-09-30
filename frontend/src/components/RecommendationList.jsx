@@ -3,13 +3,18 @@ import { forwardRef } from "react";
 import { STRATEGY_LABELS } from "../strategies";
 
 const RecommendationList = forwardRef(function RecommendationList(
-  { strategy, recommendations, onSelectStation },
+  { strategy, recommendations, error, onSelectStation },
   ref,
 ) {
-  if (!recommendations.length) return null;
+  if (!recommendations.length && !error) return null;
   return (
     <section ref={ref} className="sidebar-section recommendations-section">
       <h3 className="recommendations-label">Best stations: {STRATEGY_LABELS[strategy]}</h3>
+      {error && (
+        <p className="status" role="alert">
+          {error}
+        </p>
+      )}
       <ol className="recommendations-list">
         {recommendations.map((r) => (
           <li key={r.station_id}>

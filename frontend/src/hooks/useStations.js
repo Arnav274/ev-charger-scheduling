@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { fetchNearbyStations } from "../api";
 import useLatestRequest from "./useLatestRequest";
@@ -36,18 +36,18 @@ export default function useStations() {
     radius: String(DEFAULT_RADIUS_KM),
   });
   const [stations, setStations] = useState([]);
-  // The search the listed stations came from.
-  const [shown, setShown] = useState(null);
   const [status, setStatus] = useState("Loading stations…");
   const requests = useLatestRequest();
+  // The last search sent, finished or not, so a repeat request can be skipped.
+  const lastRequested = useRef(null);
 
   const load = useCallback(
     async (where, request = requests.claim()) => {
+      lastRequested.current = where;
       try {
         const data = await fetchNearbyStations(where.centre.lat, where.centre.lon, where.radius);
         if (!requests.isLatest(request)) return;
         setStations(data);
-        setShown(where);
         setStatus(`${data.length} stations within ${where.radius} km.`);
       } catch (err) {
         if (requests.isLatest(request)) setStatus(err.message);
@@ -76,9 +76,9 @@ export default function useStations() {
   // Makes sure the listed stations match `where`, searching again only if they do not.
   const showStationsAround = useCallback(
     (where) => {
-      if (!sameSearch(where, shown)) load(where).catch(() => {});
+      if (!sameSearch(where, lastRequested.current)) load(where).catch(() => {});
     },
-    [shown, load],
+    [load],
   );
 
   // On first load the backend may still be starting, so retry for a few seconds,

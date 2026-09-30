@@ -139,14 +139,18 @@ const AccountPanel = forwardRef(function AccountPanel(
   ref,
 ) {
   const [cancelError, setCancelError] = useState("");
+  const [cancelling, setCancelling] = useState(null);
 
   async function cancel(reservation) {
+    setCancelling(reservation.id);
     try {
       await cancelReservation(reservation.id, auth.token);
       setCancelError("");
       onCancelled();
     } catch (err) {
       setCancelError(err.message);
+    } finally {
+      setCancelling(null);
     }
   }
 
@@ -178,14 +182,17 @@ const AccountPanel = forwardRef(function AccountPanel(
                       <strong>{r.station_name}</strong>, {r.charger_name}
                       <br />
                       {formatDateTime(r.start_time)} to {formatDateTime(r.end_time)}
-                      <button
-                        type="button"
-                        className="btn-link"
-                        aria-label={`Cancel booking at ${r.station_name}`}
-                        onClick={() => cancel(r)}
-                      >
-                        Cancel
-                      </button>
+                      {new Date(r.end_time) > new Date() && (
+                        <button
+                          type="button"
+                          className="btn-link"
+                          aria-label={`Cancel booking at ${r.station_name}`}
+                          disabled={cancelling === r.id}
+                          onClick={() => cancel(r)}
+                        >
+                          {cancelling === r.id ? "Cancelling…" : "Cancel"}
+                        </button>
+                      )}
                     </li>
                   ))}
                 </ul>

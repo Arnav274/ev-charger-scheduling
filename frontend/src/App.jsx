@@ -10,7 +10,7 @@ import StrategyPicker from "./components/StrategyPicker";
 import EthicsPanel from "./EthicsPanel";
 import useAuth from "./hooks/useAuth";
 import useLatestRequest from "./hooks/useLatestRequest";
-import useStations, { DEFAULT_CENTRE, parseSearch } from "./hooks/useStations";
+import useStations, { parseSearch } from "./hooks/useStations";
 
 // The charts library is only needed on the Results tab, so it loads on demand.
 const StatsDashboard = lazy(() => import("./StatsDashboard"));
@@ -32,7 +32,7 @@ export default function App() {
 
   const [strategy, setStrategy] = useState(null);
   // Kept with the strategy that produced them, so the heading never labels stale results.
-  const [results, setResults] = useState({ strategy: null, items: [] });
+  const [results, setResults] = useState({ strategy: null, items: [], error: "" });
   const [battery, setBattery] = useState({ level: "", capacity: "" });
   const [selectedStation, setSelectedStation] = useState(null);
   const [showHotspots, setShowHotspots] = useState(false);
@@ -73,6 +73,7 @@ export default function App() {
     // Recommend from what is typed in the search fields, the same place a search would use.
     const where = parseSearch(finder.draft);
     if (where.error) {
+      recommendations.cancel(); // an earlier request must not land after this error
       finder.setStatus(where.error);
       return;
     }
@@ -94,12 +95,13 @@ export default function App() {
     try {
       const items = await getRecommendations(payload);
       if (!recommendations.isLatest(request)) return; // a newer request superseded this one
-      setResults({ strategy: algorithm, items });
+      setResults({ strategy: algorithm, items, error: "" });
       scrollTo(resultsRef);
     } catch (err) {
       if (!recommendations.isLatest(request)) return;
-      setResults({ strategy: null, items: [] });
-      finder.setStatus(err.message);
+      // Shown with the results rather than in the search status line, which the
+      // station reload running alongside this request may also update.
+      setResults({ strategy: algorithm, items: [], error: err.message });
     }
   }
 
@@ -154,6 +156,7 @@ export default function App() {
               ref={resultsRef}
               strategy={results.strategy}
               recommendations={results.items}
+              error={results.error}
               onSelectStation={selectStation}
             />
             {selectedStation && (
@@ -194,7 +197,6 @@ export default function App() {
       </div>
 
       <StationMap
-        centre={DEFAULT_CENTRE}
         stations={finder.stations}
         recommendations={results.items}
         showHotspots={showHotspots}

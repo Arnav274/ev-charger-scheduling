@@ -118,7 +118,8 @@ for turns or traffic lights.
 
 497 stations and 751 chargers from OpenChargeMap, with OSRM for road routing. Pick a strategy and
 the recommendations re-rank, each showing the distance, drive time, predicted wait and chance of
-queueing behind it. Click one to book a charger or find the next free slot. The database rules out
+queueing behind it. Click one to book a charger or find the next free slot, and cancel
+bookings from My account. The database rules out
 double bookings with an exclusion constraint, so two people can't book the same charger for
 overlapping times, even at the same instant. The Results tab reads the
 experiment's output directly, so the numbers in the app are the ones in this README.
@@ -198,8 +199,8 @@ upstream over time, so the results will then shift slightly.
 ## Tests
 
 ```bash
-docker compose exec backend pytest -q     # 176 tests
-cd frontend && npm test                   # 28 tests
+docker compose exec backend pytest -q     # 181 tests
+cd frontend && npm test                   # 31 tests
 ```
 
 The backend tests run the API against a real PostGIS test database, so the spatial queries and the

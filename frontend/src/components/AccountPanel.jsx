@@ -139,18 +139,28 @@ const AccountPanel = forwardRef(function AccountPanel(
   ref,
 ) {
   const [cancelError, setCancelError] = useState("");
-  const [cancelling, setCancelling] = useState(null);
+  // Bookings with a cancel request in flight; several can run at once.
+  const [cancelling, setCancelling] = useState(() => new Set());
+  const markCancelling = (id, busy) =>
+    setCancelling((current) => {
+      const next = new Set(current);
+      if (busy) next.add(id);
+      else next.delete(id);
+      return next;
+    });
 
   async function cancel(reservation) {
-    setCancelling(reservation.id);
+    markCancelling(reservation.id, true);
     try {
       await cancelReservation(reservation.id, auth.token);
       setCancelError("");
-      onCancelled();
     } catch (err) {
       setCancelError(err.message);
     } finally {
-      setCancelling(null);
+      markCancelling(reservation.id, false);
+      // Refresh either way: after a failure (say it was cancelled in another tab)
+      // the list may be out of date.
+      onCancelled();
     }
   }
 
@@ -173,6 +183,11 @@ const AccountPanel = forwardRef(function AccountPanel(
               selectedId={selectedVehicleId}
               onSelect={onSelectVehicle}
             />
+            {cancelError && (
+              <p className="status" role="alert">
+                {cancelError}
+              </p>
+            )}
             {reservations.length > 0 && (
               <div className="my-reservations">
                 <h4 className="subsection-heading">My bookings</h4>
@@ -182,25 +197,20 @@ const AccountPanel = forwardRef(function AccountPanel(
                       <strong>{r.station_name}</strong>, {r.charger_name}
                       <br />
                       {formatDateTime(r.start_time)} to {formatDateTime(r.end_time)}
-                      {new Date(r.end_time) > new Date() && (
+                      {new Date(r.start_time) > new Date() && (
                         <button
                           type="button"
                           className="btn-link"
                           aria-label={`Cancel booking at ${r.station_name}`}
-                          disabled={cancelling === r.id}
+                          disabled={cancelling.has(r.id)}
                           onClick={() => cancel(r)}
                         >
-                          {cancelling === r.id ? "Cancelling…" : "Cancel"}
+                          {cancelling.has(r.id) ? "Cancelling…" : "Cancel"}
                         </button>
                       )}
                     </li>
                   ))}
                 </ul>
-                {cancelError && (
-                  <p className="status" role="alert">
-                    {cancelError}
-                  </p>
-                )}
               </div>
             )}
           </div>

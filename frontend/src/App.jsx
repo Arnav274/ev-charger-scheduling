@@ -69,6 +69,13 @@ export default function App() {
     refreshReservations();
   }, [token, refreshVehicles, refreshReservations]);
 
+  // A search for somewhere else makes the current recommendations, and any on
+  // their way, out of date.
+  function clearResults() {
+    recommendations.cancel();
+    setResults({ strategy: null, items: [], error: "" });
+  }
+
   async function recommend(algorithm) {
     // Recommend from what is typed in the search fields, the same place a search would use.
     const where = parseSearch(finder.draft);
@@ -145,7 +152,7 @@ export default function App() {
             <p className="status global-status" role="status">
               {finder.status}
             </p>
-            <StationFinder stations={finder} onSelectStation={selectStation} />
+            <StationFinder stations={finder} onSelectStation={selectStation} onSearch={clearResults} />
             <StrategyPicker
               active={strategy}
               onPick={recommend}

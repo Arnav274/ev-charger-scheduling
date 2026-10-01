@@ -38,19 +38,26 @@ export default function useStations() {
   const [stations, setStations] = useState([]);
   const [status, setStatus] = useState("Loading stations…");
   const requests = useLatestRequest();
-  // The last search sent, finished or not, so a repeat request can be skipped.
-  const lastRequested = useRef(null);
+  // The search the listed stations came from, and the one in flight, if any.
+  // A repeat of either needs no new request.
+  const shown = useRef(null);
+  const pending = useRef(null);
 
   const load = useCallback(
     async (where, request = requests.claim()) => {
-      lastRequested.current = where;
+      pending.current = where;
       try {
         const data = await fetchNearbyStations(where.centre.lat, where.centre.lon, where.radius);
         if (!requests.isLatest(request)) return;
+        pending.current = null;
+        shown.current = where;
         setStations(data);
         setStatus(`${data.length} stations within ${where.radius} km.`);
       } catch (err) {
-        if (requests.isLatest(request)) setStatus(err.message);
+        if (requests.isLatest(request)) {
+          pending.current = null;
+          setStatus(err.message);
+        }
         throw err;
       }
     },
@@ -64,6 +71,7 @@ export default function useStations() {
       const where = parseSearch(nextDraft);
       if (where.error) {
         requests.cancel(); // an earlier search must not land after this error
+        pending.current = null;
         setStatus(where.error);
         return null;
       }
@@ -76,7 +84,9 @@ export default function useStations() {
   // Makes sure the listed stations match `where`, searching again only if they do not.
   const showStationsAround = useCallback(
     (where) => {
-      if (!sameSearch(where, lastRequested.current)) load(where).catch(() => {});
+      if (!sameSearch(where, shown.current) && !sameSearch(where, pending.current)) {
+        load(where).catch(() => {});
+      }
     },
     [load],
   );

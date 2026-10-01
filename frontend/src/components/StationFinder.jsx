@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 
-export default function StationFinder({ stations: finder, onSelectStation }) {
+export default function StationFinder({ stations: finder, onSelectStation, onSearch }) {
   const { draft, setDraft, stations, search, setStatus } = finder;
   const [filter, setFilter] = useState("");
   const [locating, setLocating] = useState(false);
@@ -21,6 +21,7 @@ export default function StationFinder({ stations: finder, onSelectStation }) {
           lon: coords.longitude.toFixed(5),
         };
         setDraft(located);
+        onSearch();
         search(located);
       },
       () => {
@@ -53,7 +54,14 @@ export default function StationFinder({ stations: finder, onSelectStation }) {
           <input id="radius" type="text" inputMode="decimal" {...field("radius")} />
         </div>
         <div className="find-buttons">
-          <button type="button" className="btn-primary btn-block" onClick={() => search()}>
+          <button
+            type="button"
+            className="btn-primary btn-block"
+            onClick={() => {
+              onSearch();
+              search();
+            }}
+          >
             Find nearby stations
           </button>
           {"geolocation" in navigator && (

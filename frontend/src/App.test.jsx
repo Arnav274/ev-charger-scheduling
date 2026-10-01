@@ -301,4 +301,35 @@ describe("App", () => {
     expect(await screen.findByText("My bookings")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Cancel booking/ })).not.toBeInTheDocument();
   });
+
+  it("clears recommendations when the user searches somewhere else", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Nearest" }));
+    expect(await screen.findByText("Best stations: Nearest")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Find nearby stations" }));
+    expect(screen.queryByText("Best stations: Nearest")).not.toBeInTheDocument();
+  });
+
+  it("refreshes the booking list when a cancel fails", async () => {
+    localStorage.setItem("ev_access_token", "test-jwt");
+    const upcoming = {
+      id: "r1",
+      station_name: "Kings Cross Car Park",
+      charger_name: "Charger 1",
+      start_time: `${soon}T10:00:00Z`,
+      end_time: `${soon}T11:00:00Z`,
+    };
+    api.getMyReservations.mockResolvedValueOnce([upcoming]).mockResolvedValueOnce([]);
+    vi.spyOn(api, "cancelReservation").mockRejectedValue(new Error("Booking not found"));
+    render(<App />);
+
+    await userEvent.click(screen.getByText("My account"));
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Cancel booking at Kings Cross Car Park" }),
+    );
+
+    await waitFor(() => expect(api.getMyReservations).toHaveBeenCalledTimes(2));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Booking not found");
+  });
 });

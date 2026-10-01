@@ -130,6 +130,16 @@ class TestSuggestSlot:
         # The wait counts from now, not from the hour-old request.
         assert slot["wait_from_desired_minutes"] <= 30
 
+    def test_slots_can_start_right_up_to_the_booking_horizon(self, client, make_station) -> None:
+        station = make_station(chargers=1)
+        # A 60-minute slot starting just before the 30-day limit ends after it, which is allowed.
+        near_limit = datetime.now(UTC) + timedelta(days=30) - timedelta(minutes=45)
+        response = client.post(
+            f"/stations/{station.id}/suggest-slot",
+            json={"desired_arrival": near_limit.isoformat(), "duration_minutes": 60},
+        )
+        assert len(response.json()) == 1
+
     def test_no_slots_beyond_the_booking_horizon(self, client, make_station) -> None:
         station = make_station(chargers=1)
         far_off = datetime.now(UTC) + timedelta(days=35)
@@ -240,29 +250,31 @@ class TestReservations:
 
     def test_cancel_frees_the_slot(self, client, auth_headers, make_station, now) -> None:
         charger_id = make_station(chargers=1).chargers[0].id
-        booking = self._book(client, auth_headers, charger_id, now).json()
+        later = now + timedelta(hours=2)
+        booking = self._book(client, auth_headers, charger_id, later).json()
 
         assert client.delete(f"/reservations/{booking['id']}", headers=auth_headers).status_code == 204
         assert client.get("/reservations/mine", headers=auth_headers).json() == []
-        assert self._book(client, auth_headers, charger_id, now).status_code == 201
+        assert self._book(client, auth_headers, charger_id, later).status_code == 201
 
-    def test_a_finished_booking_cannot_be_cancelled(
-        self, client, db, auth_headers, user, make_station, now
+    @pytest.mark.parametrize("started_hours_ago,ends_in_hours", [(3, -2), (1, 1)])
+    def test_a_booking_that_has_started_cannot_be_cancelled(
+        self, client, db, auth_headers, user, make_station, now, started_hours_ago, ends_in_hours
     ) -> None:
-        finished = Reservation(
+        booking = Reservation(
             charger_id=make_station(chargers=1).chargers[0].id,
             user_id=user.id,
-            start_time=now - timedelta(hours=3),
-            end_time=now - timedelta(hours=2),
+            start_time=now - timedelta(hours=started_hours_ago),
+            end_time=now + timedelta(hours=ends_in_hours),
         )
-        db.add(finished)
+        db.add(booking)
         db.flush()
-        assert client.delete(f"/reservations/{finished.id}", headers=auth_headers).status_code == 409
+        assert client.delete(f"/reservations/{booking.id}", headers=auth_headers).status_code == 409
         assert len(client.get("/reservations/mine", headers=auth_headers).json()) == 1
 
     def test_cannot_cancel_someone_elses_booking(self, client, auth_headers, make_station, now) -> None:
         charger_id = make_station(chargers=1).chargers[0].id
-        booking = self._book(client, auth_headers, charger_id, now).json()
+        booking = self._book(client, auth_headers, charger_id, now + timedelta(hours=2)).json()
         client.post("/auth/register", json={"email": "other@example.com", "password": PASSWORD})
         token = client.post(
             "/auth/login", data={"username": "other@example.com", "password": PASSWORD}

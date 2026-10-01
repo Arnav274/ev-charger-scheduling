@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.auth_deps import get_current_user_id
+from app.config import MAX_ADVANCE, MAX_BOOKING, MAX_UPCOMING_PER_USER
 from app.database import get_db
 from app.models import Charger, Reservation, Station
 from app.predictive_queueing import ensure_utc
@@ -15,11 +16,6 @@ from app.schemas import ReservationCreate, ReservationDetailOut, ReservationOut
 
 router = APIRouter(prefix="/reservations", tags=["reservations"])
 
-# Limits that stop one account from blocking chargers indefinitely. The booking
-# form mirrors MAX_ADVANCE in frontend/src/components/BookingPanel.jsx.
-MAX_BOOKING = timedelta(hours=12)
-MAX_ADVANCE = timedelta(days=30)
-MAX_UPCOMING_PER_USER = 10
 # Allowance for clock differences between the browser and the server.
 CLOCK_SKEW = timedelta(minutes=5)
 
@@ -82,9 +78,10 @@ def cancel_reservation(
     # Someone else's booking is reported as missing, so ids cannot be probed.
     if reservation is None or reservation.user_id != user_id:
         raise HTTPException(status_code=404, detail="Booking not found")
-    # Finished bookings are history, not something to cancel.
-    if ensure_utc(reservation.end_time) <= datetime.now(UTC):
-        raise HTTPException(status_code=409, detail="This booking has already ended")
+    # Once charging has started (or finished) the booking is a record of what
+    # happened, not something to cancel.
+    if ensure_utc(reservation.start_time) <= datetime.now(UTC):
+        raise HTTPException(status_code=409, detail="This booking has already started")
     db.delete(reservation)
     db.commit()
 

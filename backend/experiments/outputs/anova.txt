@@ -1,0 +1,4 @@
+One-way ANOVA wait times (baseline_equal)
+F=228.7187
+p=0.00000000
+eta_squared=0.389296

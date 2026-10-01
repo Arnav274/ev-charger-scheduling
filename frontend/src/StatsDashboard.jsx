@@ -1,190 +1,165 @@
-import { useEffect, useMemo, useState } from "react";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useMemo, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  Legend,
+} from "recharts";
 
-import { fetchExperimentSummary, fetchFindings } from "./api";
-import { STRATEGIES, STRATEGY_LABELS } from "./strategies";
 
-const VARIANT_LABELS = {
-  baseline: "Baseline: 200 app drivers a day",
-  high_demand: "High demand: 600 app drivers a day",
-  distance_priority: "Cost strategy weighted towards distance",
-  top3_choice: "Drivers pick any of the top three",
-  "load_0.5x": "Background demand halved",
-  "load_1.5x": "Background demand x1.5",
-  load_2x: "Background demand doubled",
-};
-const SCENARIO_LABELS = {
-  spread: "Spread across central London",
-  corridor: "Along Euston and Marylebone Road",
-  hotspot: "Everyone near King's Cross",
-};
 
-const minutes = (value) => (value >= 10 ? value.toFixed(0) : value.toFixed(1));
-const unique = (values) => [...new Set(values)];
 
-function Finding({ value, label, detail, tone }) {
-  return (
-    <div className={`finding-card${tone ? ` finding-card--${tone}` : ""}`}>
-      <div className="finding-value">{value}</div>
-      <div className="finding-label">{label}</div>
-      {detail && <div className="finding-detail">{detail}</div>}
-    </div>
-  );
-}
+const VARIANT_OPTIONS = ["baseline_equal", "distance_priority", "queue_stress", "topk_robustness"];
+const SCENARIO_OPTIONS = ["urban", "mixed", "highway"];
 
-export function FindingsPanel({ findings }) {
-  const best = findings.best_strategy;
-  const baseline = findings.baseline;
-  const { baseline: lookBase, high_demand: lookHigh } = findings.lookahead;
-  const study = findings.study;
-  const pValue = (p) => (p < 0.001 ? "p < 0.001" : `p = ${p.toFixed(3)}`);
+export default function StatsDashboard({ rows, loadError }) {
+  const [variant, setVariant] = useState("baseline_equal");
+  const [scenario, setScenario] = useState("urban");
 
-  return (
-    <div className="findings-panel">
-      <div className="findings-title">What the simulation found</div>
-      <div className="findings-sub">
-        {study.stations} stations · {study.days_per_scenario} simulated days in each of{" "}
-        {study.scenarios.length} scenarios · {study.baseline_app_drivers.toLocaleString()} app drivers routed
-        by each strategy at baseline
-      </div>
-      <div className="findings-grid">
-        <Finding
-          tone="highlight"
-          value={`${minutes(baseline[best].journey_min)} min`}
-          label={`average journey with ${STRATEGY_LABELS[best]}`}
-          detail={`against ${minutes(baseline.nearest.journey_min)} min for Nearest, drive plus wait`}
-        />
-        <Finding
-          tone="highlight"
-          value={`${findings.vs_nearest.wait_reduction_pct.toFixed(1)}%`}
-          label="less waiting than Nearest"
-          detail={`for ${(findings.vs_nearest.extra_distance_km * 1000).toFixed(0)} m more driving`}
-        />
-        <Finding
-          value={`${minutes(lookHigh.saving_min)} min`}
-          label="saved by reservation lookahead at high demand"
-          detail={`Queue aware vs Static queue, 95% CI ${minutes(lookHigh.saving_ci[0])} to ${minutes(
-            lookHigh.saving_ci[1],
-          )} min, d = ${lookHigh.cohens_dz.toFixed(2)}, ${pValue(lookHigh.p_holm)}`}
-        />
-        <Finding
-          tone="modest"
-          value={`${minutes(lookBase.saving_min)} min`}
-          label="saved by the same lookahead at normal demand"
-          detail={`Real but small (d = ${lookBase.cohens_dz.toFixed(2)}): it matters once app drivers crowd the same stations`}
-        />
-      </div>
-    </div>
-  );
-}
-
-export default function StatsDashboard() {
-  const [rows, setRows] = useState([]);
-  const [findings, setFindings] = useState(null);
-  const [error, setError] = useState("");
-  const [variant, setVariant] = useState("baseline");
-  const [scenario, setScenario] = useState("spread");
-
-  useEffect(() => {
-    Promise.all([fetchExperimentSummary(), fetchFindings()])
-      .then(([summary, found]) => {
-        setRows(summary.rows || []);
-        setFindings(found);
-      })
-      .catch((err) => setError(err.message));
-  }, []);
-
-  const cell = useMemo(() => {
-    const byStrategy = new Map(
-      rows.filter((r) => r.variant === variant && r.scenario === scenario).map((r) => [r.algorithm, r]),
-    );
-    return STRATEGIES.filter((s) => byStrategy.has(s.id)).map((s) => ({
-      ...byStrategy.get(s.id),
-      label: s.label,
+  const chartRows = useMemo(() => {
+    const subset = rows.filter((r) => r.variant === variant && r.scenario === scenario);
+    return subset.map((r) => ({
+      algorithm: r.algorithm,
+      distance_km: Number(r.distance_mean ?? 0),
+      wait_min: Number(r.wait_mean ?? 0),
+      accept_pct: Number(r.reservation_accept_rate ?? 0) * 100,
     }));
   }, [rows, variant, scenario]);
 
-  if (error) return <p className="status">Could not load the experiment results: {error}</p>;
-  if (!findings) return <p className="status">Loading experiment results…</p>;
+  if (loadError) {
+    return <p className="status">Could not load experiment summary: {loadError}</p>;
+  }
 
+  if (!rows.length) {
+    return (
+      <p className="status">
+        No experiment summaries found. Run <code>docker compose exec backend python -m experiments.run_experiments</code> then{" "}
+        <code>analyse_results</code>.
+      </p>
+    );
+  }
+
+
+
+  
   return (
     <div className="stats-wrap">
-      <FindingsPanel findings={findings} />
-
       <div className="field">
-        <label htmlFor="stats-variant">Variant</label>
-        <select id="stats-variant" value={variant} onChange={(e) => setVariant(e.target.value)}>
-          {unique(rows.map((r) => r.variant)).map((v) => (
+        <label>Variant</label>
+        <select value={variant} onChange={(e) => setVariant(e.target.value)}>
+          {VARIANT_OPTIONS.map((v) => (
             <option key={v} value={v}>
-              {VARIANT_LABELS[v] ?? v}
+              {v}
             </option>
           ))}
         </select>
       </div>
       <div className="field">
-        <label htmlFor="stats-scenario">Where drivers start</label>
-        <select id="stats-scenario" value={scenario} onChange={(e) => setScenario(e.target.value)}>
-          {unique(rows.map((r) => r.scenario)).map((s) => (
+        <label>Scenario</label>
+        <select value={scenario} onChange={(e) => setScenario(e.target.value)}>
+          {SCENARIO_OPTIONS.map((s) => (
             <option key={s} value={s}>
-              {SCENARIO_LABELS[s] ?? s}
+              {s}
             </option>
           ))}
         </select>
       </div>
-
+      <div className="findings-panel">
+        <div className="findings-title">Experiment results</div>
+        <div className="findings-sub">162 conditions &nbsp;·&nbsp; 9 variants × 3 scenarios × 6 algorithms &nbsp;·&nbsp; 100 trials each</div>
+        <div className="findings-grid">
+          <div className="finding-card finding-card--highlight">
+            <div className="finding-value">~99%</div>
+            <div className="finding-label">predicted wait reduction</div>
+            <div className="finding-detail">queue-aware vs nearest / dijkstra</div>
+          </div>
+          <div className="finding-card finding-card--highlight">
+            <div className="finding-value">d = 1.17</div>
+            <div className="finding-label">Cohen's d</div>
+            <div className="finding-detail">effect size, large (&gt; 0.8)</div>
+          </div>
+          <div className="finding-card">
+            <div className="finding-value">F = 228.67</div>
+            <div className="finding-label">ANOVA, p ≈ 0</div>
+            <div className="finding-detail">algorithm choice is statistically significant</div>
+          </div>
+          <div className="finding-card">
+            <div className="finding-value">η² = 0.39</div>
+            <div className="finding-label">eta-squared</div>
+            <div className="finding-detail">39% of wait variance explained by algorithm</div>
+          </div>
+          <div className="finding-card finding-card--nonresult">
+            <div className="finding-value">d = 0.03 &nbsp;·&nbsp; p = 1.0</div>
+            <div className="finding-label">queue_aware vs static_queue</div>
+            <div className="finding-detail">reservation lookahead shows no significant benefit at baseline load</div>
+          </div>
+        </div>
+      </div>
+      <p className="stats-summary">
+        The charts below show one configuration at a time. Use the dropdowns to explore different variants and scenarios. The headline numbers above are from the full ANOVA across all 162 conditions.
+      </p>
+      <details className="stats-details">
+        <summary>What am I looking at?</summary>
+        <div className="stats-details-body">
+          <p><strong>Variant options:</strong></p>
+          <ul>
+            <li><strong>baseline_equal:</strong> equal weights across all routing criteria</li>
+            <li><strong>distance_priority:</strong> users prefer shorter drives</li>
+            <li><strong>queue_stress:</strong> artificially high arrival rate to stress-test queuing behaviour</li>
+            <li><strong>topk_robustness:</strong> only the top-k nearest stations are considered per request</li>
+          </ul>
+          <p><strong>Scenario options:</strong></p>
+          <ul>
+            <li><strong>urban:</strong> high-density city demand profile</li>
+            <li><strong>mixed:</strong> blend of urban and highway demand</li>
+            <li><strong>highway:</strong> long-distance motorway demand profile</li>
+          </ul>
+          <p><em>Note: Very large wait values (e.g. 40 min) indicate the Erlang-C model reached high utilisation for that synthetic profile. This is expected behaviour and is discussed in the dissertation.</em></p>
+        </div>
+      </details>
       <div className="chart-box">
-        <h4>Mean journey time, drive plus wait (minutes, log scale)</h4>
-        <ResponsiveContainer width="100%" height={240}>
-          <BarChart data={cell} layout="vertical" margin={{ left: 8, right: 24 }}>
-            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-            <XAxis type="number" scale="log" domain={[1, "auto"]} allowDataOverflow />
-            <YAxis type="category" dataKey="label" width={96} />
-            <Tooltip formatter={(value) => [`${minutes(value)} min`, "Journey"]} />
-            <Bar dataKey="journey_min" fill="#2a78d6" radius={[0, 4, 4, 0]} />
+        <h4>Mean travel distance (km)</h4>
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart data={chartRows}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="algorithm" angle={-20} height={70} interval={0} textAnchor="end" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="distance_km" fill="#2563eb" name="Distance (km)" />
           </BarChart>
         </ResponsiveContainer>
       </div>
-
-      <table className="stats-table">
-        <thead>
-          <tr>
-            <th>Strategy</th>
-            <th>Journey (min)</th>
-            <th>Wait (min)</th>
-            <th>Waited</th>
-            <th>Drive (km)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {cell.map((r) => (
-            <tr key={r.algorithm}>
-              <td>{r.label}</td>
-              <td title={`95% CI ${minutes(r.journey_min_ci_low)} to ${minutes(r.journey_min_ci_high)}`}>
-                {minutes(r.journey_min)}
-              </td>
-              <td>{minutes(r.wait_min)}</td>
-              <td>{Math.round(r.share_waited * 100)}%</td>
-              <td>{r.distance_km.toFixed(2)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <details className="stats-details">
-        <summary>How these numbers were produced</summary>
-        <div className="stats-details-body">
-          <p>
-            Each simulated day, background drivers arrive at every station at random, and app drivers set off
-            at random times and ask a strategy where to charge. They drive there, taking the real road travel
-            time, and queue for a free charger. The waits are measured from that queue, not predicted.
-          </p>
-          <p>
-            Every strategy faces exactly the same days, so differences between them come from the strategy
-            alone. Drivers in the simulation never give up and leave, so where a queue grows through the day
-            the averages show how overloaded that station is rather than how long anyone would really wait.
-          </p>
-        </div>
-      </details>
+      <div className="chart-box">
+        <h4>Model-predicted wait (minutes)</h4>
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart data={chartRows}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="algorithm" angle={-20} height={70} interval={0} textAnchor="end" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="wait_min" fill="#059669" name="Wait (min)" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="chart-box">
+        <h4>Simulated reservation acceptance rate (%)</h4>
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart data={chartRows}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="algorithm" angle={-20} height={70} interval={0} textAnchor="end" />
+            <YAxis domain={[0, 100]} />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="accept_pct" fill="#d97706" name="Accepted (%)" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }

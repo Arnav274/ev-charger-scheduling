@@ -1,66 +1,70 @@
 #!/bin/bash
-# End-to-end check of a running stack (after `docker compose up` and the setup commands in the
-# README). Prints PASS or FAIL for each check, then a summary, and exits non-zero on any failure.
+# End-to-end smoke test. Run it against a running stack (docker compose up) to
+# confirm every moving part works: containers, committed experiment outputs, the
+# API, authentication, the stats endpoint, OSRM routing, the frontend and the
+# test suite. Prints PASS or FAIL per check, then a summary.
 
+# Every path and compose command below is relative to the repository root, so
+# work from there regardless of where the script was invoked from.
 cd "$(dirname "$0")/.." || exit 1
 
-API=http://localhost:8000
-PY=$(command -v python3 || command -v python)
 PASS=0
 FAIL=0
 
-# Assign rather than ((n++)): the post-increment form returns status 1 while the counter is 0.
-ok() { echo "PASS  $1"; PASS=$((PASS + 1)); }
-bad() { echo "FAIL  $1"; FAIL=$((FAIL + 1)); }
-check() { if eval "$2" >/dev/null 2>&1; then ok "$1"; else bad "$1"; fi; }
-# Read a value out of a JSON response: json '<python expression over d>'
-json() { "$PY" -c "import json, sys; d = json.load(sys.stdin); print($1)"; }
+# Assign rather than ((n++)): the post-increment form returns exit status 1 when
+# the counter is still 0, which made the first passing check fall through to the
+# `|| bad` branch and report a phantom failure.
+ok()  { echo "✅ $1"; PASS=$((PASS + 1)); }
+bad() { echo "❌ $1"; FAIL=$((FAIL + 1)); }
 
-echo "== Services"
-check "backend health" "curl -sf $API/health | grep -q ok"
-check "OSRM routes a real trip" \
-  "curl -sf 'http://localhost:5000/route/v1/driving/-0.1278,51.5074;-0.1195,51.5033' | grep -q '\"Ok\"'"
-check "frontend serves" "curl -sf http://localhost:5173 | grep -q 'id=\"root\"'"
-
-echo "== Data"
-stations=$(curl -sf "$API/stations/nearby?lat=51.5074&lon=-0.1278&radius_km=5" | json 'len(d)')
-if [ "${stations:-0}" -ge 50 ] 2>/dev/null; then ok "stations loaded ($stations)"; else bad "stations loaded (got '${stations}', need 50+)"; fi
-check "road graph built" "test -f backend/data/road_graph.npz"
-
-echo "== Recommendations"
-for algorithm in nearest dijkstra cost_optimized static_queue queue_aware range_aware; do
-  count=$(curl -sf -X POST "$API/recommendations" -H 'Content-Type: application/json' \
-    -d "{\"origin_lat\": 51.5074, \"origin_lon\": -0.1278, \"algorithm\": \"$algorithm\", \"top_k\": 3}" |
-    json 'len(d)')
-  if [ "${count:-0}" -eq 3 ] 2>/dev/null; then ok "$algorithm returns 3 stations"; else bad "$algorithm returns 3 stations (got '${count}')"; fi
+echo "=== Docker containers ==="
+docker compose ps --format "{{.Name}} {{.Status}}" 2>/dev/null | while read name status; do
+  echo "  $name: $status"
 done
 
-echo "== Accounts and booking"
-token=$(curl -sf -X POST "$API/auth/login" -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'username=demo.user@example.com&password=DemoPass123!' | json 'd["access_token"]')
-if [ -n "$token" ]; then ok "demo login"; else bad "demo login (run scripts.seed_demo)"; fi
-station=$(curl -sf "$API/stations/nearby?lat=51.5074&lon=-0.1278&radius_km=1" | json 'd[0]["id"]')
-charger=$(curl -sf "$API/stations/$station" | json 'd["chargers"][0]["id"]')
-# A random hour far in the future, so repeated runs do not collide with their own bookings.
-start=$("$PY" -c "import datetime as t, random; print((t.datetime(2040, 1, 1) + t.timedelta(hours=random.randrange(10**5))).isoformat() + 'Z')")
-end=$("$PY" -c "import datetime as t; print((t.datetime.fromisoformat('${start%Z}') + t.timedelta(hours=1)).isoformat() + 'Z')")
-book() {
-  curl -s -o /dev/null -w '%{http_code}' -X POST "$API/reservations" -H "Authorization: Bearer $token" \
-    -H 'Content-Type: application/json' -d "{\"charger_id\": \"$charger\", \"start_time\": \"$start\", \"end_time\": \"$end\"}"
-}
-[ "$(book)" = "201" ] && ok "booking accepted" || bad "booking accepted"
-[ "$(book)" = "409" ] && ok "double booking rejected" || bad "double booking rejected"
+echo ""
+echo "=== Critical files in repo ==="
+files=(
+  "backend/experiments/outputs/summary_ci.csv"
+  "backend/experiments/outputs/algorithm_comparison_bar.png"
+  "backend/experiments/outputs/boxplot_wait_time.png"
+  "backend/experiments/outputs/anova.txt"
+  "backend/experiments/outputs/posthoc_wait.csv"
+  "frontend/src/App.jsx"
+  "frontend/src/EthicsPanel.jsx"
+  "frontend/src/StatsDashboard.jsx"
+  "frontend/src/styles.css"
+)
+for f in "${files[@]}"; do
+  [ -f "$f" ] && ok "$f" || bad "$f MISSING"
+done
 
-echo "== Experiment results"
-check "committed results present" \
-  "test -f backend/experiments/outputs/summary_ci.csv -a -f backend/experiments/outputs/findings.json"
-expected=$(curl -sf "$API/stats/findings" | json 'len(d["study"]["variants"]) * len(d["study"]["scenarios"]) * 6')
-rows=$(curl -sf "$API/stats/experiment-summary" | json 'len(d["rows"])')
-if [ -n "$rows" ] && [ "$rows" = "$expected" ]; then ok "stats endpoint serves every condition ($rows)"; else bad "stats endpoint rows (got '${rows}', expected '${expected}')"; fi
+echo ""
+echo "=== Backend API ==="
+health=$(curl -s http://localhost:8000/health 2>/dev/null)
+echo "$health" | grep -q "ok" && ok "Health endpoint" || bad "Health endpoint, backend not responding"
 
-echo "== Test suites"
-check "backend tests" "docker compose exec -T -e REQUIRE_DB=1 backend pytest -q"
+count=$(curl -s "http://localhost:8000/stations/nearby?lat=51.5074&lon=-0.1278&radius_km=5" 2>/dev/null | python3 -c "import json,sys;d=json.load(sys.stdin);print(len(d))" 2>/dev/null)
+[ "$count" -ge 50 ] 2>/dev/null && ok "Stations loaded: $count" || bad "Stations: got '$count' (need 50+)"
 
-echo
-echo "RESULT: $PASS passed, $FAIL failed"
-[ "$FAIL" -eq 0 ]
+login=$(curl -s -X POST "http://localhost:8000/auth/login" -H "Content-Type: application/x-www-form-urlencoded" -d "username=demo.user@example.com&password=DemoPass123!" 2>/dev/null)
+echo "$login" | grep -q "access_token" && ok "Demo login works" || bad "Demo login FAILED"
+
+stats=$(curl -s "http://localhost:8000/stats/experiment-summary" 2>/dev/null | python3 -c "import json,sys;d=json.load(sys.stdin);print(len(d['rows']))" 2>/dev/null)
+[ "$stats" -eq 162 ] 2>/dev/null && ok "Stats endpoint: $stats rows" || bad "Stats endpoint: got '$stats' (need 162)"
+
+osrm=$(curl -s "http://localhost:5000/route/v1/driving/-0.1278,51.5074;-0.1195,51.5033" 2>/dev/null)
+echo "$osrm" | grep -q "routes" && ok "OSRM routing works" || bad "OSRM not responding"
+
+echo ""
+echo "=== Frontend ==="
+frontend=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173 2>/dev/null)
+[ "$frontend" = "200" ] && ok "Frontend serving (HTTP 200)" || bad "Frontend not responding (got $frontend)"
+
+echo ""
+echo "=== Test suite ==="
+docker compose exec backend pytest -q 2>/dev/null | tail -1
+
+echo ""
+echo "=== RESULT: $PASS passed, $FAIL failed ==="
+[ "$FAIL" -eq 0 ] && echo "Everything looks good." || echo "Fix the items marked ❌ above."

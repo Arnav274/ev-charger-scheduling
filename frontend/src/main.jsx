@@ -5,6 +5,7 @@ import "./styles.css";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: new URL("leaflet/dist/images/marker-icon-2x.png", import.meta.url).href,
@@ -15,5 +16,5 @@ L.Icon.Default.mergeOptions({
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>,
+  </React.StrictMode>
 );

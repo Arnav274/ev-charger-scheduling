@@ -4,35 +4,35 @@ export default function EthicsPanel() {
       <h3>Privacy &amp; Ethics</h3>
 
       <p>
-        <strong>Your location data.</strong> When you search for nearby charging stations, your entered
-        coordinates are sent to the local research server to find nearby stations. No location data is stored
-        after the request completes, and no third-party analytics or advertising services are used.
+        <strong>Your location data.</strong> When you search for nearby charging stations, your entered coordinates are
+        sent to the local research server to find nearby stations. No location data is stored after the request
+        completes, and no third-party analytics or advertising services are used.
       </p>
 
       <p>
-        <strong>Charging station data.</strong> Station locations and information come from the OpenChargeMap
-        open dataset. Prices, availability, and operator details may not reflect real-time ground truth. This
-        is a research prototype, not a live booking service.
+        <strong>Charging station data.</strong> Station locations and information come from the OpenChargeMap open
+        dataset. Prices, availability, and operator details may not reflect real-time ground truth. This is a research
+        prototype, not a live booking service.
       </p>
 
       <p>
-        <strong>Algorithmic fairness.</strong> This system compares six routing algorithms. Each one makes
-        different trade-offs between travel distance, waiting time, and cost. Research has shown that
-        different routing policies can affect groups of drivers unevenly, including people who never use the
-        app: a strategy that sends everyone to the same few stations lengthens the queue for local drivers
-        there. The experiment measures this directly as the wait of drivers outside the app.
+        <strong>Algorithmic fairness.</strong> This system compares six routing algorithms. Each one makes different
+        trade-offs between travel distance, waiting time, and cost. Research has shown that different routing policies
+        can affect groups of drivers unevenly. Drivers who live further from city centres, for example, may be
+        penalised by distance-heavy approaches. The Jain fairness index shown in the Stats tab measures how evenly
+        recommendations are spread across stations.
       </p>
 
       <p>
-        <strong>Accounts and passwords.</strong> Passwords are stored using bcrypt hashing, which is standard
-        security practice. This is a sandboxed research build, so please do not reuse real passwords. Accounts
-        and reservations are stored locally in Docker and are not shared with any third party.
+        <strong>Accounts and passwords.</strong> Passwords are stored using bcrypt hashing, which is standard security
+        practice. This is a sandboxed research build, so please do not reuse real passwords. Accounts and reservations
+        are stored locally in Docker and are not shared with any third party.
       </p>
 
       <p>
-        <strong>Research ethics.</strong> This project was developed following the University of East Anglia
-        CMP ethics guidelines. The comparison of algorithmic policies is a research artefact. Results should
-        not be used to make real-world charging decisions.
+        <strong>Research ethics.</strong> This project was developed following the University of East Anglia CMP ethics
+        guidelines. The comparison of algorithmic policies is a research artefact. Results should not be used to make
+        real-world charging decisions.
       </p>
     </div>
   );

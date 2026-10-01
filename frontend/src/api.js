@@ -1,86 +1,189 @@
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
-// FastAPI reports errors as {detail: string} or, for validation, {detail: [{loc, msg}]}.
-export function errorMessage(detail, fallback) {
+async function safeJson(res) {
+  if (!res || typeof res.json !== "function") return {};
+  try {
+    return await res.json();
+  } catch {
+    return {};
+  }
+}
+
+
+
+function parseErrorDetail(detail, fallback) {
+  if (!detail) return fallback;
   if (typeof detail === "string") return detail;
-  if (Array.isArray(detail) && detail[0]) {
+  if (Array.isArray(detail)) {
     const first = detail[0];
     if (typeof first === "string") return first;
-    const field = Array.isArray(first.loc) ? first.loc.slice(1).join(".") : "field";
-    return `${field}: ${first.msg || "invalid value"}`;
+    if (first && typeof first === "object") {
+      const field = Array.isArray(first.loc) ? first.loc.slice(1).join(".") : "field";
+      return `${field}: ${first.msg || "invalid value"}`;
+    }
   }
+  if (typeof detail === "object" && detail.message) return String(detail.message);
   return fallback;
 }
 
-async function request(path, { method = "GET", json, form, token, failure }) {
-  const headers = {};
-  let body;
-  if (json !== undefined) {
-    headers["Content-Type"] = "application/json";
-    body = JSON.stringify(json);
-  } else if (form !== undefined) {
-    headers["Content-Type"] = "application/x-www-form-urlencoded";
-    body = new URLSearchParams(form).toString();
-  }
-  if (token) headers.Authorization = `Bearer ${token}`;
 
-  let res;
-  try {
-    res = await fetch(`${API_BASE}${path}`, { method, headers, body });
-  } catch {
-    throw new Error("Cannot reach the backend. Is `docker compose up` running?");
-  }
+
+export async function registerUser(email, password) {
+  const res = await fetch(`${API_BASE}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
   if (!res.ok) {
-    // Error bodies are not always JSON (a proxy's HTML page, an empty 502).
-    const payload = await Promise.resolve()
-      .then(() => res.json())
-      .catch(() => ({}));
-    throw new Error(errorMessage(payload.detail, failure));
+    const body = await safeJson(res);
+    throw new Error(parseErrorDetail(body.detail, "Registration failed"));
   }
   return res.json();
 }
 
-export const registerUser = (email, password) =>
-  request("/auth/register", { method: "POST", json: { email, password }, failure: "Registration failed" });
 
-export const loginUser = (email, password) =>
-  request("/auth/login", {
+
+export async function loginUser(email, password) {
+  const body = new URLSearchParams();
+  body.set("username", email);
+  body.set("password", password);
+  const res = await fetch(`${API_BASE}/auth/login`, {
     method: "POST",
-    form: { username: email, password },
-    failure: "Sign-in failed",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
   });
 
-export const fetchNearbyStations = (lat, lon, radiusKm) =>
-  request(`/stations/nearby?lat=${lat}&lon=${lon}&radius_km=${radiusKm}`, {
-    failure: "Could not load nearby stations",
-  });
 
-export const fetchStation = (stationId) =>
-  request(`/stations/${stationId}`, { failure: "Could not load the station" });
+  if (!res.ok) {
+    const err = await safeJson(res);
+    throw new Error(parseErrorDetail(err.detail, "Login failed"));
+  }
+  return res.json();
+}
 
-export const suggestSlot = (stationId, payload) =>
-  request(`/stations/${stationId}/suggest-slot`, {
+
+
+export async function fetchExperimentSummary() {
+  const res = await fetch(`${API_BASE}/stats/experiment-summary`);
+  if (!res.ok) throw new Error("Failed to load experiment summary");
+  return res.json();
+}
+
+
+
+export async function fetchNearbyStations(lat, lon, radiusKm = 5) {
+  const url = `${API_BASE}/stations/nearby?lat=${lat}&lon=${lon}&radius_km=${radiusKm}`;
+  let res;
+  try {
+    res = await fetch(url);
+  } catch {
+    throw new Error("Backend offline, run docker compose up to load stations");
+  }
+
+  if (!res.ok) {
+    const body = await safeJson(res);
+    throw new Error(parseErrorDetail(body.detail, "Failed to fetch nearby stations"));
+  }
+  return res.json();
+}
+
+
+export async function fetchStation(stationId) {
+  const res = await fetch(`${API_BASE}/stations/${stationId}`);
+  if (!res.ok) {
+    const body = await safeJson(res);
+    throw new Error(parseErrorDetail(body.detail, "Failed to fetch station"));
+  }
+  return res.json();
+}
+
+
+
+export async function createReservation(payload, accessToken) {
+  const res = await fetch(`${API_BASE}/reservations`, {
     method: "POST",
-    json: payload,
-    failure: "Could not search for a slot",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(payload),
   });
+  if (!res.ok) {
+    const body = await safeJson(res);
+    throw new Error(parseErrorDetail(body.detail, "Failed to create reservation"));
+  }
+  return res.json();
+}
 
-export const getRecommendations = (payload) =>
-  request("/recommendations", { method: "POST", json: payload, failure: "Could not get recommendations" });
 
-export const createReservation = (payload, token) =>
-  request("/reservations", { method: "POST", json: payload, token, failure: "Could not make the booking" });
 
-export const getMyReservations = (token) =>
-  request("/reservations/mine", { token, failure: "Could not load your bookings" });
 
-export const createVehicle = (payload, token) =>
-  request("/vehicles", { method: "POST", json: payload, token, failure: "Could not save the vehicle" });
+export async function suggestSlot(stationId, payload) {
+  const res = await fetch(`${API_BASE}/stations/${stationId}/suggest-slot`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = await safeJson(res);
+    throw new Error(parseErrorDetail(body.detail, "Failed to suggest slot"));
+  }
+  return res.json();
+}
 
-export const fetchVehicles = (token) => request("/vehicles", { token, failure: "Could not load vehicles" });
 
-export const fetchExperimentSummary = () =>
-  request("/stats/experiment-summary", { failure: "Could not load the experiment summary" });
 
-export const fetchFindings = () =>
-  request("/stats/findings", { failure: "Could not load the experiment findings" });
+
+export async function getRecommendations(payload) {
+  const res = await fetch(`${API_BASE}/recommendations`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = await safeJson(res);
+    throw new Error(parseErrorDetail(body.detail, "Failed to get recommendations"));
+  }
+  return res.json();
+}
+
+
+
+export async function createVehicle(payload, accessToken) {
+  const res = await fetch(`${API_BASE}/vehicles`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = await safeJson(res);
+    throw new Error(parseErrorDetail(body.detail, "Failed to save vehicle"));
+  }
+  return res.json();
+}
+
+
+
+export async function fetchVehicles(accessToken) {
+  const res = await fetch(`${API_BASE}/vehicles`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) {
+    const body = await safeJson(res);
+    throw new Error(parseErrorDetail(body.detail, "Failed to fetch vehicles"));
+  }
+  return res.json();
+}
+
+
+
+export async function getMyReservations(accessToken) {
+  const res = await fetch(`${API_BASE}/reservations/mine`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) return [];
+  return res.json();
+}

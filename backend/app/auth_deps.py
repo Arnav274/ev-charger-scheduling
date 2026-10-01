@@ -1,18 +1,26 @@
 """FastAPI dependency: bearer JWT resolves to authenticated user id."""
 
-import uuid
 from typing import Annotated
+import uuid
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jwt import PyJWTError
+from jose import JWTError
 from sqlalchemy.orm import Session
+
+
+
+
 
 from app.auth_utils import decode_access_token_subject
 from app.database import get_db
 from app.models import User
 
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+
+
 
 
 def get_current_user_id(
@@ -26,8 +34,8 @@ def get_current_user_id(
     )
     try:
         uid = decode_access_token_subject(token)
-    except (PyJWTError, ValueError) as exc:
-        raise credentials_exception from exc
+    except JWTError:
+        raise credentials_exception
     user = db.query(User).filter(User.id == uid).first()
     if user is None:
         raise credentials_exception

@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
@@ -13,6 +12,7 @@ class NearbyStationOut(BaseModel):
     lon: float
     price_pence_per_kwh: float
     distance_m: float
+
 
 
 class ChargerOut(BaseModel):
@@ -57,30 +57,23 @@ class ReservationDetailOut(BaseModel):
     charger_name: str
 
 
-Algorithm = Literal["nearest", "dijkstra", "cost_optimized", "static_queue", "queue_aware", "range_aware"]
-NonNegative = Annotated[float, Field(ge=0)]
-
-
 class RecommendationRequest(BaseModel):
-    origin_lat: float = Field(ge=-90, le=90)
-    origin_lon: float = Field(ge=-180, le=180)
-    radius_km: float = Field(default=5.0, gt=0, le=50)
-    algorithm: Algorithm = "queue_aware"
-    # Relative importance of distance, wait and price for cost_optimized.
-    weights: tuple[NonNegative, NonNegative, NonNegative] = (1 / 3, 1 / 3, 1 / 3)
-    top_k: int = Field(default=5, ge=1, le=50)
+    origin_lat: float
+    origin_lon: float
+    radius_km: float = Field(default=5.0, gt=0)
+    algorithm: str = "queue_aware"
+    weights: tuple[float, float, float] = (1 / 3, 1 / 3, 1 / 3)
+    top_k: int = 5
     departure_time: datetime | None = None
     arrival_time_target: datetime | None = None
     arrival_window_minutes: int = Field(default=15, ge=1, le=240)
-    battery_level_percent: float | None = Field(default=None, ge=0, le=100)
-    battery_capacity_kwh: float | None = Field(default=None, gt=0)
+    battery_level_percent: float | None = None  # 0-100
+    battery_capacity_kwh: float | None = None
 
 
 class RecommendationOut(BaseModel):
     station_id: UUID
     station_name: str
-    lat: float
-    lon: float
     score: float
     travel_distance_km: float
     travel_time_min: float

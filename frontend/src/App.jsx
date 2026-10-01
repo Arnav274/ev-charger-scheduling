@@ -1,189 +1,966 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import L from "leaflet";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import {
 
-import { fetchStation, fetchVehicles, getMyReservations, getRecommendations } from "./api";
-import AccountPanel from "./components/AccountPanel";
-import BookingPanel from "./components/BookingPanel";
-import RecommendationList from "./components/RecommendationList";
-import StationFinder from "./components/StationFinder";
-import StationMap from "./components/StationMap";
-import StrategyPicker from "./components/StrategyPicker";
+
+
+
+  createReservation,
+  createVehicle,
+  fetchNearbyStations,
+  fetchExperimentSummary,
+  fetchStation,
+  fetchVehicles,
+  getMyReservations,
+  getRecommendations,
+  loginUser,
+  registerUser,
+  suggestSlot,
+
+} from "./api";
+
+
+
+
+
 import EthicsPanel from "./EthicsPanel";
-import useAuth from "./hooks/useAuth";
-import useStations from "./hooks/useStations";
+import StatsDashboard from "./StatsDashboard";
+import HeatmapLayer from "./HeatmapLayer";
 
-// The charts library is only needed on the Results tab, so it loads on demand.
-const StatsDashboard = lazy(() => import("./StatsDashboard"));
+const defaultCenter = { lat: 51.5074, lon: -0.1278 };
+const TOKEN_KEY = "ev_portfolio_access_token";
+const toLocalDatetimeInput = (d) => {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
-const TABS = [
-  { id: "map", label: "Map" },
-  { id: "stats", label: "Results" },
-  { id: "privacy", label: "Privacy & ethics" },
-];
 
-function scrollTo(ref) {
-  requestAnimationFrame(() => ref.current?.scrollIntoView?.({ behavior: "smooth", block: "start" }));
-}
 
-export default function App() {
-  const [tab, setTab] = useState("map");
-  const auth = useAuth();
-  const finder = useStations();
+const ALGO_LABELS = {
+  nearest: "Nearest",
+  cost_optimized: "Cost-optimised",
+  queue_aware: "Queue-aware",
+  static_queue: "Static queue (baseline)",
+  dijkstra: "Dijkstra",
+  range_aware: "Range-aware",
+};
 
-  const [strategy, setStrategy] = useState(null);
-  // Kept with the strategy that produced them, so the heading never labels stale results.
-  const [results, setResults] = useState({ strategy: null, items: [] });
-  const [battery, setBattery] = useState({ level: "", capacity: "" });
-  const [selectedStation, setSelectedStation] = useState(null);
-  const [showHotspots, setShowHotspots] = useState(false);
-  const [vehicles, setVehicles] = useState([]);
-  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
-  const [reservations, setReservations] = useState([]);
 
-  const resultsRef = useRef(null);
-  const bookingRef = useRef(null);
-  const accountRef = useRef(null);
-
-  const { token } = auth;
-  const refreshVehicles = useCallback(() => {
-    fetchVehicles(token)
-      .then(setVehicles)
-      .catch(() => setVehicles([]));
-  }, [token]);
-  const refreshReservations = useCallback(() => {
-    getMyReservations(token)
-      .then(setReservations)
-      .catch(() => setReservations([]));
-  }, [token]);
+function FitBoundsToStations({ stations }) {
+  const map = useMap();
 
   useEffect(() => {
-    if (!token) {
-      setVehicles([]);
-      setReservations([]);
-      setSelectedVehicleId(null);
+    if (!stations.length) return;
+    const bounds = L.latLngBounds(stations.map((s) => [s.lat, s.lon]));
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+  }, [stations, map]);
+
+  return null;
+}
+
+
+function App() {
+  const [tab, setTab] = useState("map");
+  const [center, setCenter] = useState(defaultCenter);
+  const [radiusKm, setRadiusKm] = useState(5);
+  const [stations, setStations] = useState([]);
+  const [stationFilter, setStationFilter] = useState("");
+  const [selectedStation, setSelectedStation] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
+  const [status, setStatus] = useState("Ready.");
+  const [form, setForm] = useState({ charger_id: "", start_time: "", end_time: "" });
+  const [accessToken, setAccessToken] = useState(() => localStorage.getItem(TOKEN_KEY) || "");
+  const [regs, setRegs] = useState({ email: "", password: "" });
+  const [statsRows, setStatsRows] = useState([]);
+  const [statsLoadError, setStatsLoadError] = useState("");
+  const [authStatus, setAuthStatus] = useState("");
+  const [reservationStatus, setReservationStatus] = useState("");
+  const [showHotspots, setShowHotspots] = useState(false);
+  const [slotArrival, setSlotArrival] = useState("");
+  const [slotDuration, setSlotDuration] = useState("60");
+  const [suggestedSlots, setSuggestedSlots] = useState([]);
+  const [slotStatus, setSlotStatus] = useState("");
+  const [batteryLevel, setBatteryLevel] = useState("");
+  const [batteryCapacity, setBatteryCapacity] = useState("");
+  const [supplementaryStations, setSupplementaryStations] = useState(new Map());
+  const [fetchingHotspots, setFetchingHotspots] = useState(false);
+  const [vehicles, setVehicles] = useState([]);
+  const [vehicleForm, setVehicleForm] = useState({ make_model: "", battery_kwh: "" });
+  const [myReservations, setMyReservations] = useState([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
+  const [activeAlgorithm, setActiveAlgorithm] = useState(null);
+  const [locating, setLocating] = useState(false);
+  const [reservationSuccess, setReservationSuccess] = useState(null);
+
+
+
+
+  const reserveSectionRef = useRef(null);
+
+  const recommendationsRef = useRef(null);
+  const rangeAwareRef = useRef(null);
+  const myAccountRef = useRef(null);
+
+
+
+  useEffect(() => {
+    if (accessToken) localStorage.setItem(TOKEN_KEY, accessToken);
+    else localStorage.removeItem(TOKEN_KEY);
+  }, [accessToken]);
+
+
+
+  useEffect(() => {
+    if (!accessToken) { setVehicles([]); setSelectedVehicleId(null); return; }
+    fetchVehicles(accessToken).then(setVehicles).catch(() => {});
+  }, [accessToken]);
+
+
+
+
+  useEffect(() => {
+    if (!accessToken) { setMyReservations([]); return; }
+    getMyReservations(accessToken).then(setMyReservations).catch(() => {});
+  }, [accessToken]);
+
+
+
+  useEffect(() => {
+    if (!recommendations.length) return;
+    requestAnimationFrame(() => {
+      if (typeof recommendationsRef.current?.scrollIntoView === "function") {
+        recommendationsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  }, [recommendations]);
+
+
+
+  useEffect(() => {
+    if (!selectedStation) return;
+    const ms30 = 30 * 60 * 1000;
+    const rounded = new Date(Math.round(Date.now() / ms30) * ms30);
+    setSlotArrival(toLocalDatetimeInput(rounded));
+  }, [selectedStation]);
+
+
+
+  async function loadNearby() {
+    try {
+      const data = await fetchNearbyStations(center.lat, center.lon, radiusKm);
+      setStations(data);
+      setStatus(`Loaded ${data.length} stations.`);
+    } catch (err) {
+      setStatus(err.message);
+    }
+  }
+
+
+
+  useEffect(() => {
+    let cancelled = false;
+    const timers = [];
+
+
+
+    async function initialLoad() {
+      try {
+        const data = await fetchNearbyStations(center.lat, center.lon, radiusKm);
+        if (!cancelled) {
+          setStations(data);
+          setStatus(`Loaded ${data.length} stations.`);
+        }
+      } catch {
+        if (cancelled) return;
+        const DELAY = 5;
+        for (let i = DELAY; i > 0; i--) {
+          if (cancelled) return;
+          setStatus(`Backend starting, retrying in ${i}s… (or click Find nearby stations)`);
+          await new Promise((r) => { const t = setTimeout(r, 1000); timers.push(t); });
+        }
+        if (!cancelled) loadNearby();
+      }
+    }
+
+
+
+    initialLoad();
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
+  }, []);
+
+
+
+  useEffect(() => {
+    if (tab !== "stats") return;
+    fetchExperimentSummary()
+      .then((data) => {
+        setStatsRows(data.rows || []);
+        setStatsLoadError("");
+      })
+      .catch((err) => setStatsLoadError(err.message || "fetch failed"));
+  }, [tab]);
+
+
+
+  useEffect(() => {
+    if (!recommendations.length) return;
+    const stationById = new Map(stations.map((s) => [String(s.id), s]));
+    const missing = recommendations
+      .map((r) => String(r.station_id))
+      .filter((id) => !stationById.has(id) && !supplementaryStations.has(id));
+    if (!missing.length) return;
+
+    setFetchingHotspots(true);
+    Promise.all(missing.map((id) => fetchStation(id).then((st) => [id, st]).catch(() => null)))
+      .then((results) => {
+        setSupplementaryStations((prev) => {
+          const next = new Map(prev);
+          results.forEach((entry) => { if (entry) next.set(entry[0], entry[1]); });
+          return next;
+        });
+      })
+      .finally(() => setFetchingHotspots(false));
+  }, [recommendations, stations, supplementaryStations]);
+
+
+
+  useEffect(() => {
+    setStationFilter("");
+  }, [stations]);
+
+  async function onSuggestSlot() {
+    if (!selectedStation || !slotArrival) {
+      setSlotStatus("Choose a desired arrival time.");
       return;
     }
-    refreshVehicles();
-    refreshReservations();
-  }, [token, refreshVehicles, refreshReservations]);
-
-  async function recommend(algorithm) {
-    setStrategy(algorithm);
-    const payload = {
-      origin_lat: finder.centre.lat,
-      origin_lon: finder.centre.lon,
-      radius_km: finder.radiusKm,
-      algorithm,
-      top_k: 5,
-    };
-    if (battery.level !== "" && battery.capacity !== "") {
-      payload.battery_level_percent = Number(battery.level);
-      payload.battery_capacity_kwh = Number(battery.capacity);
+    const dur = parseInt(slotDuration, 10);
+    if (!dur || dur <= 0) {
+      setSlotStatus("Enter a positive duration.");
+      return;
     }
     try {
-      setResults({ strategy: algorithm, items: await getRecommendations(payload) });
-      scrollTo(resultsRef);
+      setSlotStatus("Searching…");
+      setSuggestedSlots([]);
+      const data = await suggestSlot(selectedStation.id, {
+        desired_arrival: new Date(slotArrival).toISOString(),
+        duration_minutes: dur,
+      });
+      if (data.length === 0) {
+        setSlotStatus("No slot found within 4 hours of the desired arrival.");
+      } else {
+        setSuggestedSlots(data);
+        setSlotStatus("");
+      }
     } catch (err) {
-      setResults({ strategy: null, items: [] });
-      finder.setStatus(err.message);
+      setSlotStatus(err.message);
     }
   }
 
-  async function selectStation(stationId) {
+
+
+  async function onSelectStation(stationId) {
     try {
-      setSelectedStation(await fetchStation(stationId));
-      scrollTo(bookingRef);
+      const data = await fetchStation(stationId);
+      setSelectedStation(data);
+      setForm((prev) => ({ ...prev, charger_id: data.chargers[0]?.id || "" }));
+      setReservationStatus("");
+      setSuggestedSlots([]);
+      setSlotStatus("");
+      requestAnimationFrame(() => {
+        if (typeof reserveSectionRef.current?.scrollIntoView === "function") {
+          reserveSectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
     } catch (err) {
-      finder.setStatus(err.message);
+      setStatus(err.message);
     }
   }
+
+
+
+  async function onRecommend(algorithm) {
+    try {
+      const payload = {
+        origin_lat: center.lat,
+        origin_lon: center.lon,
+        radius_km: radiusKm,
+        algorithm,
+        top_k: 5,
+        arrival_window_minutes: 15,
+      };
+      if (batteryLevel !== "" && batteryCapacity !== "") {
+        payload.battery_level_percent = Number(batteryLevel);
+        payload.battery_capacity_kwh = Number(batteryCapacity);
+      }
+      const data = await getRecommendations(payload);
+      setRecommendations(data);
+      setStatus(`Recommendations computed with ${algorithm}.`);
+    } catch (err) {
+      setStatus(err.message);
+    }
+  }
+
+
+  function handleUseMyLocation() {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    setStatus("Getting location…");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude: lat, longitude: lon } = pos.coords;
+        setCenter({ lat, lon });
+        setLocating(false);
+        setStatus("Location found, loading nearby stations.");
+        fetchNearbyStations(lat, lon, radiusKm)
+          .then((data) => { setStations(data); setStatus(`Loaded ${data.length} stations.`); })
+          .catch((err) => setStatus(err.message));
+      },
+      () => {
+        setLocating(false);
+        setStatus("Location access denied, using default London centre");
+      },
+    );
+  }
+
+
+
+  function handleAlgoClick(algo) {
+    setActiveAlgorithm(ALGO_LABELS[algo]);
+    onRecommend(algo);
+  }
+
+  function handleRangeAwareClick() {
+    setActiveAlgorithm(ALGO_LABELS.range_aware);
+    if (rangeAwareRef.current) rangeAwareRef.current.open = true;
+    onRecommend("range_aware");
+  }
+
+
+
+  async function onSaveVehicle(e) {
+    e.preventDefault();
+    try {
+      await createVehicle({ make_model: vehicleForm.make_model, battery_kwh: Number(vehicleForm.battery_kwh) }, accessToken);
+      setVehicleForm({ make_model: "", battery_kwh: "" });
+      const updated = await fetchVehicles(accessToken);
+      setVehicles(updated);
+    } catch (err) {
+      setAuthStatus(err.message || "Failed to save vehicle. Please try again.");
+    }
+  }
+
+  async function onRegister(e) {
+    e.preventDefault();
+    if (!regs.password || regs.password.length < 8) {
+      setAuthStatus("Password must be at least 8 characters.");
+      return;
+    }
+    try {
+      const tok = await registerUser(regs.email, regs.password);
+      setAccessToken(tok.access_token);
+      setAuthStatus("Registered and signed in.");
+    } catch (err) {
+      setAuthStatus(err.message);
+    }
+  }
+
+
+
+
+
+  async function onLogin(e) {
+    e.preventDefault();
+    try {
+      const tok = await loginUser(regs.email, regs.password);
+      setAccessToken(tok.access_token);
+      setAuthStatus("Signed in.");
+    } catch (err) {
+      setAuthStatus(err.message);
+    }
+  }
+
+
+
+  async function onReserve(e) {
+    e.preventDefault();
+    if (!accessToken) {
+      setReservationStatus("Sign in before reserving.");
+      return;
+    }
+    if (!form.start_time || !form.end_time) {
+      setReservationStatus("Please choose both start and end date/time.");
+      return;
+    }
+    const start = new Date(form.start_time);
+    const end = new Date(form.end_time);
+    const now = new Date();
+    if (start < now) {
+      setReservationStatus("Start time must be in the future.");
+      return;
+    }
+    if (end <= start) {
+      setReservationStatus("End time must be after start time.");
+      return;
+    }
+    const charger = selectedStation.chargers.find((c) => c.id === form.charger_id);
+    try {
+      await createReservation(
+        {
+          charger_id: form.charger_id,
+          start_time: start.toISOString(),
+          end_time: end.toISOString(),
+        },
+        accessToken,
+      );
+      setReservationStatus("");
+      setReservationSuccess({
+        stationName: selectedStation.name,
+        chargerName: charger ? `${charger.name} (${charger.power_kw}kW)` : form.charger_id,
+        start,
+        end,
+      });
+      setForm((prev) => ({ ...prev, start_time: "", end_time: "" }));
+      getMyReservations(accessToken).then(setMyReservations).catch(() => {});
+      requestAnimationFrame(() => {
+        if (typeof myAccountRef.current?.scrollIntoView === "function") {
+          myAccountRef.current.open = true;
+          myAccountRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    } catch (err) {
+      setReservationSuccess(null);
+      setReservationStatus(err.message);
+    }
+  }
+
+
+
+
+
+  const position = useMemo(() => [center.lat, center.lon], [center]);
+  const hotspotPoints = useMemo(() => {
+    if (!recommendations.length) return [];
+    const stationById = new Map(stations.map((s) => [String(s.id), s]));
+    const byId = new Map();
+    recommendations.forEach((r) => {
+      const st = stationById.get(String(r.station_id)) ?? supplementaryStations.get(String(r.station_id));
+      if (!st) return;
+      const intensity = Math.max(0, Math.min(1, Number(r.probability_of_delay || 0)));
+      byId.set(String(r.station_id), {
+        lat: st.lat,
+        lon: st.lon,
+        intensity,
+        label: r.station_name,
+      });
+    });
+    return Array.from(byId.values());
+  }, [recommendations, stations, supplementaryStations]);
+
+
+
 
   return (
     <div className="layout">
       <div className="sidebar">
-        <h1 className="sidebar-title">EV Charger Scheduling</h1>
+        <h2 className="sidebar-title">EV Reservation Platform</h2>
 
-        <div className="tabs" role="tablist">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={tab === t.id}
-              className={tab === t.id ? "active" : ""}
-              onClick={() => setTab(t.id)}
-            >
-              {t.label}
-            </button>
-          ))}
+        <div className="tabs">
+          <button type="button" className={tab === "map" ? "active" : ""} onClick={() => setTab("map")}>
+            Map
+          </button>
+          <button type="button" className={tab === "privacy" ? "active" : ""} onClick={() => setTab("privacy")}>
+            Privacy &amp; ethics
+          </button>
+          <button type="button" className={tab === "stats" ? "active" : ""} onClick={() => setTab("stats")}>
+            Stats
+          </button>
         </div>
 
+
+
+
         {tab === "privacy" && <EthicsPanel />}
-        {tab === "stats" && (
-          <Suspense fallback={<p className="status">Loading results…</p>}>
-            <StatsDashboard />
-          </Suspense>
-        )}
+
+        {tab === "stats" && <StatsDashboard rows={statsRows} loadError={statsLoadError} />}
+
         {tab === "map" && (
           <>
-            <p className="status global-status" role="status">
-              {finder.status}
-            </p>
-            <StationFinder stations={finder} onSelectStation={selectStation} />
-            <StrategyPicker
-              active={strategy}
-              onPick={recommend}
-              battery={battery}
-              onBatteryChange={setBattery}
-            />
-            <RecommendationList
-              ref={resultsRef}
-              strategy={results.strategy}
-              recommendations={results.items}
-              onSelectStation={selectStation}
-            />
+            <p className="status global-status">{status}</p>
+            {fetchingHotspots && <p className="status">Fetching hotspot locations…</p>}
+
+
+
+            {/* 1. Find stations */}
+            <details open className="sidebar-section">
+              <summary className="section-summary">Find stations</summary>
+              <div className="section-body">
+                <div className="field">
+                  <label>Latitude</label>
+                  <input
+                    type="number"
+                    value={center.lat}
+                    onChange={(e) => setCenter((c) => ({ ...c, lat: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="field">
+                  <label>Longitude</label>
+                  <input
+                    type="number"
+                    value={center.lon}
+                    onChange={(e) => setCenter((c) => ({ ...c, lon: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="field">
+                  <label>Radius (km)</label>
+                  <input type="number" value={radiusKm} onChange={(e) => setRadiusKm(Number(e.target.value))} />
+                </div>
+                <div className="find-buttons">
+                  <button className="btn-primary btn-block" onClick={loadNearby}>Find nearby stations</button>
+                  {navigator.geolocation && (
+                    <button
+                      className="btn-secondary btn-block"
+                      onClick={handleUseMyLocation}
+                      disabled={locating}
+                    >
+                      {locating ? "Getting location…" : "📍 Use my location"}
+                    </button>
+                  )}
+                </div>
+
+
+
+                {stations.length < 50 && (
+                  <p className="stats-note">
+                    Station count depends on ingestion. For realistic experiments, ingest 50+ live stations with{" "}
+                    <code>OPENCHARGEMAP_API_KEY</code>.
+                  </p>
+                )}
+                {stations.length > 0 && (
+                  <div className="field">
+                    <label>Filter stations</label>
+                    <input
+                      type="text"
+                      placeholder="Type to search…"
+                      value={stationFilter}
+                      onChange={(e) => setStationFilter(e.target.value)}
+                    />
+                  </div>
+                )}
+
+
+                {stations.length > 0 && (
+                  <div className="field">
+                    <label>Select station</label>
+                    <select
+                      defaultValue=""
+                      onChange={(e) => e.target.value && onSelectStation(e.target.value)}
+                    >
+                      <option value="" disabled>choose a station</option>
+                      {stations
+                        .filter((s) =>
+                          s.name.toLowerCase().includes(stationFilter.toLowerCase())
+                        )
+                        .map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name}{s.borough ? ` (${s.borough})` : ""}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+            </details>
+
+
+
+            {/* 2. Algorithm */}
+            <details open className="sidebar-section">
+              <summary className="section-summary">Algorithm</summary>
+              <div className="section-body">
+                <div className="algo-buttons">
+                  <button
+                    className={`btn-algo${activeAlgorithm === ALGO_LABELS.nearest ? " active" : ""}`}
+                    title="Picks the closest station by road distance"
+                    onClick={() => handleAlgoClick("nearest")}
+                  >
+                    Nearest
+                  </button>
+                  <button
+                    className={`btn-algo${activeAlgorithm === ALGO_LABELS.cost_optimized ? " active" : ""}`}
+                    title="Balances distance, wait time, and price per kWh"
+                    onClick={() => handleAlgoClick("cost_optimized")}
+                  >
+                    Cost
+                  </button>
+                  <button
+                    className={`btn-algo${activeAlgorithm === ALGO_LABELS.queue_aware ? " active" : ""}`}
+                    title="Predicts queue using Erlang-C + reservation lookahead, avoids congested stations"
+                    onClick={() => handleAlgoClick("queue_aware")}
+                  >
+                    Queue-aware
+                  </button>
+                  <button
+                    className={`btn-algo${activeAlgorithm === ALGO_LABELS.static_queue ? " active" : ""}`}
+                    title="Erlang-C queueing model without reservation lookahead"
+                    onClick={() => handleAlgoClick("static_queue")}
+                  >
+                    Static queue
+                  </button>
+                  <button
+                    className={`btn-algo${activeAlgorithm === ALGO_LABELS.dijkstra ? " active" : ""}`}
+                    title="Shortest path by straight-line graph distance"
+                    onClick={() => handleAlgoClick("dijkstra")}
+                  >
+                    Dijkstra
+                  </button>
+                  <button
+                    className={`btn-algo${activeAlgorithm === ALGO_LABELS.range_aware ? " active" : ""}`}
+                    title="Adds battery safety penalty for low-battery EVs, fill in battery fields first"
+                    onClick={handleRangeAwareClick}
+                  >
+                    Range-aware
+                  </button>
+                </div>
+                <p className="algo-tip">
+                  Queue-aware and Static queue may recommend a station that is not the nearest one. This is intentional: they are avoiding stations with predicted queues.
+                </p>
+              </div>
+            </details>
+
+
+            {/* Recommendations, hidden until results exist */}
+            <div
+              ref={recommendationsRef}
+              className={`sidebar-section recommendations-section${recommendations.length === 0 ? " hidden" : ""}`}
+            >
+              <h3 className="recommendations-label">Results: {activeAlgorithm}</h3>
+              <ol className="recommendations-list">
+                {recommendations.map((r) => (
+                  <li key={r.station_id} onClick={() => onSelectStation(r.station_id)} style={{ cursor: "pointer" }}>
+                    {r.station_name} | {Number(r.travel_distance_km).toFixed(2)} km |{" "}
+                    {Number(r.travel_time_min).toFixed(1)} min travel |{" "}
+                    {Number(r.predicted_wait_min).toFixed(2)} min wait | P(delay){" "}
+                    {Number(r.probability_of_delay).toFixed(2)} | occupancy {r.current_occupancy}
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+
+
+
+            {/* 3. Range-aware routing */}
+            <details className="sidebar-section" ref={rangeAwareRef}>
+              <summary className="section-summary">Range-aware routing</summary>
+              <div className="section-body">
+                <div className="field">
+                  <label>Battery level (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    placeholder="e.g. 40"
+                    value={batteryLevel}
+                    onChange={(e) => setBatteryLevel(e.target.value)}
+                  />
+                </div>
+                <div className="field">
+                  <label>Battery capacity (kWh)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="e.g. 60"
+                    value={batteryCapacity}
+                    onChange={(e) => setBatteryCapacity(e.target.value)}
+                  />
+                </div>
+                <button
+                  className={`btn-algo${activeAlgorithm === ALGO_LABELS.range_aware ? " active" : ""}`}
+                  onClick={handleRangeAwareClick}
+                >
+                  Range-aware
+                </button>
+              </div>
+            </details>
+
+
+
+
+            {/* 4. Reserve / Book, only when a station is selected */}
             {selectedStation && (
-              <BookingPanel
-                key={selectedStation.id}
-                ref={bookingRef}
-                station={selectedStation}
-                token={token}
-                onBooked={() => {
-                  refreshReservations();
-                  if (accountRef.current) accountRef.current.open = true;
-                }}
-              />
+              <details open className="sidebar-section" ref={reserveSectionRef}>
+                <summary className="section-summary">Reserve / Book</summary>
+                <div className="section-body">
+                  <p className="selected-station-name">{selectedStation.name}</p>
+                  <form onSubmit={onReserve}>
+                    <div className="field">
+                      <label>Charger</label>
+                      <select
+                        value={form.charger_id}
+                        onChange={(e) => setForm({ ...form, charger_id: e.target.value })}
+                        required
+                      >
+                        {selectedStation.chargers.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name} ({c.power_kw}kW)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="field">
+                      <label>Start</label>
+                      <input
+                        type="datetime-local"
+                        value={form.start_time}
+                        onChange={(e) => setForm({ ...form, start_time: e.target.value })}
+                        min={toLocalDatetimeInput(new Date())}
+                        required
+                      />
+                    </div>
+                    <div className="field">
+                      <label>End</label>
+                      <input
+                        type="datetime-local"
+                        value={form.end_time}
+                        onChange={(e) => setForm({ ...form, end_time: e.target.value })}
+                        min={form.start_time || toLocalDatetimeInput(new Date())}
+                        required
+                      />
+                    </div>
+                    <button type="submit" className="btn-primary btn-block">Reserve</button>
+                  </form>
+                  {reservationSuccess && (
+                    <div className="reservation-banner">
+                      <strong>Booked ✓</strong> {reservationSuccess.stationName}
+                      <br />
+                      {reservationSuccess.chargerName}
+                      <br />
+                      {reservationSuccess.start.toLocaleString()} → {reservationSuccess.end.toLocaleString()}
+                    </div>
+                  )}
+                  {reservationStatus ? <p className="status reservation-error">{reservationStatus}</p> : null}
+
+                  <h4 className="subsection-heading">Suggest charging slot</h4>
+                  <div className="field">
+                    <label>Desired arrival</label>
+                    <input
+                      type="datetime-local"
+                      value={slotArrival}
+                      min={toLocalDatetimeInput(new Date())}
+                      onChange={(e) => setSlotArrival(e.target.value)}
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Duration (minutes)</label>
+                    <input
+                      type="number"
+                      min="30"
+                      step="30"
+                      value={slotDuration}
+                      onChange={(e) => setSlotDuration(e.target.value)}
+                    />
+                  </div>
+                  <button type="button" className="btn-primary btn-block" onClick={onSuggestSlot}>
+                    Find available slot
+                  </button>
+                  {slotStatus ? <p className="status">{slotStatus}</p> : null}
+                  {suggestedSlots.length > 0 && (
+                    <ul className="slot-list">
+                      {suggestedSlots.map((s) => {
+                        const charger = selectedStation.chargers.find((c) => c.id === s.charger_id);
+                        const chargerLabel = charger
+                          ? `${charger.name} (${charger.power_kw}kW)`
+                          : s.charger_id.slice(0, 8);
+                        const start = new Date(s.suggested_start);
+                        const end = new Date(s.suggested_end);
+                        return (
+                          <li key={s.charger_id} className="slot-item">
+                            <strong>{chargerLabel}</strong>:{" "}
+                            {start.toLocaleString()} - {end.toLocaleString()}{" "}
+                            {s.wait_from_desired_minutes > 0
+                              ? `(wait ${Math.round(s.wait_from_desired_minutes)} min)`
+                              : "(no wait)"}
+                            <button
+                              type="button"
+                              className="btn-use-slot"
+                              onClick={() => {
+                                setForm({
+                                  charger_id: s.charger_id,
+                                  start_time: toLocalDatetimeInput(start),
+                                  end_time: toLocalDatetimeInput(end),
+                                });
+                                setSuggestedSlots([]);
+                              }}
+                            >
+                              Use this slot
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              </details>
             )}
-            <AccountPanel
-              ref={accountRef}
-              auth={auth}
-              vehicles={vehicles}
-              onVehiclesChanged={refreshVehicles}
-              selectedVehicleId={selectedVehicleId}
-              onSelectVehicle={(v) => {
-                setSelectedVehicleId(v.id);
-                setBattery((b) => ({ ...b, capacity: String(v.battery_kwh) }));
-              }}
-              reservations={reservations}
-            />
-            <label className="checkbox sidebar-section">
-              <input
-                type="checkbox"
-                checked={showHotspots}
-                onChange={(e) => setShowHotspots(e.target.checked)}
-              />
-              Shade recommended stations by chance of queueing
-            </label>
+
+
+
+
+
+            {/* 5. My account */}
+            <details className="sidebar-section auth-box" ref={myAccountRef}>
+              <summary className="section-summary">My account</summary>
+              <div className="section-body">
+                {!accessToken ? (
+                  <>
+                    <p className="status small">Sign in to reserve chargers.</p>
+                    <form className="auth-form" onSubmit={onRegister}>
+                      <div className="field">
+                        <label>Email</label>
+                        <input
+                          value={regs.email}
+                          onChange={(e) => setRegs({ ...regs, email: e.target.value })}
+                          type="email"
+                          required
+                        />
+                      </div>
+                      <div className="field">
+                        <label>Password (min 8)</label>
+                        <input
+                          value={regs.password}
+                          onChange={(e) => setRegs({ ...regs, password: e.target.value })}
+                          type="password"
+                          required
+                        />
+                      </div>
+                      <div className="buttons">
+                        <button type="submit" className="btn-primary">Register</button>
+                        <button type="button" className="btn-secondary" onClick={onLogin}>
+                          Sign in
+                        </button>
+                      </div>
+                    </form>
+                  </>
+                ) : (
+                  <div className="auth-status">
+                    <p className="status signed-in">Signed in ✓</p>
+                    <button type="button" className="btn-secondary" onClick={() => setAccessToken("")}>
+                      Sign out
+                    </button>
+                    <h4 className="subsection-heading">My Vehicle</h4>
+                    <form onSubmit={onSaveVehicle}>
+                      <div className="field">
+                        <label>Make / Model</label>
+                        <input
+                          type="text"
+                          maxLength={120}
+                          placeholder="e.g. Tesla Model 3"
+                          value={vehicleForm.make_model}
+                          onChange={(e) => setVehicleForm((f) => ({ ...f, make_model: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div className="field">
+                        <label>Battery (kWh)</label>
+                        <input
+                          type="number"
+                          min="0.1"
+                          step="0.1"
+                          placeholder="e.g. 75"
+                          value={vehicleForm.battery_kwh}
+                          onChange={(e) => setVehicleForm((f) => ({ ...f, battery_kwh: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <button type="submit" className="btn-primary">Save vehicle</button>
+                    </form>
+                    {vehicles.length > 0 && (
+                      <ul className="vehicle-list">
+                        {vehicles.map((v) => (
+                          <li key={v.id}>
+                            <button
+                              type="button"
+                              className="btn-link"
+                              onClick={() => {
+                                setSelectedVehicleId(v.id);
+                                setBatteryCapacity(String(v.battery_kwh));
+                              }}
+                            >
+                              {v.make_model} ({v.battery_kwh} kWh)
+                              {selectedVehicleId === v.id ? " (selected)" : ""}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+                {authStatus ? <p className="status">{authStatus}</p> : null}
+                {myReservations.length > 0 && (
+                  <div className="my-reservations">
+                    <h4 className="subsection-heading">My Reservations</h4>
+                    <ul>
+                      {myReservations.map((r) => {
+                        const fmt = (iso) => {
+                          const d = new Date(iso);
+                          const dd = String(d.getDate()).padStart(2, "0");
+                          const mm = String(d.getMonth() + 1).padStart(2, "0");
+                          const yyyy = d.getFullYear();
+                          const hh = String(d.getHours()).padStart(2, "0");
+                          const min = String(d.getMinutes()).padStart(2, "0");
+                          return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+                        };
+                        return (
+                          <li key={r.id} className="reservation-item">
+                            <strong>{r.station_name}</strong>, {r.charger_name}
+                            <br />
+                            {fmt(r.start_time)} → {fmt(r.end_time)}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </details>
+
+            {/* 6. Hotspot overlay */}
+            <details className="sidebar-section">
+              <summary className="section-summary">Hotspot overlay</summary>
+              <div className="section-body">
+                <label className="checkbox">
+                  <input
+                    type="checkbox"
+                    checked={showHotspots}
+                    onChange={(e) => setShowHotspots(e.target.checked)}
+                  />
+                  Show hotspots (predictive delay)
+                </label>
+              </div>
+            </details>
           </>
         )}
       </div>
 
-      <StationMap
-        centre={finder.centre}
-        stations={finder.stations}
-        recommendations={results.items}
-        showHotspots={showHotspots}
-        onSelectStation={selectStation}
-      />
+      <MapContainer center={position} zoom={12} className="map-container">
+        <FitBoundsToStations stations={stations} />
+        <HeatmapLayer enabled={showHotspots} points={hotspotPoints} />
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        {stations.map((s) => (
+          <Marker key={s.id} position={[s.lat, s.lon]} eventHandlers={{ click: () => onSelectStation(s.id) }}>
+            <Popup>{s.name}</Popup>
+          </Marker>
+        ))}
+      </MapContainer>
     </div>
   );
 }
+
+export default App;

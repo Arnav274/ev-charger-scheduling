@@ -1,0 +1,21 @@
+{
+  "run_timestamp_utc": "2026-05-21T20:24:00.000000+00:00",
+  "git_commit": "4021befe0f93b8e7293f933f21b409b7970a15d4",
+  "git_commit_short": "4021bef",
+  "git_branch": "main",
+  "git_worktree_state": "clean",
+  "host_platform": "Windows-11-10.0.26200-SP0",
+  "python_version": "3.13.3",
+  "dataset_source": "cached_openchargemap_sample",
+  "random_seed": 42,
+  "experiment_trials_per_scenario": 100,
+  "steps": [
+    "docker compose up -d",
+    "alembic upgrade head",
+    "python -m scripts.ingest_openchargemap",
+    "pytest -q",
+    "python -m experiments.run_experiments",
+    "python -m experiments.analyse_results"
+  ],
+  "notes": "Re-run after QueueAware bug fix (commit 4021bef): lambda_future inflation removed, c_eff retained, background_reservations_per_station bumped 12 -> 18 to match lambda * 24h = 0.75 * 24."
+}

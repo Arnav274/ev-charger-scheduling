@@ -49,27 +49,32 @@ is a realistic busy-hour figure rather than an unreachable extreme.
 
 > Zapmap. (2026). *EV charging statistics 2026*.
 > https://www.zapmap.com/ev-stats/how-many-charging-points [Accessed: May 2026]
-**Sensitivity tested in experiments (`backend/experiments/config.py`):**
+**Sensitivity tested in experiments (`run_experiments.py`):**
 
-In the simulation this is the rate at which *background* drivers, who do not use the app,
-arrive at every station. The load variants scale it:
-
-| Variant | Multiplier | λ per station (arrivals/hr) | ρ at a one-charger station | Queue state |
+| Variant | `load_multiplier` | Effective λ (arrivals/hr) | ρ (c = 1) | Queue state |
 |---|---|---|---|---|
-| `load_0.5x` | 0.5 | 0.375 | 0.25 | Light |
-| `baseline` and the other variants | 1.0 | 0.75 | 0.50 | Moderate |
-| `load_1.5x` | 1.5 | 1.125 | 0.75 | Busy |
-| `load_2x` | 2.0 | 1.50 | 1.00 | Saturated: one-charger queues grow without limit |
+| `baseline_equal`, `distance_priority`, `topk_robustness` | 1.0 | 0.75 | 0.50 | Stable, baseline |
+| `queue_stress` | 1.6 | 1.20 | 0.80 | Stable, peak demand |
+| `erlang_sensitivity` × 0.5 | 0.5 | 0.375 | 0.25 | Stable, light load |
+| `erlang_sensitivity` × 1.0 | 1.0 | 0.75 | 0.50 | Stable, baseline |
+| `erlang_sensitivity` × 1.5 | 1.5 | 1.125 | 0.75 | Stable, moderate load |
+| `erlang_sensitivity` × 2.0 | 2.0 | 1.50 | 1.00 | Boundary, saturation onset |
+| `erlang_sensitivity` × 3.0 | 3.0 | 2.25 | 1.50 | Unstable, penalty region |
 
-App drivers add load on top of this, and it lands unevenly because strategies send
-drivers to particular stations. That uneven extra load is what separates the strategies.
+The `queue_stress` variant (λ = 1.2/hr, ρ = 0.8) models congested peak demand while
+remaining stable, allowing the Erlang-C model to produce finite wait predictions.
+Erlang-C wait times increase non-linearly as ρ → 1; results in the analysis show that
+`queue_aware` reduces mean wait by the largest margin precisely under the `queue_stress`
+condition, validating the strategy's reservation-lookahead mechanism. The
+`erlang_sensitivity` sweep spans sub-baseline through saturation (ρ = 0.25 to 1.50) to
+characterise Erlang-C behaviour across the full stability range; only the ×2.0 and ×3.0
+variants push into or beyond the saturation boundary and are excluded from the main
+algorithm comparison table.
 
 **Caveats:** Arrival rates vary substantially by charger type (AC vs DC), location
 (motorway services vs urban street), time of day, and national fleet penetration rate.
-The same λ is applied to every station, which is the largest simplification in the model:
-it means Erlang-C ranks stations by charger count alone. 407 of the 497 stations in the
-study area have a single charger, many of them lamp-post chargers, where real utilisation
-is far lower. Production deployments should calibrate per-station λ from operator telemetry.
+The chosen value is an urban AC default; production deployments should calibrate per-station
+λ from operator telemetry.
 
 ---
 
@@ -97,15 +102,21 @@ therefore a conservative lower bound on session duration, which makes the Erlang
 slightly optimistic about capacity (shorter sessions free chargers faster), providing a
 safety margin in wait predictions.
 
-**Use in experiments:**
+**Sensitivity tested in experiments:**
 
-Every simulated charging session, background or app, draws its length from an
-exponential distribution with this mean, which is exactly the M/M/c assumption. That
-keeps the simulation and the Erlang-C predictor consistent, and it is checked in
-`tests/test_simulation.py`: a station fed only Poisson arrivals and exponential
-sessions converges on the Erlang-C wait. The mean itself is not varied; the load
-variants change utilisation, and utilisation (λ × mean session length) is what drives
-waiting.
+Background reservations are seeded with uniformly distributed session durations:
+
+| Reservation type | Duration range (min) |
+|---|---|
+| Normal stations | U(20, 60) |
+| Hotspot stations | U(35, 65) |
+| Simulated EV requests, urban scenario | U(30, 50) |
+| Simulated EV requests, mixed scenario | U(25, 55) |
+| Simulated EV requests, highway scenario | U(20, 45) |
+
+The Erlang-C model is evaluated at the fixed default μ = 1/40 min⁻¹ for scoring; the
+random session draws affect only the reservation-slot blocking logic used to test
+rejection rates and Jain fairness.
 
 **Caveats:** Session duration distributions are right-skewed in practice (a small proportion
 of sessions are very long). A single-server exponential service assumption (Erlang-C) does
@@ -140,11 +151,11 @@ and vans will exceed this figure.
 
 **Sensitivity tested in experiments:**
 
-`ENERGY_CONSUMPTION_KWH_PER_KM` is used only in `RangeAwareStrategy` and in the
-`share_with_reserve` outcome (whether the driver arrives with the 2 kWh reserve). Simulated
-drivers carry 8-30% of a 40 kWh battery, so the tightest has about 6 km of usable range.
-The study area is under 6 km across, so range rarely binds in these experiments and the
-constant has not been varied.
+`ENERGY_CONSUMPTION_KWH_PER_KM` is used only in `RangeAwareStrategy`, which was added
+after the main experiment batch. The constant has **not yet been varied** in a systematic
+sensitivity sweep. A planned extension would repeat the recommendation experiment with
+consumption values of 0.15, 0.20, and 0.25 kWh/km to quantify how the penalty threshold
+(2 kWh safety buffer) interacts with range anxiety at different vehicle efficiency levels.
 
 **Caveats:** Real-world consumption varies substantially with driving speed (motorway vs
 urban), ambient temperature (battery efficiency drops ~20 % at 0 °C), and auxiliary load
@@ -158,6 +169,6 @@ use a higher value (0.25-0.30 kWh/km).
 
 | Constant | Value | Primary source | Sensitivity range exercised |
 |---|---|---|---|
-| `ARRIVAL_RATE_PER_HOUR_DEFAULT` | 0.75 arr/hr | Hecht et al. (2022) iScience | 0.375-1.5 (×0.5 to ×2 load variants; ρ 0.25 to 1.0 at one charger) |
-| `MEAN_SERVICE_MINUTES_DEFAULT` | 40 min | DoE EERE FOTW #1319 (2023) | Fixed; session lengths drawn exponentially around it |
-| `ENERGY_CONSUMPTION_KWH_PER_KM` | 0.2 kWh/km | Weiss et al. (2024) Sustainability | Not varied; range rarely binds in a 6 km study area |
+| `ARRIVAL_RATE_PER_HOUR_DEFAULT` | 0.75 arr/hr | Hecht et al. (2022) iScience | 0.375-2.25 (×0.5 to ×3.0 load multipliers; ρ 0.25→1.5) |
+| `MEAN_SERVICE_MINUTES_DEFAULT` | 40 min | DoE EERE FOTW #1319 (2023) | 20-65 min (uniform draw in seeding) |
+| `ENERGY_CONSUMPTION_KWH_PER_KM` | 0.2 kWh/km | Weiss et al. (2024) Sustainability | Not yet varied, planned future work |

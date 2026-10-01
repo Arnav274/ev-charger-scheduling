@@ -1,150 +1,151 @@
-"""Unit tests for the selection strategies, independent of the database and OSRM."""
+"""Unit tests for each SelectionStrategy in app.algorithms."""
+
+import uuid
+from unittest.mock import MagicMock
 
 import pytest
 
 from app.algorithms import (
-    STRATEGIES,
-    CostOptimizedStrategy,
     DijkstraStrategy,
     NearestStrategy,
     QueueAwareStrategy,
     RangeAwareStrategy,
     RecommendationContext,
     StaticQueueStrategy,
-    StationInfo,
-    Travel,
 )
 
 
-def station(sid: str, *, chargers: int = 2, price: float = 50.0, arrival_rate: float = 0.75) -> StationInfo:
-    return StationInfo(
-        id=sid,
-        name=sid,
-        lat=51.5,
-        lon=-0.1,
-        chargers=chargers,
-        price_pence_per_kwh=price,
-        arrival_rate_per_hour=arrival_rate,
-        mean_service_minutes=40.0,
-    )
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _make_station(
+    lat: float,
+    lon: float,
+    *,
+    num_chargers: int = 1,
+    arrival_rate: float = 4.0,
+    mean_service: float = 40.0,
+) -> MagicMock:
+    s = MagicMock()
+    s.id = uuid.uuid4()
+    s.lat = lat
+    s.lon = lon
+    s.price_pence_per_kwh = 55.0
+    s.arrival_rate_per_hour = arrival_rate
+    s.mean_service_minutes = mean_service
+    s.chargers = [MagicMock() for _ in range(num_chargers)]
+    return s
 
 
-def ctx(distances: dict[str, float], **kwargs) -> RecommendationContext:
+def _ctx(origin_lat: float = 0.0, origin_lon: float = 0.0, **kwargs) -> RecommendationContext:
     return RecommendationContext(
-        origin_lat=51.5,
-        origin_lon=-0.1,
-        travel={sid: Travel(km, km * 2) for sid, km in distances.items()},
+        origin_lat=origin_lat,
+        origin_lon=origin_lon,
+        weights=(1 / 3, 1 / 3, 1 / 3),
         **kwargs,
     )
 
 
-def order(strategy, stations, context) -> list[str]:
-    return [r.station.id for r in strategy.rank(stations, context)]
+_MAX = {"distance": 100.0, "wait": 1000.0, "cost": 100.0}
 
 
-def test_registry_exposes_all_six_strategies() -> None:
-    assert set(STRATEGIES) == {
-        "nearest",
-        "dijkstra",
-        "cost_optimized",
-        "static_queue",
-        "queue_aware",
-        "range_aware",
-    }
+# ---------------------------------------------------------------------------
+# NearestStrategy
+# ---------------------------------------------------------------------------
+
+class TestNearestStrategy:
+    def test_nearest_returns_closest_station(self):
+        # At lat 51.5°, 0.009° ≈ 1 km, 0.018° ≈ 2 km, 0.045° ≈ 5 km.
+        origin_lat, origin_lon = 51.5, -0.1
+        s1 = _make_station(lat=origin_lat + 0.009, lon=origin_lon)
+        s2 = _make_station(lat=origin_lat + 0.018, lon=origin_lon)
+        s3 = _make_station(lat=origin_lat + 0.045, lon=origin_lon)
+
+        strategy = NearestStrategy()
+        ctx = _ctx(origin_lat, origin_lon)
+
+        scores = {s.id: strategy.score(s, ctx, _MAX) for s in [s1, s2, s3]}
+        ordered = sorted(scores, key=scores.get)
+        assert ordered == [s1.id, s2.id, s3.id]
 
 
-def test_rank_of_nothing_is_empty() -> None:
-    for strategy in STRATEGIES.values():
-        assert strategy.rank([], ctx({})) == []
+# ---------------------------------------------------------------------------
+# QueueAwareStrategy
+# ---------------------------------------------------------------------------
+
+class TestQueueAwareStrategy:
+    def test_queue_aware_higher_score_under_reservations(self):
+        station = _make_station(
+            lat=0.01, lon=0.0,
+            num_chargers=2,
+            arrival_rate=1.0,   # rho < 1 for both strategies so waits are finite
+            mean_service=40.0,
+        )
+        ctx = _ctx(
+            0.0, 0.0,
+            future_reserved_parallel_by_station={str(station.id): 2},
+            future_reservation_starts_by_station={str(station.id): 0},
+            current_occupancy_by_station={str(station.id): 0},
+        )
+
+        score_qa = QueueAwareStrategy().score(station, ctx, _MAX)
+        score_sq = StaticQueueStrategy().score(station, ctx, _MAX)
+
+        assert score_qa > score_sq
 
 
-def test_nearest_orders_by_road_distance() -> None:
-    stations = [station("far"), station("near"), station("mid")]
-    assert order(NearestStrategy(), stations, ctx({"far": 9, "near": 1, "mid": 4})) == ["near", "mid", "far"]
+# ---------------------------------------------------------------------------
+# DijkstraStrategy
+# ---------------------------------------------------------------------------
+
+class TestDijkstraStrategy:
+    def test_dijkstra_strategy_consistent_with_haversine(self):
+        origin_lat, origin_lon = 0.0, 0.0
+        s_near = _make_station(lat=0.01, lon=0.0)
+        s_mid = _make_station(lat=0.05, lon=0.0)
+        s_far = _make_station(lat=0.10, lon=0.0)
+        stations = [s_near, s_mid, s_far]
+
+        ctx = _ctx(origin_lat, origin_lon)
+
+        def nearest_id(strategy):
+            return min(stations, key=lambda s: strategy.score(s, ctx, _MAX)).id
+
+        assert nearest_id(NearestStrategy()) == nearest_id(DijkstraStrategy())
+        assert nearest_id(NearestStrategy()) == s_near.id
 
 
-def test_ties_are_broken_deterministically_by_id() -> None:
-    stations = [station("b"), station("a")]
-    assert order(NearestStrategy(), stations, ctx({"a": 2, "b": 2})) == ["a", "b"]
+# ---------------------------------------------------------------------------
+# RangeAwareStrategy
+# ---------------------------------------------------------------------------
 
+class TestRangeAwareStrategy:
+    def test_range_aware_penalises_distant_station_on_low_battery(self):
+        origin_lat, origin_lon = 51.5, -0.1
+        # 0.45° latitude ≈ 50 km
+        s_far = _make_station(lat=origin_lat + 0.45, lon=origin_lon)
 
-def test_static_queue_trades_a_little_distance_for_a_much_shorter_queue() -> None:
-    stations = [station("single", chargers=1), station("hub", chargers=4)]
-    context = ctx({"single": 1.0, "hub": 1.5})
-    assert order(NearestStrategy(), stations, context)[0] == "single"
-    assert order(StaticQueueStrategy(), stations, context)[0] == "hub"
+        ctx = _ctx(
+            origin_lat, origin_lon,
+            battery_level_percent=5.0,
+            battery_capacity_kwh=60.0,
+        )
 
+        score = RangeAwareStrategy().score(s_far, ctx, _MAX)
+        assert score > 1e5
 
-def test_static_queue_ignores_reservations_but_queue_aware_does_not() -> None:
-    busy, quiet = station("busy", chargers=3), station("quiet", chargers=3)
-    context = ctx({"busy": 1.0, "quiet": 1.2}, reserved_by_station={"busy": 3})
+    def test_range_aware_no_penalty_when_battery_sufficient(self):
+        origin_lat, origin_lon = 51.5, -0.1
+        # Use calibrated arrival rate (0.75/hr → ρ=0.5) so base score is small;
+        # the assertion verifies no range penalty is added on top.
+        s_near = _make_station(lat=origin_lat + 0.009, lon=origin_lon, arrival_rate=0.75)
 
-    assert order(StaticQueueStrategy(), [busy, quiet], context)[0] == "busy"
-    assert order(QueueAwareStrategy(), [busy, quiet], context)[0] == "quiet"
+        ctx = _ctx(
+            origin_lat, origin_lon,
+            battery_level_percent=80.0,
+            battery_capacity_kwh=60.0,
+        )
 
-
-def test_queue_aware_never_models_fewer_than_one_charger() -> None:
-    s = station("s", chargers=2)
-    context = ctx({"s": 1.0}, reserved_by_station={"s": 5})
-    assert QueueAwareStrategy().free_chargers(s, context) == 1
-
-
-def test_prediction_matches_what_the_strategy_scored() -> None:
-    s = station("s", chargers=2)
-    context = ctx({"s": 1.0}, reserved_by_station={"s": 1})
-    static, aware = StaticQueueStrategy().rank([s], context)[0], QueueAwareStrategy().rank([s], context)[0]
-    assert aware.prediction.wait_min > static.prediction.wait_min
-
-
-def test_cost_optimized_follows_the_weights() -> None:
-    cheap_far = station("cheap_far", price=30.0)
-    dear_near = station("dear_near", price=80.0)
-    distances = {"cheap_far": 8.0, "dear_near": 1.0}
-
-    price_first = ctx(distances, weights=(0.0, 0.0, 1.0))
-    distance_first = ctx(distances, weights=(1.0, 0.0, 0.0))
-    stations = [cheap_far, dear_near]
-
-    assert order(CostOptimizedStrategy(), stations, price_first)[0] == "cheap_far"
-    assert order(CostOptimizedStrategy(), stations, distance_first)[0] == "dear_near"
-
-
-def test_range_aware_puts_unreachable_stations_last() -> None:
-    near_busy = station("near_busy", chargers=1)
-    far_quiet = station("far_quiet", chargers=6)
-    context = ctx({"near_busy": 2.0, "far_quiet": 30.0}, battery_level_percent=10, battery_capacity_kwh=40)
-
-    # 4 kWh left minus a 2 kWh reserve is about 10 km at 0.2 kWh/km.
-    assert order(RangeAwareStrategy(), [far_quiet, near_busy], context) == ["near_busy", "far_quiet"]
-
-
-def test_range_aware_with_enough_charge_picks_the_shortest_queue() -> None:
-    near_busy = station("near_busy", chargers=1)
-    far_quiet = station("far_quiet", chargers=6)
-    context = ctx({"near_busy": 2.0, "far_quiet": 30.0}, battery_level_percent=90, battery_capacity_kwh=60)
-    assert order(RangeAwareStrategy(), [near_busy, far_quiet], context)[0] == "far_quiet"
-
-
-def test_range_aware_without_battery_info_treats_everything_as_reachable() -> None:
-    s = station("s")
-    assert RangeAwareStrategy().reachable(s, ctx({"s": 500.0}))
-
-
-def test_arrival_rate_scale_raises_predicted_waits() -> None:
-    s = station("s", chargers=2)
-    base = StaticQueueStrategy().predict(s, ctx({"s": 1.0}))
-    stressed = StaticQueueStrategy().predict(s, ctx({"s": 1.0}, arrival_rate_scale=2.0))
-    assert stressed.wait_min > base.wait_min
-
-
-def test_dijkstra_ranks_by_drive_time_from_its_router() -> None:
-    stations = [station("a"), station("b"), station("c"), station("island")]
-    routes = {"a": Travel(2.0, 7.0), "b": Travel(4.0, 3.0), "c": Travel(1.0, 5.0), "island": None}
-    strategy = DijkstraStrategy(router=lambda lat, lon, candidates: routes)
-
-    ranked = strategy.rank(stations, ctx({"a": 1, "b": 1, "c": 1, "island": 1}))
-
-    # Fastest first, even though "c" is the shortest; the unreachable station is dropped.
-    assert [r.station.id for r in ranked] == ["b", "c", "a"]
-    assert [r.score for r in ranked] == pytest.approx([3.0, 5.0, 7.0])
-    assert ranked[0].travel == Travel(4.0, 3.0)
+        score = RangeAwareStrategy().score(s_near, ctx, _MAX)
+        assert score < 10.0

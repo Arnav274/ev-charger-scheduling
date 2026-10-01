@@ -3,18 +3,19 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import text
 
 from app.database import SessionLocal
 
+
 DEMO_USER_EMAIL = "demo.user@example.com"
 
 
 def next_full_hour_utc(now: datetime) -> datetime:
-    now = now.astimezone(UTC)
-    return now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+    now = now.astimezone(timezone.utc)
+    return (now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
 
 
 def main() -> None:
@@ -29,6 +30,10 @@ def main() -> None:
                 f"Demo user not found ({DEMO_USER_EMAIL}). Run `python -m scripts.seed_demo` first."
             )
 
+
+
+
+
         # Pick a small set of stations with the most chargers to make the hotspot visually obvious.
         station_rows = db.execute(
             text(
@@ -41,6 +46,10 @@ def main() -> None:
                 LIMIT 3
                 """
             )
+
+
+
+
         ).all()
         if not station_rows:
             raise RuntimeError("No stations/chargers found. Run ingestion first.")
@@ -60,6 +69,9 @@ def main() -> None:
             {"station_ids": station_ids},
         ).all()
 
+
+
+
         # Clear prior demo hotspot reservations for determinism.
         db.execute(
             text(
@@ -74,9 +86,12 @@ def main() -> None:
             {"user_id": user_id, "station_ids": station_ids},
         )
 
-        anchor = next_full_hour_utc(datetime.now(UTC))
+
+
+
+        anchor = next_full_hour_utc(datetime.now(timezone.utc))
         # Create heavy overlap for 90
-        # This increases both
+        # This increases both 
         for idx, row in enumerate(charger_rows):
             charger_id = str(row.id)
             # Stagger starts slightly across chargers to create starts within windows too.
@@ -117,6 +132,9 @@ def main() -> None:
             }
         )
 
+
+
+
         print("Compare with algorithm='static_queue' to show divergence.")
     finally:
         db.close()
@@ -124,3 +142,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

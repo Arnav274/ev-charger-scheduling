@@ -1,5 +1,23 @@
 # EV Charger Scheduling
 
+> **This is the version I submitted for my dissertation.** Since then I have gone back through it
+> and found problems that change some of the conclusions below:
+>
+> - **The Dijkstra strategy does nothing useful.** It runs over a complete graph of straight-line
+>   distances, which obey the triangle inequality, so the direct edge is always the shortest path.
+>   In practice it ranks by straight-line distance, and the claim below that it finds a shorter
+>   path than `nearest` is wrong.
+> - **The main metric is circular.** Each strategy is scored by the Erlang-C *predicted* wait at
+>   the station it picks, the same formula the queue strategies minimise, so they win by
+>   construction. The explanation that better routing makes drivers converge on the same chargers
+>   was never measured.
+> - **Most simulated trips start outside the station data**, which only reaches about 2.6 km from
+>   central London.
+>
+> I am rebuilding the experiment on the [`rework`](https://github.com/Arnav274/ev-charger-scheduling/tree/rework)
+> branch: Dijkstra over the real OpenStreetMap road network, and a discrete-event simulation that
+> measures waits instead of predicting them.
+
 A full-stack system that recommends London EV charging stations, and a controlled experiment
 measuring whether it is worth modelling the queue at each one.
 

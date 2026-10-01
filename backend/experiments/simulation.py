@@ -151,7 +151,7 @@ def choose_stations(
     bookings: dict[int, list[ReservationInterval]] = {}
     range_check = RangeAwareStrategy()
     window = timedelta(minutes=ARRIVAL_WINDOW_MINUTES)
-    uses_reservations = STRATEGIES[algorithm].uses_reservations
+    shared_strategy = STRATEGIES[algorithm]
     choices = []
 
     for driver in day.drivers:
@@ -164,7 +164,7 @@ def choose_stations(
         }
 
         reserved = {}
-        if uses_reservations:
+        if shared_strategy.uses_reservations:
             for i in candidates:
                 if i in bookings:
                     arrive_at = _timestamp(driver.depart_min + float(inputs.osrm_min[o, i]))
@@ -191,7 +191,7 @@ def choose_stations(
             }
             strategy = DijkstraStrategy(router=lambda _lat, _lon, _stations, routes=routes: routes)
         else:
-            strategy = STRATEGIES[algorithm]
+            strategy = shared_strategy
 
         # Dijkstra can, very rarely, fail to reach any candidate; that driver falls back to the nearest.
         ranked = strategy.rank(stations, ctx) or STRATEGIES["nearest"].rank(stations, ctx)

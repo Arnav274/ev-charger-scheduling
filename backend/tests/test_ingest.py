@@ -143,8 +143,20 @@ def test_unbooked_chargers_are_removed_before_booked_ones(db, make_station, user
     db.add(Reservation(charger_id=c2.id, user_id=user.id, start_time=now, end_time=now + timedelta(hours=1)))
     db.flush()
 
-    sync_chargers(db, station.id, wanted=1, power_kw=7.0)
+    assert sync_chargers(db, station.id, wanted=1, power_kw=7.0) == 0  # no upcoming booking lost
 
     assert charger_names(db, station) == ["C2"]
     sync_chargers(db, station.id, wanted=2, power_kw=7.0)
     assert charger_names(db, station) == ["C2", "Charger 1"]
+
+
+def test_bookings_lost_to_a_shrinking_station_are_counted(db, make_station, user, now) -> None:
+    station = make_station(chargers=2)
+    for charger in station.chargers:
+        db.add(
+            Reservation(
+                charger_id=charger.id, user_id=user.id, start_time=now, end_time=now + timedelta(hours=1)
+            )
+        )
+    db.flush()
+    assert sync_chargers(db, station.id, wanted=1, power_kw=7.0) == 1

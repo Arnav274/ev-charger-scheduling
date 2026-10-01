@@ -99,12 +99,13 @@ def fetch(latitude: float, longitude: float, distance_km: float, max_results: in
     return response.json()
 
 
-def sync_chargers(db, station_id, wanted: int, power_kw: float) -> None:
+def sync_chargers(db, station_id, wanted: int, power_kw: float) -> int:
     """Bring a station's chargers up to date without disturbing their bookings.
 
     Existing chargers keep their ids, so reservations on them survive a
     re-ingest. Missing chargers are added. If the station now has fewer,
     chargers without upcoming bookings are removed before booked ones.
+    Returns the number of upcoming bookings removed with them.
     """
     existing = db.execute(
         text(
@@ -136,10 +137,19 @@ def sync_chargers(db, station_id, wanted: int, power_kw: float) -> None:
         )
 
     surplus = [str(row.id) for row in existing[wanted:]]
-    if surplus:
-        params = {"ids": surplus}
-        db.execute(text("DELETE FROM reservations WHERE charger_id = ANY(CAST(:ids AS uuid[]))"), params)
-        db.execute(text("DELETE FROM chargers WHERE id = ANY(CAST(:ids AS uuid[]))"), params)
+    if not surplus:
+        return 0
+    params = {"ids": surplus}
+    lost = db.scalar(
+        text(
+            "SELECT count(*) FROM reservations "
+            "WHERE charger_id = ANY(CAST(:ids AS uuid[])) AND end_time > now()"
+        ),
+        params,
+    )
+    db.execute(text("DELETE FROM reservations WHERE charger_id = ANY(CAST(:ids AS uuid[]))"), params)
+    db.execute(text("DELETE FROM chargers WHERE id = ANY(CAST(:ids AS uuid[]))"), params)
+    return lost
 
 
 def ingest(records: list[dict], *, prune: bool, min_stations: int = 0) -> int:
@@ -155,6 +165,7 @@ def ingest(records: list[dict], *, prune: bool, min_stations: int = 0) -> int:
     prices = [p for r in usable if (p := parse_price_pence_per_kwh(r.get("UsageCost"))) is not None]
     fallback_price = statistics.median(prices) if prices else FALLBACK_PRICE_PENCE
 
+    lost_bookings = 0
     with SessionLocal() as db:
         kept_ids = []
         for record in usable:
@@ -197,7 +208,9 @@ def ingest(records: list[dict], *, prune: bool, min_stations: int = 0) -> int:
             ).scalar_one()
             kept_ids.append(station_id)
 
-            sync_chargers(db, station_id, int(record.get("NumberOfPoints") or 1), max_power_kw(record))
+            lost_bookings += sync_chargers(
+                db, station_id, int(record.get("NumberOfPoints") or 1), max_power_kw(record)
+            )
 
         if prune:
             # Stations that have left OpenChargeMap, or are now filtered out, go too.
@@ -206,6 +219,13 @@ def ingest(records: list[dict], *, prune: bool, min_stations: int = 0) -> int:
                 "WHERE source = 'openchargemap' AND NOT (id = ANY(CAST(:kept AS uuid[])))"
             )
             params = {"kept": kept_ids}
+            lost_bookings += db.scalar(
+                text(
+                    "SELECT count(*) FROM reservations WHERE end_time > now() AND charger_id IN "
+                    f"(SELECT id FROM chargers WHERE station_id IN ({stale}))"
+                ),
+                params,
+            )
             db.execute(
                 text(
                     "DELETE FROM reservations WHERE charger_id IN "
@@ -222,6 +242,11 @@ def ingest(records: list[dict], *, prune: bool, min_stations: int = 0) -> int:
         f"non-operational entries skipped). {len(prices)} had a per-kWh tariff; the rest use the "
         f"median, {fallback_price:.0f}p/kWh."
     )
+    if lost_bookings:
+        print(
+            f"Warning: {lost_bookings} upcoming bookings were removed "
+            "along with chargers or stations that no longer exist."
+        )
     return len(usable)
 
 

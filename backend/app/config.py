@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import timedelta
 from pathlib import Path
 
 # Queueing and energy model parameters. Sources and sensitivity ranges are in
@@ -7,6 +8,12 @@ from pathlib import Path
 ARRIVAL_RATE_PER_HOUR_DEFAULT: float = 0.75  # Hecht et al. (2022)
 MEAN_SERVICE_MINUTES_DEFAULT: float = 40.0  # DoE EERE FOTW #1319 (2023)
 ENERGY_CONSUMPTION_KWH_PER_KM: float = 0.2  # Weiss et al. (2024)
+
+# Booking limits, which stop one account from blocking chargers indefinitely.
+# The booking form mirrors MAX_ADVANCE in frontend/src/components/BookingPanel.jsx.
+MAX_BOOKING = timedelta(hours=12)
+MAX_ADVANCE = timedelta(days=30)
+MAX_UPCOMING_PER_USER = 10
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 

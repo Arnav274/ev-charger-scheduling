@@ -63,19 +63,9 @@ def main() -> None:
             {"station_ids": station_ids},
         ).all()
 
-        # Replace any earlier run of this seed.
-        db.execute(
-            text(
-                """
-                DELETE FROM reservations
-                WHERE user_id = :user_id
-                  AND charger_id IN (
-                    SELECT id FROM chargers WHERE station_id = ANY(CAST(:station_ids AS uuid[]))
-                  )
-                """
-            ),
-            {"user_id": user_id, "station_ids": station_ids},
-        )
+        # Replace any earlier run of this seed, wherever it booked. The account
+        # exists only for this script, so all of its bookings are ours to clear.
+        db.execute(text("DELETE FROM reservations WHERE user_id = :user_id"), {"user_id": user_id})
 
         anchor = next_full_hour_utc(datetime.now(UTC))
         # Book every charger at these stations for 75 minutes from the next full

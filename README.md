@@ -1,22 +1,20 @@
 # EV Charger Scheduling
 
-> **This is the version I submitted for my dissertation.** Since then I have gone back through it
-> and found problems that change some of the conclusions below:
+> **This is the version I submitted for my dissertation (March to June 2026).** After submitting
+> I went back through it and found three things that change how the results below should be read:
 >
-> - **The Dijkstra strategy does nothing useful.** It runs over a complete graph of straight-line
->   distances, which obey the triangle inequality, so the direct edge is always the shortest path.
->   In practice it ranks by straight-line distance, and the claim below that it finds a shorter
->   path than `nearest` is wrong.
-> - **The main metric is circular.** Each strategy is scored by the Erlang-C *predicted* wait at
->   the station it picks, the same formula the queue strategies minimise, so they win by
->   construction. The explanation that better routing makes drivers converge on the same chargers
->   was never measured.
-> - **Most simulated trips start outside the station data**, which only reaches about 2.6 km from
+> - **Dijkstra could only rank by straight-line distance.** It ran over a complete graph of
+>   straight-line distances, where the direct edge is always the shortest path. That, rather than
+>   better routing concentrating drivers, explains where it came out.
+> - **The waits are predicted, not measured.** Every strategy is scored by the Erlang-C *predicted*
+>   wait at the station it picks, the same formula the queue strategies minimise, so the table shows
+>   they do what they were built to do rather than how long drivers would really wait.
+> - **Most simulated trips started outside the station data**, which only reaches about 2.6 km from
 >   central London.
 >
-> I am rebuilding the experiment on the [`rework`](https://github.com/Arnav274/ev-charger-scheduling/tree/rework)
-> branch: Dijkstra over the real OpenStreetMap road network, and a discrete-event simulation that
-> measures waits instead of predicting them.
+> The follow-up is on the [`rework`](https://github.com/Arnav274/ev-charger-scheduling/tree/rework)
+> branch: a simulation that measures waits as drivers arrive and queue, and Dijkstra over the real
+> OpenStreetMap road network.
 
 A full-stack system that recommends London EV charging stations, and a controlled experiment
 measuring whether it is worth modelling the queue at each one.
